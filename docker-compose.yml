@@ -1,44 +1,25 @@
-version: '3'
 services:
-  diecastcollectiontracker-mongo:
-    image: mongo:4.4.18
-    container_name: diecastcollectiontracker-mongo
+  app:
+    # Builds from source by default. If you've cut a tagged release (see
+    # .github/workflows/release.yml — git tag v1.0.0 && git push origin v1.0.0), pre-built
+    # images are published too; swap this `build:` block for e.g.
+    # `image: docker.io/wwwescape/diecastcollectiontracker:1.0.0` (or the
+    # `ghcr.io/wwwescape/diecastcollectiontracker:1.0.0` equivalent) to deploy that instead.
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - "27017:27017"
+      - "${APP_PORT:-8000}:8000"
+    env_file:
+      - .env
+    # Named volumes, not bind mounts — survive `docker compose down`/image rebuilds/
+    # upgrades; only `docker compose down -v` removes them. Paths must match
+    # DEFAULT_SQLITE_PATH/UPLOADS_DIR in backend/app/core/config.py.
     volumes:
-      - mongo-data:/data/db
-  diecastcollectiontracker-backend:
-    build: ./backend
-    image: wwwescape/diecastcollectiontracker-backend:latest
-    container_name: diecastcollectiontracker-backend
-    environment:
-      - MONGO_URI=mongodb://diecastcollectiontracker-mongo:27017/diecastcollectiontracker
-      - PORT=2105
-    volumes:
-      - uploads:/app/uploads
-    depends_on:
-      - diecastcollectiontracker-mongo
-  diecastcollectiontracker-frontend:
-    build: ./frontend
-    image: wwwescape/diecastcollectiontracker-frontend:latest
-    container_name: diecastcollectiontracker-frontend
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - PORT=1602
-      - REACT_APP_API_URL=
-    depends_on:
-      - diecastcollectiontracker-backend
-  diecastcollectiontracker-nginx:
-    image: nginx:latest
-    container_name: diecastcollectiontracker-nginx
-    ports:
-      - "1602:1602"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - uploads:/app/uploads
-    depends_on:
-      - diecastcollectiontracker-backend
-      - diecastcollectiontracker-frontend
+      - db-data:/app/backend/db
+      - uploads-data:/app/backend/uploads
+    restart: unless-stopped
+
 volumes:
-  mongo-data:
-  uploads:
+  db-data:
+  uploads-data:

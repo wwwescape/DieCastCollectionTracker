@@ -1,119 +1,164 @@
-# Die Cast Collection Tracker
+<p align="center">
+  <img src="frontend/public/DieCastCollectionTracker.png" alt="DieCastCollectionTracker logo" width="120" />
+</p>
 
-![Die Cast Collection Tracker Logo](./frontend/src/assets/logo.png)
+<h1 align="center">DieCastCollectionTracker</h1>
 
-A web application to track your die cast collection. Built with **React** for the frontend, **Node.js** for the backend, and **MongoDB** for the database. The application allows you to add, edit, delete, and search for cars in your collection. It also supports uploading photos of your cars.
+<p align="center">
+  A self-hosted web app for tracking your die-cast car collection — what you own, what you want,
+  and what it's worth — with photos, filters, and offline browsing.
+</p>
 
----
+<p align="center">
+  <a href="https://github.com/wwwescape/DieCastCollectionTracker/releases"><img src="https://img.shields.io/github/v/release/wwwescape/DieCastCollectionTracker.svg?style=flat-square" alt="GitHub release" /></a>
+  <a href="https://github.com/wwwescape/DieCastCollectionTracker/commits/master"><img src="https://img.shields.io/github/last-commit/wwwescape/DieCastCollectionTracker.svg?style=flat-square" alt="GitHub last commit" /></a>
+  <a href="https://github.com/wwwescape/DieCastCollectionTracker"><img src="https://img.shields.io/github/languages/code-size/wwwescape/DieCastCollectionTracker.svg?color=red&style=flat-square" alt="GitHub code size" /></a>
+</p>
 
 ## Features
 
-- **Add Cars:** Add new die cast to your collection with details like name, model, year, and color.
-- **Edit Cars:** Update details of existing cars in your collection.
-- **Delete Cars:** Remove cars from your collection.
-- **Search Cars:** Search for cars by name, model, or year.
-- **Photo Upload:** Upload photos of your die cast.
-- **Responsive Design:** The app is fully responsive and works on all devices.
-
----
-
-## Technologies Used
-
-- **Frontend:** React, Axios
-- **Backend:** Node.js, Express, MongoDB
-- **Database:** MongoDB
-- **Containerization:** Docker
-- **Deployment:** Docker Hub
-
----
+- **Collection tracking** — owned cars and a wishlist, with manufacturer, series, vehicle type,
+  color, cast and collection numbers, year, condition (Mint in Box to Poor), quantity, purchase
+  price, notes, and tags.
+- **Photo gallery** — several photos per car, with a primary photo for the card.
+- **Search & filters** — filter by manufacturer, series, vehicle type, color, or status.
+- **Your own lookup lists** — manufacturers, series, vehicle types, and colors grow as you type,
+  and can be managed on their own page.
+- **Dashboard** — collection stats by manufacturer and vehicle type, plus recently added cars.
+- **Undo deletes** — a 5-second grace window before a delete is applied.
+- **Data portability** — CSV export, plus full JSON backup and restore.
+- **PWA** — installable, and works offline for anything you've already viewed (including car
+  photos).
+- **Material 3 design** — light and dark mode, and responsive navigation for phone, tablet, and
+  desktop.
+- **Single admin, self-hosted** — no public registration, no multi-tenancy.
 
 ## Installation
 
-### Prerequisites
+The published Docker image bundles the frontend and backend into a single container, with
+SQLite, so no separate database service is needed. Create a `docker-compose.yml`:
 
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-- [Node.js](https://nodejs.org/) (for development only)
+```yaml
+services:
+  app:
+    image: wwwescape/diecastcollectiontracker:latest
+    container_name: diecastcollectiontracker
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    volumes:
+      - db-data:/app/backend/db
+      - uploads-data:/app/backend/uploads
+    restart: unless-stopped
 
----
+volumes:
+  db-data:
+  uploads-data:
+```
 
-### For Development
+Create a `.env` file next to it (see [Configuration](#configuration)), then start it and create
+your admin account:
 
-1. **Clone the Repository:**
+```bash
+docker compose up -d
+```
 
-    ```bash
-    git clone https://github.com/your-username/diecastcollectiontracker-collection.git
-    cd diecastcollectiontracker-collection
-    ```
+```bash
+docker compose exec app python -m scripts.create_admin --username admin
+```
 
-2. **Set Up Environment Variables:**
+Open `http://localhost:8000` and log in. Migrations run automatically on startup, and your
+database and car photos live in the named volumes, so they survive restarts and upgrades.
 
-    Create a `.env` file in the [backend](http://_vscodecontentref_/1) and [frontend](http://_vscodecontentref_/2) directories with the following content:
+### Upgrading
 
-    **backend/.env.development:**
-    ```env
-    MONGO_URI=mongodb://localhost:27017/diecastcollectiontracker
-    ```
+```bash
+docker compose pull && docker compose up -d
+```
 
-    **frontend/.env.development:**
-    ```env
-    REACT_APP_API_URL=http://localhost:2105
-    ```
+Running from source instead? `git pull`, reinstall dependencies if they changed, then run
+`alembic upgrade head` from `backend/` before starting the app.
 
-3. **Start the Development Environment (Backend):**
+## Configuration
 
-    ```bash
-    cd backend
-    node index.js
-    ```
+Settings live in `.env` (see [.env.example](.env.example)). Only a JWT secret is required:
 
-    This will start the MongoDB, and backend services.
+```env
+JWT_SECRET_KEY=            # generate with: python -c "import secrets; print(secrets.token_hex(32))"
+```
 
-4. **Start the Development Environment (Frontend):**
+Optional: `DATABASE_URL` (a local SQLite file by default), `CORS_ORIGINS`, and `APP_PORT`
+(`8000` by default, used by the repo's own `docker-compose.yml`).
 
-    ```bash
-    cd frontend
-    npm start
-    ```
+## Development
 
-    This will start the frontend services.
+Requires [Git](https://git-scm.com/downloads), [Node.js 22+](https://nodejs.org/en/download/current),
+and [Python 3.12+](https://www.python.org/downloads/).
 
----
+```bash
+git clone https://github.com/wwwescape/DieCastCollectionTracker.git
+cd DieCastCollectionTracker
+npm install
+cd backend
+python -m venv .venv
+.venv\Scripts\activate          # Windows; use `source .venv/bin/activate` on macOS/Linux
+pip install -r requirements-dev.txt
+alembic upgrade head
+python -m scripts.create_admin --username admin
+```
 
-### For Production
+Create `.env` in the project root as described in [Configuration](#configuration), then run the
+backend and frontend in two terminals:
 
-1. **Clone the Repository:**
+```bash
+cd backend && .venv\Scripts\activate && uvicorn app.main:app --reload --port 8000
+```
 
-    ```bash
-    git clone https://github.com/your-username/diecastcollectiontracker-collection.git
-    cd diecastcollectiontracker-collection
-    ```
+```bash
+npm start
+```
 
-2. **Set Up Environment Variables:**
+The frontend runs on `http://localhost:3000` and talks to the backend on
+`http://localhost:8000`. The repo's own `docker-compose.yml` builds the image from source
+(`docker compose up -d --build`).
 
-    Create a `.env` file in the [backend](http://_vscodecontentref_/3) and [frontend](http://_vscodecontentref_/4) directories with the following content:
+### Test
 
-    **backend/.env.production:**
-    ```env
-    MONGO_URI=mongodb://diecastcollectiontracker-mongo:27017/diecastcollectiontracker
-    ```
+```bash
+npm run lint && npm run typecheck && npm test && npm run build
+cd backend && ruff check . && pytest
+```
 
-    **frontend/.env.production:**
-    ```env
-    REACT_APP_API_URL=http://your-production-url
-    ```
+### Release a new version
 
-3. **Build and Start the Production Environment:**
+```bash
+git tag v1.1.0
+git push origin v1.1.0
+```
 
-    ```bash
-    docker compose build --no-cache
-    docker compose up -d
-    ```
+The tag push publishes the Docker image to GHCR and Docker Hub (tagged with the version and
+`latest`) and creates a GitHub Release. Publishing to Docker Hub needs the `DOCKERHUB_USERNAME`
+and `DOCKERHUB_TOKEN` repository secrets.
 
-    This will build and start the MongoDB, backend, frontend, and Nginx services.
+### Project layout
 
----
+```
+frontend/   TypeScript, Vite, MUI (Material 3), TanStack Query, React Router — own package.json
+backend/    FastAPI, SQLAlchemy (SQLite), Alembic, Pydantic, PyJWT — own requirements.txt
+docs/       Developer guide
+```
+
+See [docs/developer-guide.md](docs/developer-guide.md) for conventions,
+[frontend/README.md](frontend/README.md) and [backend/README.md](backend/README.md) for each
+half, and [CONTRIBUTING.md](CONTRIBUTING.md) if you're sending a PR.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+GPL-3.0 — see [LICENSE](LICENSE).
+
+## Support
+
+If you find DieCastCollectionTracker useful, consider buying me a coffee:
+
+[<img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="40" />](https://buymeacoffee.com/wwwescape)
