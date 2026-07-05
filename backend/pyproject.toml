@@ -1,0 +1,24 @@
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+# alembic/versions/* is generated code (regenerated via `alembic revision --autogenerate`),
+# not hand-maintained — lint it the way Alembic writes it, not the way we'd write it.
+exclude = [".venv", "alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = [
+    # FastAPI's dependency-injection pattern is `param: T = Depends(...)` by design.
+    "B008",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+addopts = "--cov=app --cov-report=term-missing"
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+fail_under = 90
+exclude_also = ["\\.\\.\\.$"]

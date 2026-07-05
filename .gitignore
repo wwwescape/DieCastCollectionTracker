@@ -1,3 +1,13 @@
-node_modules/
-build/
-uploads/
+/build
+node_modules
+.env
+/backend/.venv
+/backend/.coverage
+/backend/db/*.db*
+/backend/db/backups/
+!/backend/db/.gitkeep
+/backend/uploads/*
+!/backend/uploads/.gitkeep
+__pycache__/
+*.pyc
+.claude/
