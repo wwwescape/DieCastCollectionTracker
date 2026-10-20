@@ -113,8 +113,23 @@ describe("CarList", () => {
     expect(screen.getByText("Wishlisted")).toBeInTheDocument();
     expect(screen.getByLabelText("Quantity")).toHaveTextContent("3");
     expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
+    // Added by hand, so it carries the Custom chip.
+    expect(screen.getByText("Custom")).toBeInTheDocument();
 
     await user.click(screen.getByText("Custom Camaro"));
     await waitFor(() => expect(screen.getByText("Car page")).toBeInTheDocument());
+  });
+
+  it("leaves the Custom chip off vehicles matched to the wiki", async () => {
+    vi.spyOn(carsApi, "listCars").mockResolvedValue([
+      { ...SAMPLE_CAR, catalogSource: "hotwheels", catalogTitle: "Custom Camaro" },
+    ]);
+    vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([]);
+    vi.spyOn(lookupsApi, "listVehicleTypes").mockResolvedValue([]);
+    vi.spyOn(lookupsApi, "listColors").mockResolvedValue([]);
+    renderCarList();
+
+    await screen.findByText("Custom Camaro");
+    expect(screen.queryByText("Custom")).not.toBeInTheDocument();
   });
 });

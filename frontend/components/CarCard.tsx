@@ -7,7 +7,14 @@ import ItemCard from "./ItemCard";
 // Only what the card shows, so the share-link pages' public cars fit too.
 export type CarCardData = Pick<
   Car,
-  "name" | "manufacturerName" | "seriesName" | "status" | "photo" | "condition" | "quantity"
+  | "name"
+  | "manufacturerName"
+  | "seriesName"
+  | "status"
+  | "photo"
+  | "condition"
+  | "quantity"
+  | "catalogTitle"
 >;
 
 interface CarCardProps {
@@ -24,6 +31,7 @@ const CarCard = ({ car, onClick }: CarCardProps) => {
       subtitle={[car.manufacturerName, car.seriesName].filter(Boolean).join(" · ")}
       imageUrl={resolveAssetUrl(car.photo)}
       holding={car}
+      custom={!car.catalogTitle}
       chips={
         car.condition ? (
           <Chip

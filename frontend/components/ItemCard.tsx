@@ -5,6 +5,7 @@ import CardActionArea from "@mui/material/CardActionArea";
 import Chip from "@mui/material/Chip";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
+import { grey } from "@mui/material/colors";
 import CollectionIcon from "../icons/CollectionIcon";
 import { useTranslation } from "react-i18next";
 import type { CarStatus } from "../api/types";
@@ -26,6 +27,8 @@ interface ItemCardProps {
   holding?: ItemCardHolding | null;
   // Bottom-left: something related (same casting, series...) is already in DCT.
   relatedHint?: string | null;
+  // Bottom-right: added by hand rather than from the wiki, like VideoGameTrackarr's Custom chip.
+  custom?: boolean;
   chips?: ReactNode;
   // A button pinned to the bottom, for search results.
   action?: ReactNode;
@@ -47,6 +50,7 @@ const ItemCard = ({
   imageFit = "cover",
   holding,
   relatedHint,
+  custom = false,
   chips,
   action,
   highlighted = false,
@@ -120,6 +124,21 @@ const ItemCard = ({
             }}
           />
         </Tooltip>
+      ) : null}
+      {custom ? (
+        <Chip
+          label={t("common.custom")}
+          size="small"
+          sx={{
+            position: "absolute",
+            bottom: 8,
+            right: 8,
+            fontWeight: 600,
+            color: "common.white",
+            bgcolor: grey[600],
+            boxShadow: 3,
+          }}
+        />
       ) : null}
     </Box>
   );

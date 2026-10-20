@@ -18,6 +18,7 @@ export type PublicCar = Pick<
   | "condition"
   | "quantity"
   | "photo"
+  | "catalogTitle"
 >;
 
 export type PublicSet = Pick<
@@ -33,6 +34,7 @@ export type PublicSet = Pick<
   | "quantity"
   | "photo"
   | "contents"
+  | "catalogTitle"
 >;
 
 export async function listPublicCars(token: string, search?: string): Promise<PublicCar[]> {

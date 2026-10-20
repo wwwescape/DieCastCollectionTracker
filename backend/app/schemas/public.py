@@ -5,7 +5,8 @@ from app.schemas.base import CamelModel
 
 class PublicCarResponse(CamelModel):
     """What a share-link visitor sees of a car: the catalog facts and one photo. None of the
-    owner's own data (purchase price, notes, tags)."""
+    owner's own data (purchase price, notes, tags). The wiki page title is kept: it's public
+    information, and its absence is what marks a hand-added "Custom" car."""
 
     id: int
     name: str
@@ -20,6 +21,7 @@ class PublicCarResponse(CamelModel):
     condition: CarCondition | None
     quantity: int
     photo: str | None
+    catalog_title: str | None
 
 
 def public_car_from_orm(car: Car) -> PublicCarResponse:
@@ -38,6 +40,7 @@ def public_car_from_orm(car: Car) -> PublicCarResponse:
         condition=car.condition,
         quantity=car.quantity,
         photo=photos[0].url if photos else None,
+        catalog_title=car.catalog_title,
     )
 
 
@@ -55,6 +58,7 @@ class PublicSetResponse(CamelModel):
     quantity: int
     photo: str | None
     contents: list[str]
+    catalog_title: str | None
 
 
 def public_set_from_orm(car_set: CarSet) -> PublicSetResponse:
@@ -70,4 +74,5 @@ def public_set_from_orm(car_set: CarSet) -> PublicSetResponse:
         quantity=car_set.quantity,
         photo=car_set.photo,
         contents=list(car_set.contents or []),
+        catalog_title=car_set.catalog_title,
     )

@@ -16,6 +16,7 @@ export type SetCardData = Pick<
   | "contents"
   | "sealed"
   | "quantity"
+  | "catalogTitle"
 >;
 
 interface SetCardProps {
@@ -33,6 +34,7 @@ const SetCard = ({ set, onClick }: SetCardProps) => {
       subtitle={[set.manufacturerName, set.year].filter(Boolean).join(" · ")}
       imageUrl={resolveAssetUrl(set.photo)}
       holding={set}
+      custom={!set.catalogTitle}
       chips={
         <>
           <Chip label={t(`setTypes.${set.setType}`)} size="small" variant="outlined" color="info" />

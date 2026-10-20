@@ -41,6 +41,9 @@ def test_public_lists_hide_owner_data(auth_client, client):
         assert hidden not in cars[0]
         assert hidden not in sets[0]
     assert [s["name"] for s in sets] == ["Fire Station"]
+    # No wiki link: the public cards show these as Custom.
+    assert cars[0]["catalogTitle"] is None
+    assert sets[0]["catalogTitle"] is None
 
 
 def test_unknown_share_token_is_404(client):

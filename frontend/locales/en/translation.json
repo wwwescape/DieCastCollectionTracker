@@ -39,7 +39,8 @@
     "copyingPhoto": "Copying photo",
     "wikiPhotoCopyError": "Couldn't copy the wiki photo. You can upload one yourself.",
     "vehicleCount_one": "{{count}} vehicle",
-    "vehicleCount_other": "{{count}} vehicles"
+    "vehicleCount_other": "{{count}} vehicles",
+    "custom": "Custom"
   },
   "status": {
     "owned": "Owned",
