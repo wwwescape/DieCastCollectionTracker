@@ -4,10 +4,11 @@ Backup format uses explicit database IDs so cross-table relationships (car→man
 car→series, car_tags→car/tag) are preserved intact on restore. IDs are preserved in the
 restored database, which is safe for SQLite (next autoincrement derives from MAX(rowid)).
 
-Photos are NOT bundled — they live in the uploads/ volume and are expected to still be
-present after a restore. Only the primary photo URL per car is included so it can be
-re-linked on restore. A safety snapshot of whatever is about to be wiped is written to
-backend/db/backups/ before each restore so the operation is always recoverable.
+Photo files are NOT bundled — they live in the uploads/ volume and are expected to still
+be present after a restore. Every photo URL per car (with its primary flag and order) is
+included so the whole gallery can be re-linked on restore. A safety snapshot of whatever is
+about to be wiped is written to backend/db/backups/ before each restore so the operation is
+always recoverable.
 """
 
 import json
@@ -26,6 +27,7 @@ from app.schemas.backup import (
     BackupColor,
     BackupManufacturer,
     BackupPayload,
+    BackupPhoto,
     BackupRestoreResult,
     BackupSeries,
     BackupTag,
@@ -64,7 +66,13 @@ def build_backup_payload(db: Session) -> BackupPayload:
             quantity=car.quantity,
             purchase_price=car.purchase_price,
             notes=car.notes,
+            catalog_source=car.catalog_source,
+            catalog_title=car.catalog_title,
             photo=next((p.url for p in car.photos if p.is_primary), None),
+            photos=[
+                BackupPhoto(url=p.url, is_primary=p.is_primary, sort_order=p.sort_order)
+                for p in sorted(car.photos, key=lambda p: p.sort_order)
+            ],
             tag_ids=tag_ids_by_car.get(car.id, []),
         )
         for car in all_cars
@@ -142,11 +150,16 @@ def restore_backup(db: Session, payload: BackupPayload) -> BackupRestoreResult:
             quantity=car.quantity,
             purchase_price=car.purchase_price,
             notes=car.notes,
+            catalog_source=car.catalog_source,
+            catalog_title=car.catalog_title,
         ))
     db.flush()
 
     for car in payload.cars:
-        if car.photo:
+        if car.photos:
+            for photo in car.photos:
+                db.add(CarPhoto(car_id=car.id, url=photo.url, is_primary=photo.is_primary, sort_order=photo.sort_order))
+        elif car.photo:
             db.add(CarPhoto(car_id=car.id, url=car.photo, is_primary=True, sort_order=0))
         for tag_id in car.tag_ids:
             db.add(CarTag(car_id=car.id, tag_id=tag_id))

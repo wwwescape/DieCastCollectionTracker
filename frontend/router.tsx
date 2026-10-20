@@ -6,6 +6,7 @@ import EditCarPage from "./components/EditCarPage";
 import DashboardPage from "./pages/DashboardPage";
 import Login from "./pages/Login";
 import ManagePage from "./pages/ManagePage";
+import CatalogCastingPage from "./pages/CatalogCastingPage";
 import ProtectedLayout from "./routes/ProtectedLayout";
 
 const router = createBrowserRouter([
@@ -18,6 +19,7 @@ const router = createBrowserRouter([
         children: [
           { path: "/", element: <CarList /> },
           { path: "/cars/add", element: <AddCarPage /> },
+          { path: "/cars/add/catalog", element: <CatalogCastingPage /> },
           { path: "/cars/:id/edit", element: <EditCarPage /> },
           { path: "/dashboard", element: <DashboardPage /> },
           { path: "/manage", element: <ManagePage /> },

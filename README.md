@@ -18,8 +18,13 @@
 ## Features
 
 - **Collection tracking** — owned cars and a wishlist, with manufacturer, series, vehicle type,
-  color, cast and collection numbers, year, condition (Mint in Box to Poor), quantity, purchase
+  color, toy/cast and collection numbers, year, condition (Mint in Box to Poor), quantity, purchase
   price, notes, and tags.
+- **Wiki catalog matching** — find a car on the community
+  [Hot Wheels Wiki](https://hotwheels.fandom.com) or [Matchbox Wiki](https://matchbox.fandom.com)
+  by name or by the toy number on the card (e.g. `HYW18`), pick the exact release, and the form
+  fills in name, series, color, toy and collector numbers, year, and photo. Existing cars can be
+  matched from their edit page. No API key needed; the instance needs outbound internet access.
 - **Photo gallery** — several photos per car, with a primary photo for the card.
 - **Search & filters** — filter by manufacturer, series, vehicle type, color, or status.
 - **Your own lookup lists** — manufacturers, series, vehicle types, and colors grow as you type,

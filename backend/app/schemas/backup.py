@@ -1,6 +1,8 @@
 from app.schemas.base import CamelModel
 
-BACKUP_FORMAT_VERSION = 1
+# v2 added the full per-car photo gallery (`photos`); v1 files carry only `photo`.
+# v3 added the wiki catalog link (`catalogSource`/`catalogTitle`); older files restore without one.
+BACKUP_FORMAT_VERSION = 3
 
 
 class BackupManufacturer(CamelModel):
@@ -30,6 +32,12 @@ class BackupTag(CamelModel):
     color: str | None
 
 
+class BackupPhoto(CamelModel):
+    url: str
+    is_primary: bool
+    sort_order: int
+
+
 class BackupCar(CamelModel):
     id: int
     name: str
@@ -45,8 +53,13 @@ class BackupCar(CamelModel):
     quantity: int
     purchase_price: float | None
     notes: str | None
-    # Primary photo URL — photos aren't bundled in the backup, they live in uploads/
+    catalog_source: str | None = None
+    catalog_title: str | None = None
+    # Primary photo URL, kept so v1 readers still see a photo. Image files aren't bundled in
+    # the backup, they live in uploads/.
     photo: str | None
+    # Full gallery. Missing from v1 backups, in which case restore falls back to `photo`.
+    photos: list[BackupPhoto] = []
     tag_ids: list[int]
 
 

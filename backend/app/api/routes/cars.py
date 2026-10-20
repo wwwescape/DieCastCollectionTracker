@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
+from app.api.routes.uploads import image_upload_error_to_http
 from app.models.car import CarStatus
 from app.schemas.car import CarCreateRequest, CarPhotoResponse, CarResponse, CarUpdateRequest, car_from_orm
+from app.schemas.upload import ImageImportRequest
 from app.services import car_service, upload_service
 
 router = APIRouter(prefix="/api/cars", tags=["cars"], dependencies=[Depends(get_current_user)])
@@ -67,16 +69,29 @@ def delete_car(car_id: int, db: Session = Depends(get_db)) -> None:
 # --- Photo gallery ---
 
 @router.post("/{car_id}/photos", response_model=CarPhotoResponse, status_code=status.HTTP_201_CREATED)
-async def add_car_photo(
+def add_car_photo(
     car_id: int,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
 ) -> CarPhotoResponse:
-    raw = await file.read()
+    car_service.get_car(db, car_id)  # 404 before writing a file that would be orphaned
     try:
-        url = upload_service.save_car_image(raw)
+        url = upload_service.save_car_image(file.file)
     except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
+        raise image_upload_error_to_http(exc) from exc
+    photo = car_service.add_car_photo(db, car_id, url)
+    return CarPhotoResponse(id=photo.id, url=photo.url, is_primary=photo.is_primary, sort_order=photo.sort_order)
+
+
+@router.post("/{car_id}/photos/from-wiki", response_model=CarPhotoResponse, status_code=status.HTTP_201_CREATED)
+def import_car_photo_from_wiki(
+    car_id: int, body: ImageImportRequest, db: Session = Depends(get_db)
+) -> CarPhotoResponse:
+    car_service.get_car(db, car_id)  # 404 before writing a file that would be orphaned
+    try:
+        url = upload_service.import_car_image_from_wiki(body.url)
+    except ValueError as exc:
+        raise image_upload_error_to_http(exc) from exc
     photo = car_service.add_car_photo(db, car_id, url)
     return CarPhotoResponse(id=photo.id, url=photo.url, is_primary=photo.is_primary, sort_order=photo.sort_order)
 

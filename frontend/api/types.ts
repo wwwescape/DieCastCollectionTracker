@@ -1,3 +1,5 @@
+import type { CatalogSourceId } from "./catalog";
+
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
@@ -65,6 +67,9 @@ export interface Car {
   quantity: number;
   purchasePrice: number | null;
   notes: string | null;
+  catalogSource: CatalogSourceId | null;
+  catalogTitle: string | null;
+  catalogUrl: string | null;
   photo: string | null;
   photos: CarPhoto[];
   tags: Tag[];
@@ -84,6 +89,8 @@ export interface CarInput {
   quantity: number;
   purchasePrice: number | null;
   notes: string | null;
+  catalogSource: CatalogSourceId | null;
+  catalogTitle: string | null;
   photo?: string | null;
   tags: string[];
 }

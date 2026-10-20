@@ -49,7 +49,7 @@ export default function DashboardPage() {
           <StatCard label="Total Cars" value={data.totalCars} />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
-          <StatCard label="Total Quantity" value={data.totalQuantity} />
+          <StatCard label="Pieces Owned" value={data.totalQuantity} />
         </Grid>
         <Grid size={{ xs: 6, sm: 3 }}>
           <StatCard label="Owned" value={data.ownedCount} />

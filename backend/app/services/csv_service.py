@@ -9,7 +9,7 @@ from app.models.lookups import Tag
 
 CSV_COLUMNS = [
     "name", "manufacturer", "series", "vehicle_type", "color",
-    "cast_number", "collection_number", "year", "status", "quantity",
+    "cast_number", "collection_number", "year", "status", "condition", "quantity",
     "purchase_price", "notes", "tags",
 ]
 
@@ -52,6 +52,7 @@ def export_csv(db: Session) -> str:
             car.collection_number or "",
             car.year if car.year is not None else "",
             car.status.value,
+            car.condition.value if car.condition else "",
             car.quantity,
             car.purchase_price if car.purchase_price is not None else "",
             car.notes or "",

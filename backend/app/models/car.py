@@ -41,6 +41,10 @@ class Car(TimestampMixin, Base):
     quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     purchase_price: Mapped[float | None] = mapped_column()
     notes: Mapped[str | None] = mapped_column(Text)
+    # Link to the casting page this car was matched to on a community wiki (see
+    # app/services/wiki_catalog.py) — the source id ("hotwheels"/"matchbox") plus the page title.
+    catalog_source: Mapped[str | None] = mapped_column(String(32))
+    catalog_title: Mapped[str | None] = mapped_column(String(255))
 
     manufacturer: Mapped["Manufacturer"] = relationship()
     series: Mapped["Series | None"] = relationship()

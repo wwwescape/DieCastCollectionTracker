@@ -5,10 +5,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api.routes import auth, cars, dashboard, export, health, lookups, tags, uploads
+from app.api.routes import auth, cars, catalog, dashboard, export, health, lookups, tags, uploads
 from app.core.config import REPO_ROOT, UPLOADS_DIR, get_settings
 from app.core.logging import configure_logging
 from app.services.exceptions import ConflictError, NotFoundError
+from app.services.wiki_catalog import CatalogUnavailableError
 
 FRONTEND_BUILD_DIR = REPO_ROOT / "build"
 
@@ -53,9 +54,15 @@ async def conflict_handler(request: Request, exc: ConflictError) -> JSONResponse
     return JSONResponse(status_code=409, content={"detail": str(exc)})
 
 
+@app.exception_handler(CatalogUnavailableError)
+async def catalog_unavailable_handler(request: Request, exc: CatalogUnavailableError) -> JSONResponse:
+    return JSONResponse(status_code=502, content={"detail": str(exc)})
+
+
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(cars.router)
+app.include_router(catalog.router)
 app.include_router(lookups.router)
 app.include_router(tags.router)
 app.include_router(uploads.router)

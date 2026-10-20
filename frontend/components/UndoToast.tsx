@@ -5,7 +5,8 @@ import { toast, type ToastContentProps } from "react-toastify";
 
 interface UndoToastContentProps extends Partial<ToastContentProps> {
   message: string;
-  onUndo: () => void;
+  // Returns false when the action already went through, e.g. the page was left mid-window.
+  onUndo: () => boolean;
 }
 
 const UndoToastContent = ({ message, onUndo, closeToast }: UndoToastContentProps) => (
@@ -17,7 +18,9 @@ const UndoToastContent = ({ message, onUndo, closeToast }: UndoToastContentProps
       size="small"
       color="inherit"
       onClick={() => {
-        onUndo();
+        if (!onUndo()) {
+          toast.info("Too late to undo — it's already done.");
+        }
         closeToast?.();
       }}
     >
@@ -29,7 +32,7 @@ const UndoToastContent = ({ message, onUndo, closeToast }: UndoToastContentProps
 // A toast offering a single grace-period "Undo" — pairs with useUndoableAction, whose
 // `delayMs` should match `autoClose` here so the toast's lifetime communicates the actual
 // window the user has to change their mind.
-export function showUndoToast(message: string, onUndo: () => void, autoClose: number) {
+export function showUndoToast(message: string, onUndo: () => boolean, autoClose: number) {
   toast(({ closeToast }) => <UndoToastContent message={message} onUndo={onUndo} closeToast={closeToast} />, {
     autoClose,
     closeOnClick: false,

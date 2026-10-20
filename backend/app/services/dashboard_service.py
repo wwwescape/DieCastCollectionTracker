@@ -10,7 +10,9 @@ from app.schemas.dashboard import DashboardStats, ManufacturerStat, VehicleTypeS
 
 def get_dashboard_stats(db: Session) -> DashboardStats:
     total_cars = db.scalar(select(func.count()).select_from(Car)) or 0
-    total_quantity = db.scalar(select(func.sum(Car.quantity)).select_from(Car)) or 0
+    # Wishlist rows carry a quantity too (how many you want), so only owned rows count as pieces
+    # in the collection.
+    total_quantity = db.scalar(select(func.sum(Car.quantity)).where(Car.status == CarStatus.OWNED)) or 0
     owned_count = db.scalar(select(func.count()).select_from(Car).where(Car.status == CarStatus.OWNED)) or 0
     wishlist_count = db.scalar(select(func.count()).select_from(Car).where(Car.status == CarStatus.WISHLIST)) or 0
 

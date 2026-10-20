@@ -1,8 +1,11 @@
+from typing import Literal
+
 from pydantic import Field
 
 from app.models.car import Car, CarCondition, CarStatus
 from app.schemas.base import CamelModel
 from app.schemas.tag import TagResponse, tag_from_orm
+from app.services import wiki_catalog
 
 
 class CarPhotoResponse(CamelModel):
@@ -31,12 +34,20 @@ class CarResponse(CamelModel):
     quantity: int
     purchase_price: float | None
     notes: str | None
+    catalog_source: str | None
+    catalog_title: str | None
+    catalog_url: str | None
     # Convenience field: URL of the primary photo (first photo with is_primary=True,
     # or the first photo overall). Kept for backward compat with any code that reads
     # car.photo directly; the full list is in `photos`.
     photo: str | None
     photos: list[CarPhotoResponse]
     tags: list[TagResponse]
+
+
+def _catalog_url(car: Car) -> str | None:
+    source = wiki_catalog.SOURCES.get(car.catalog_source or "")
+    return source.page_url(car.catalog_title) if source and car.catalog_title else None
 
 
 def car_from_orm(car: Car, tags: list) -> CarResponse:
@@ -62,6 +73,9 @@ def car_from_orm(car: Car, tags: list) -> CarResponse:
         quantity=car.quantity,
         purchase_price=car.purchase_price,
         notes=car.notes,
+        catalog_source=car.catalog_source,
+        catalog_title=car.catalog_title,
+        catalog_url=_catalog_url(car),
         photo=primary.url if primary else None,
         photos=[CarPhotoResponse(id=p.id, url=p.url, is_primary=p.is_primary, sort_order=p.sort_order) for p in photos],
         tags=[tag_from_orm(tag) for tag in tags],
@@ -82,6 +96,8 @@ class CarCreateRequest(CamelModel):
     quantity: int = Field(default=1, ge=0)
     purchase_price: float | None = Field(default=None, ge=0)
     notes: str | None = None
+    catalog_source: Literal["hotwheels", "matchbox"] | None = None
+    catalog_title: str | None = Field(default=None, max_length=255)
     # Convenience: initial photo URL (from POST /api/uploads/car-images). Automatically
     # creates a CarPhoto record with is_primary=True. Additional photos are managed via
     # POST /api/cars/{id}/photos after the car is created.
@@ -103,4 +119,6 @@ class CarUpdateRequest(CamelModel):
     quantity: int | None = Field(default=None, ge=0)
     purchase_price: float | None = Field(default=None, ge=0)
     notes: str | None = None
+    catalog_source: Literal["hotwheels", "matchbox"] | None = None
+    catalog_title: str | None = Field(default=None, max_length=255)
     tags: list[str] | None = None

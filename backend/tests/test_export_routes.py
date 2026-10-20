@@ -1,6 +1,10 @@
 import io
 import json
 
+from PIL import Image
+
+from app.core.config import UPLOADS_DIR
+
 
 def test_export_csv_requires_auth(client):
     response = client.get("/api/export/csv")
@@ -28,6 +32,19 @@ def test_export_csv_empty(auth_client):
     lines = response.text.strip().splitlines()
     assert lines[0].startswith("name,manufacturer")
     assert len(lines) == 1  # header only
+
+
+def test_export_csv_includes_condition(auth_client):
+    auth_client.post(
+        "/api/cars", json={"name": "Bone Shaker", "manufacturer": "Hot Wheels", "condition": "near_mint"}
+    )
+
+    response = auth_client.get("/api/export/csv")
+
+    header, row = response.text.strip().splitlines()
+    columns = header.split(",")
+    assert "condition" in columns
+    assert row.split(",")[columns.index("condition")] == "near_mint"
 
 
 def test_export_csv_with_cars(auth_client):
@@ -64,7 +81,7 @@ def test_export_backup_json_structure(auth_client):
     assert response.status_code == 200
     assert "application/json" in response.headers["content-type"]
     payload = response.json()
-    assert payload["version"] == 1
+    assert payload["version"] == 3
     assert "exportedAt" in payload
     assert len(payload["manufacturers"]) == 1
     assert payload["manufacturers"][0]["name"] == "Matchbox"
@@ -104,6 +121,75 @@ def test_restore_backup_round_trip(auth_client):
     assert cars[0]["manufacturerName"] == "Hot Wheels"
     tag_names = {t["name"] for t in cars[0]["tags"]}
     assert tag_names == {"Retro"}
+
+
+def _add_photo(auth_client, car_id: int) -> dict:
+    buf = io.BytesIO()
+    Image.new("RGB", (40, 30), color="blue").save(buf, format="PNG")
+    response = auth_client.post(f"/api/cars/{car_id}/photos", files={"file": ("car.png", buf.getvalue(), "image/png")})
+    return response.json()
+
+
+def test_restore_backup_keeps_full_photo_gallery(auth_client):
+    car_id = auth_client.post("/api/cars", json={"name": "Twin Mill", "manufacturer": "Hot Wheels"}).json()["id"]
+    first = _add_photo(auth_client, car_id)
+    second = _add_photo(auth_client, car_id)
+    third = _add_photo(auth_client, car_id)
+    auth_client.patch(f"/api/cars/{car_id}/photos/{second['id']}/primary")
+    backup_bytes = auth_client.get("/api/export/backup").content
+
+    restore_response = auth_client.post(
+        "/api/import/backup", files={"file": ("backup.json", io.BytesIO(backup_bytes), "application/json")}
+    )
+
+    assert restore_response.status_code == 200
+    car = auth_client.get(f"/api/cars/{car_id}").json()
+    assert {p["url"] for p in car["photos"]} == {first["url"], second["url"], third["url"]}
+    assert car["photo"] == second["url"]
+    assert [p["url"] for p in car["photos"] if p["isPrimary"]] == [second["url"]]
+    for photo in (first, second, third):
+        (UPLOADS_DIR / "car-images" / photo["url"].removeprefix("/uploads/car-images/")).unlink()
+
+
+def test_restore_v1_backup_uses_primary_photo_field(auth_client):
+    v1_payload = {
+        "version": 1,
+        "exportedAt": "2026-01-01T00:00:00+00:00",
+        "manufacturers": [{"id": 1, "name": "Hot Wheels"}],
+        "series": [],
+        "vehicleTypes": [],
+        "colors": [],
+        "tags": [],
+        "cars": [
+            {
+                "id": 1,
+                "name": "Deora",
+                "manufacturerId": 1,
+                "seriesId": None,
+                "vehicleTypeId": None,
+                "colorId": None,
+                "castNumber": None,
+                "collectionNumber": None,
+                "year": None,
+                "status": "owned",
+                "condition": None,
+                "quantity": 1,
+                "purchasePrice": None,
+                "notes": None,
+                "photo": "/uploads/car-images/deora.jpg",
+                "tagIds": [],
+            }
+        ],
+    }
+
+    response = auth_client.post(
+        "/api/import/backup",
+        files={"file": ("backup.json", json.dumps(v1_payload).encode(), "application/json")},
+    )
+
+    assert response.status_code == 200
+    car = auth_client.get("/api/cars/1").json()
+    assert [(p["url"], p["isPrimary"]) for p in car["photos"]] == [("/uploads/car-images/deora.jpg", True)]
 
 
 def test_restore_backup_invalid_file(auth_client):

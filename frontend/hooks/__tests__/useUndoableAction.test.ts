@@ -17,7 +17,9 @@ describe("useUndoableAction", () => {
 
   it("marks scheduled items as pending immediately", () => {
     const onCommit = vi.fn().mockResolvedValue(undefined);
-    const { result } = renderHook(() => useUndoableAction<Item>({ getId: (item) => item.id, onCommit }));
+    const { result } = renderHook(() =>
+      useUndoableAction<Item>({ getId: (item) => item.id, onCommit })
+    );
 
     act(() => {
       result.current.schedule([{ id: 1 }, { id: 2 }]);
@@ -54,7 +56,7 @@ describe("useUndoableAction", () => {
       useUndoableAction<Item>({ getId: (item) => item.id, onCommit, delayMs: 1000 })
     );
 
-    let undo!: () => void;
+    let undo!: () => boolean;
     act(() => {
       ({ undo } = result.current.schedule([{ id: 1 }]));
     });
@@ -71,13 +73,34 @@ describe("useUndoableAction", () => {
     expect(result.current.isPending(1)).toBe(false);
   });
 
+  it("commits pending batches immediately when the component unmounts", () => {
+    const onCommit = vi.fn().mockResolvedValue(undefined);
+    const { result, unmount } = renderHook(() =>
+      useUndoableAction<Item>({ getId: (item) => item.id, onCommit, delayMs: 1000 })
+    );
+
+    let undo!: () => boolean;
+    act(() => {
+      ({ undo } = result.current.schedule([{ id: 1 }]));
+    });
+
+    unmount();
+
+    expect(onCommit).toHaveBeenCalledTimes(1);
+    expect(onCommit).toHaveBeenCalledWith([{ id: 1 }]);
+    expect(undo()).toBe(false);
+
+    vi.advanceTimersByTime(1000);
+    expect(onCommit).toHaveBeenCalledTimes(1);
+  });
+
   it("calling undo twice is a no-op the second time", () => {
     const onCommit = vi.fn().mockResolvedValue(undefined);
     const { result } = renderHook(() =>
       useUndoableAction<Item>({ getId: (item) => item.id, onCommit, delayMs: 1000 })
     );
 
-    let undo!: () => void;
+    let undo!: () => boolean;
     act(() => {
       ({ undo } = result.current.schedule([{ id: 1 }]));
     });
@@ -96,7 +119,7 @@ describe("useUndoableAction", () => {
       useUndoableAction<Item>({ getId: (item) => item.id, onCommit, delayMs: 1000 })
     );
 
-    let undoFirst!: () => void;
+    let undoFirst!: () => boolean;
     act(() => {
       ({ undo: undoFirst } = result.current.schedule([{ id: 1 }]));
       result.current.schedule([{ id: 2 }]);

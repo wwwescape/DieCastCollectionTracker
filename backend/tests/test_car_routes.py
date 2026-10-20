@@ -60,6 +60,31 @@ def test_series_scoped_to_manufacturer(auth_client, db_session):
     assert series.manufacturer_id == manufacturer.id
 
 
+def test_update_series_only_scopes_it_to_the_cars_manufacturer(auth_client, db_session):
+    car_id = auth_client.post("/api/cars", json={"name": "Car A", "manufacturer": "Hot Wheels"}).json()["id"]
+
+    response = auth_client.patch(f"/api/cars/{car_id}", json={"series": "Premium"})
+
+    assert response.status_code == 200
+    series = db_session.query(Series).filter_by(name="Premium").one()
+    manufacturer = db_session.query(Manufacturer).filter_by(name="Hot Wheels").one()
+    assert series.manufacturer_id == manufacturer.id
+
+
+def test_update_manufacturer_only_moves_series_to_new_manufacturer(auth_client, db_session):
+    car_id = auth_client.post(
+        "/api/cars", json={"name": "Car A", "manufacturer": "Hot Wheels", "series": "Premium"}
+    ).json()["id"]
+
+    response = auth_client.patch(f"/api/cars/{car_id}", json={"manufacturer": "Matchbox"})
+
+    assert response.status_code == 200
+    assert response.json()["seriesName"] == "Premium"
+    matchbox = db_session.query(Manufacturer).filter_by(name="Matchbox").one()
+    series = db_session.get(Series, response.json()["seriesId"])
+    assert series.manufacturer_id == matchbox.id
+
+
 def test_get_car_not_found(auth_client):
     response = auth_client.get("/api/cars/999")
 

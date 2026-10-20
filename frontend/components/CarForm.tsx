@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import Autocomplete from "@mui/material/Autocomplete";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Grid from "@mui/material/Grid2";
 import IconButton from "@mui/material/IconButton";
@@ -10,13 +11,16 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import CloseIcon from "@mui/icons-material/Close";
+import MenuBookIcon from "@mui/icons-material/MenuBook";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { resolveAssetUrl } from "../api/client";
+import type { CatalogSourceId } from "../api/catalog";
 import type { Car, CarCondition, CarInput, CarStatus } from "../api/types";
 import { CONDITION_LABELS } from "../api/types";
 import { useManufacturers, useSeries, useVehicleTypes, useColors } from "../hooks/useLookups";
 import { useTags } from "../hooks/useTags";
 import { useUploadCarImage } from "../hooks/useUploads";
+import { CATALOG_SOURCE_LABELS } from "../utils/catalog";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
 import AutocompleteSelect from "./AutocompleteSelect";
 import FreeSoloLookupField from "./FreeSoloLookupField";
@@ -60,6 +64,8 @@ export interface CarFormValues {
   notes: string;
   photo: string;
   tags: string[];
+  catalogSource: CatalogSourceId | null;
+  catalogTitle: string | null;
 }
 
 const EMPTY_VALUES: CarFormValues = {
@@ -78,6 +84,8 @@ const EMPTY_VALUES: CarFormValues = {
   notes: "",
   photo: "",
   tags: [],
+  catalogSource: null,
+  catalogTitle: null,
 };
 
 export function carToFormValues(car: Car): CarFormValues {
@@ -97,6 +105,8 @@ export function carToFormValues(car: Car): CarFormValues {
     notes: car.notes ?? "",
     photo: car.photo ?? "",
     tags: car.tags.map((tag) => tag.name),
+    catalogSource: car.catalogSource,
+    catalogTitle: car.catalogTitle,
   };
 }
 
@@ -117,7 +127,13 @@ export function formValuesToInput(values: CarFormValues, includePhoto = true): C
     notes: values.notes.trim() || null,
     ...(includePhoto ? { photo: values.photo.trim() || null } : {}),
     tags: values.tags,
+    catalogSource: values.catalogSource && values.catalogTitle ? values.catalogSource : null,
+    catalogTitle: values.catalogSource && values.catalogTitle ? values.catalogTitle : null,
   };
+}
+
+export function withFormDefaults(values: Partial<CarFormValues>): CarFormValues {
+  return { ...EMPTY_VALUES, ...values };
 }
 
 interface CarFormProps {
@@ -172,6 +188,20 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
   return (
     <Paper sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2 }} component="form" onSubmit={handleSubmit}>
       <Grid container spacing={2.5}>
+        {values.catalogSource && values.catalogTitle ? (
+          <Grid size={12}>
+            <Chip
+              icon={<MenuBookIcon />}
+              label={`Matched to ${values.catalogTitle} · ${CATALOG_SOURCE_LABELS[values.catalogSource]}`}
+              variant="outlined"
+              color="primary"
+              onDelete={() =>
+                setValues((prev) => ({ ...prev, catalogSource: null, catalogTitle: null }))
+              }
+              sx={{ maxWidth: "100%" }}
+            />
+          </Grid>
+        ) : null}
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             label="Name"
@@ -216,7 +246,7 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
-            label="Cast number"
+            label="Toy / cast number"
             fullWidth
             value={values.castNumber}
             onChange={(event) => setField("castNumber", event.target.value)}

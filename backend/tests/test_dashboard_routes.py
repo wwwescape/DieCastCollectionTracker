@@ -31,7 +31,7 @@ def test_dashboard_counts(auth_client):
     assert response.status_code == 200
     body = response.json()
     assert body["totalCars"] == 3
-    assert body["totalQuantity"] == 4  # 2 + 1 + 1
+    assert body["totalQuantity"] == 3  # 2 + 1 owned; the wishlist row is not counted
     assert body["ownedCount"] == 2
     assert body["wishlistCount"] == 1
 

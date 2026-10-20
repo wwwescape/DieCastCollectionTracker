@@ -18,15 +18,27 @@ from app.services.upload_service import delete_if_local_car_image
 _UNSET = object()
 
 
-def _resolve_car_fields(db: Session, fields: dict[str, Any]) -> dict[str, Any]:
+def _resolve_car_fields(db: Session, fields: dict[str, Any], car: Car | None = None) -> dict[str, Any]:
     """Resolves name-based lookup fields to FK ids via get-or-create. series is resolved
-    after manufacturer since a series can be scoped to the car's manufacturer."""
+    after manufacturer since a series is scoped to the car's manufacturer — on an update
+    that's the existing car's manufacturer unless this same request changes it."""
     resolved: dict[str, Any] = {}
 
     if "manufacturer" in fields:
         resolved["manufacturer_id"] = manufacturer_repository.get_or_create_by_name(db, fields["manufacturer"]).id
 
-    manufacturer_id = resolved.get("manufacturer_id")
+    manufacturer_id = resolved.get("manufacturer_id", car.manufacturer_id if car else None)
+
+    # Moving a car to another manufacturer without touching its series: carry the series
+    # name across so the car doesn't stay linked to a series scoped to the old manufacturer.
+    if (
+        car is not None
+        and "series" not in fields
+        and car.series is not None
+        and car.series.manufacturer_id is not None
+        and car.series.manufacturer_id != manufacturer_id
+    ):
+        fields = {**fields, "series": car.series.name}
 
     if "series" in fields:
         series_name = fields["series"]
@@ -52,6 +64,8 @@ def _resolve_car_fields(db: Session, fields: dict[str, Any]) -> dict[str, Any]:
         "quantity",
         "purchase_price",
         "notes",
+        "catalog_source",
+        "catalog_title",
     )
     for key in passthrough_keys:
         if key in fields:
@@ -113,7 +127,7 @@ def create_car(db: Session, tags: list[str] | None = None, **fields: Any) -> Car
 def update_car(db: Session, car_id: int, tags: list[str] | None = _UNSET, **fields: Any) -> Car:
     car = get_car(db, car_id)
 
-    resolved = _resolve_car_fields(db, fields)
+    resolved = _resolve_car_fields(db, fields, car)
     car_repository.update_car(db, car, **resolved)
 
     if tags is not _UNSET and tags is not None:

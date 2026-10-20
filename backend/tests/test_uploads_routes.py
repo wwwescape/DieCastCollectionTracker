@@ -3,6 +3,7 @@ import io
 from PIL import Image
 
 from app.core.config import UPLOADS_DIR
+from app.services import upload_service
 
 
 def _image_bytes(size: tuple[int, int] = (100, 140), image_format: str = "PNG") -> bytes:
@@ -71,3 +72,30 @@ def test_delete_car_with_uploaded_photo_removes_the_file(auth_client):
     auth_client.delete(f"/api/cars/{car['id']}")
 
     assert not saved_path.is_file()
+
+
+def test_upload_car_image_applies_exif_orientation(auth_client):
+    # 200x100 landscape pixels tagged "rotate 90° CW" (Orientation 6) — how a phone stores a
+    # portrait shot. The saved JPEG must be upright (portrait) since re-encoding drops the tag.
+    exif = Image.Exif()
+    exif[0x0112] = 6
+    buf = io.BytesIO()
+    Image.new("RGB", (200, 100), color="red").save(buf, format="JPEG", exif=exif)
+
+    response = auth_client.post("/api/uploads/car-images", files={"file": ("car.jpg", buf.getvalue(), "image/jpeg")})
+
+    assert response.status_code == 201
+    saved_path = UPLOADS_DIR / "car-images" / response.json()["url"].removeprefix("/uploads/car-images/")
+    with Image.open(saved_path) as saved:
+        assert saved.size == (100, 200)
+    saved_path.unlink()
+
+
+def test_upload_car_image_rejects_oversized_file(auth_client, monkeypatch):
+    monkeypatch.setattr(upload_service, "MAX_UPLOAD_BYTES", 1024)
+
+    response = auth_client.post(
+        "/api/uploads/car-images", files={"file": ("car.png", io.BytesIO(b"x" * 2048), "image/png")}
+    )
+
+    assert response.status_code == 413
