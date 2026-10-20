@@ -6,7 +6,6 @@ import InfoIcon from "@mui/icons-material/Info";
 import InsightsIcon from "@mui/icons-material/Insights";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import SettingsIcon from "@mui/icons-material/Settings";
-import CollectionIcon from "../icons/CollectionIcon";
 import RoadIcon from "../icons/RoadIcon";
 
 export interface NavSubDestination {
@@ -32,7 +31,7 @@ export const navDestinations: NavDestination[] = [
   {
     to: "/collection",
     labelKey: "nav.collection",
-    icon: <CollectionIcon />,
+    icon: <ListAltIcon />,
     subItems: [
       { to: "/collection/vehicles", labelKey: "nav.vehicles", icon: <DirectionsCarIcon /> },
       { to: "/collection/sets", labelKey: "nav.sets", icon: <RoadIcon /> },

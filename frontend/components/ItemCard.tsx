@@ -6,7 +6,7 @@ import Chip from "@mui/material/Chip";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { grey } from "@mui/material/colors";
-import CollectionIcon from "../icons/CollectionIcon";
+import PlaylistAddCheckIcon from "@mui/icons-material/PlaylistAddCheck";
 import { useTranslation } from "react-i18next";
 import type { CarStatus } from "../api/types";
 
@@ -111,7 +111,7 @@ const ItemCard = ({
       {relatedHint ? (
         <Tooltip title={relatedHint}>
           <Chip
-            icon={<CollectionIcon />}
+            icon={<PlaylistAddCheckIcon />}
             size="small"
             color="secondary"
             aria-label={relatedHint}

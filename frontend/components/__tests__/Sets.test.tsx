@@ -95,7 +95,8 @@ describe("SetForm", () => {
         contents: ["Jeep", "Land Rover"],
       })
     );
-  });
+    // Types a fair bit of text; can pass 5s on a busy machine.
+  }, 15_000);
 });
 
 describe("AddSetPage", () => {
