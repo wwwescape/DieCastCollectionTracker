@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.core.config import BACKEND_DIR
 from app.models.car import Car, CarCondition, CarPhoto, CarStatus, CarTag
+from app.models.car_set import CarSet, SetType
 from app.models.lookups import Color, Manufacturer, Series, Tag, VehicleType
 from app.schemas.backup import (
     BACKUP_FORMAT_VERSION,
@@ -30,6 +31,7 @@ from app.schemas.backup import (
     BackupPhoto,
     BackupRestoreResult,
     BackupSeries,
+    BackupSet,
     BackupTag,
     BackupVehicleType,
 )
@@ -78,6 +80,27 @@ def build_backup_payload(db: Session) -> BackupPayload:
         for car in all_cars
     ]
 
+    sets = [
+        BackupSet(
+            id=car_set.id,
+            name=car_set.name,
+            manufacturer_id=car_set.manufacturer_id,
+            set_type=car_set.set_type.value,
+            toy_number=car_set.toy_number,
+            year=car_set.year,
+            status=car_set.status.value,
+            sealed=car_set.sealed,
+            quantity=car_set.quantity,
+            purchase_price=car_set.purchase_price,
+            notes=car_set.notes,
+            photo=car_set.photo,
+            contents=list(car_set.contents or []),
+            catalog_source=car_set.catalog_source,
+            catalog_title=car_set.catalog_title,
+        )
+        for car_set in db.scalars(select(CarSet))
+    ]
+
     return BackupPayload(
         version=BACKUP_FORMAT_VERSION,
         exported_at=datetime.now(UTC).isoformat(),
@@ -87,6 +110,7 @@ def build_backup_payload(db: Session) -> BackupPayload:
         colors=colors,
         tags=tags,
         cars=cars,
+        sets=sets,
     )
 
 
@@ -110,6 +134,7 @@ def restore_backup(db: Session, payload: BackupPayload) -> BackupRestoreResult:
     safety_snapshot_path = _write_safety_snapshot(db)
 
     # Wipe in FK-safe order (children before parents)
+    db.execute(delete(CarSet))
     db.execute(delete(CarPhoto))
     db.execute(delete(CarTag))
     db.execute(delete(Car))
@@ -164,9 +189,29 @@ def restore_backup(db: Session, payload: BackupPayload) -> BackupRestoreResult:
         for tag_id in car.tag_ids:
             db.add(CarTag(car_id=car.id, tag_id=tag_id))
 
+    for car_set in payload.sets:
+        db.add(CarSet(
+            id=car_set.id,
+            name=car_set.name,
+            manufacturer_id=car_set.manufacturer_id,
+            set_type=SetType(car_set.set_type),
+            toy_number=car_set.toy_number,
+            year=car_set.year,
+            status=CarStatus(car_set.status),
+            sealed=car_set.sealed,
+            quantity=car_set.quantity,
+            purchase_price=car_set.purchase_price,
+            notes=car_set.notes,
+            photo=car_set.photo,
+            contents=car_set.contents,
+            catalog_source=car_set.catalog_source,
+            catalog_title=car_set.catalog_title,
+        ))
+
     db.commit()
 
     return BackupRestoreResult(
         restored_cars=len(payload.cars),
+        restored_sets=len(payload.sets),
         safety_snapshot_path=str(safety_snapshot_path),
     )

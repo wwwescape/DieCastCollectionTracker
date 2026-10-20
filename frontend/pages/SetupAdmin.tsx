@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { useTranslation } from "react-i18next";
 import { useSetupAdmin } from "../hooks/useAuth";
 
 interface SetupAdminProps {
@@ -14,6 +15,7 @@ interface SetupAdminProps {
 // admin account exists yet. POST /api/auth/setup logs the new account straight in, same as
 // a normal login would, so onDone just redirects like a successful sign-in does.
 const SetupAdmin = ({ onDone }: SetupAdminProps) => {
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -38,17 +40,16 @@ const SetupAdmin = ({ onDone }: SetupAdminProps) => {
         DieCastCollectionTracker
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        No admin account exists yet. Create one to get started.
+        {t("auth.setup.subtitle")}
       </Typography>
       {setupMutation.isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          Could not create the admin account. It may have already been set up, so try signing in
-          instead.
+          {t("auth.setup.error")}
         </Alert>
       )}
       <Box component="form" onSubmit={handleSubmit}>
         <TextField
-          label="Username"
+          label={t("auth.setup.username")}
           fullWidth
           margin="normal"
           value={username}
@@ -58,7 +59,7 @@ const SetupAdmin = ({ onDone }: SetupAdminProps) => {
           slotProps={{ htmlInput: { minLength: 3 } }}
         />
         <TextField
-          label="Password"
+          label={t("auth.setup.password")}
           type="password"
           fullWidth
           margin="normal"
@@ -66,10 +67,10 @@ const SetupAdmin = ({ onDone }: SetupAdminProps) => {
           onChange={(event) => setPassword(event.target.value)}
           required
           slotProps={{ htmlInput: { minLength: 8 } }}
-          helperText="At least 8 characters."
+          helperText={t("auth.setup.passwordHelper")}
         />
         <TextField
-          label="Confirm password"
+          label={t("auth.setup.confirmPassword")}
           type="password"
           fullWidth
           margin="normal"
@@ -77,7 +78,7 @@ const SetupAdmin = ({ onDone }: SetupAdminProps) => {
           onChange={(event) => setConfirmPassword(event.target.value)}
           required
           error={passwordsMismatch}
-          helperText={passwordsMismatch ? "Passwords don't match." : " "}
+          helperText={passwordsMismatch ? t("auth.setup.passwordsMismatch") : " "}
         />
         <Button
           type="submit"
@@ -86,7 +87,9 @@ const SetupAdmin = ({ onDone }: SetupAdminProps) => {
           sx={{ mt: 1 }}
           disabled={setupMutation.isPending || passwordsMismatch}
         >
-          {setupMutation.isPending ? "Creating account..." : "Create admin account"}
+          {setupMutation.isPending
+            ? t("auth.setup.creatingAccount")
+            : t("auth.setup.createAccount")}
         </Button>
       </Box>
     </>

@@ -51,7 +51,10 @@ function VirtualCarGrid<T>({ items, getKey, renderItem }: VirtualCarGridProps<T>
   });
 
   return (
-    <Box ref={containerRef} sx={{ position: "relative", width: "100%", height: virtualizer.getTotalSize() }}>
+    <Box
+      ref={containerRef}
+      sx={{ position: "relative", width: "100%", height: virtualizer.getTotalSize() }}
+    >
       {virtualizer.getVirtualItems().map((virtualItem) => {
         const item = items[virtualItem.index];
         return (

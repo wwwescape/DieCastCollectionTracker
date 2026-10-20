@@ -2,6 +2,7 @@ import { apiClient } from "./client";
 
 export interface BackupRestoreResult {
   restoredCars: number;
+  restoredSets: number;
   safetySnapshotPath: string;
 }
 

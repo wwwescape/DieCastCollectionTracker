@@ -155,6 +155,12 @@ def test_get_casting_missing_page_is_404(auth_client, fake_wiki):
     assert response.status_code == 404
 
 
+def test_search_requires_three_characters_after_trimming(auth_client, fake_wiki):
+    for query in ["ab", "  ab  ", "   "]:
+        response = auth_client.get("/api/catalog/search", params={"q": query})
+        assert response.status_code == 422, query
+
+
 def test_get_casting_rejects_unknown_source(auth_client):
     response = auth_client.get("/api/catalog/casting", params={"source": "majorette", "title": "X"})
 

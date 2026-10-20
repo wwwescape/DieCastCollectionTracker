@@ -7,11 +7,13 @@ import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useExportBackup, useExportCsv, useRestoreBackup } from "../hooks/useImportExport";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
 
 export default function DataManagementSection() {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const exportCsv = useExportCsv();
   const exportBackup = useExportBackup();
@@ -22,14 +24,14 @@ export default function DataManagementSection() {
     if (!file) return;
     e.target.value = "";
     restoreBackup.mutate(file, {
-      onError: () => toast.error("Failed to restore backup. Check the file and try again.", TOAST_OPTIONS),
+      onError: () => toast.error(t("settings.data.restoreError"), TOAST_OPTIONS),
     });
   }
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        Export
+      <Typography variant="subtitle2" gutterBottom>
+        {t("settings.data.export")}
       </Typography>
       <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap mb={3}>
         <Button
@@ -38,7 +40,7 @@ export default function DataManagementSection() {
           onClick={() => exportCsv.mutate()}
           loading={exportCsv.isPending}
         >
-          Export CSV
+          {t("settings.data.exportCsv")}
         </Button>
         <Button
           variant="outlined"
@@ -46,17 +48,17 @@ export default function DataManagementSection() {
           onClick={() => exportBackup.mutate()}
           loading={exportBackup.isPending}
         >
-          Export Backup (JSON)
+          {t("settings.data.exportBackup")}
         </Button>
       </Stack>
 
       <Divider sx={{ my: 2 }} />
 
-      <Typography variant="h6" gutterBottom>
-        Restore
+      <Typography variant="subtitle2" gutterBottom>
+        {t("settings.data.restore")}
       </Typography>
       <Typography variant="body2" color="text.secondary" mb={2}>
-        Uploading a backup will replace all current data. A safety snapshot is saved automatically before the restore.
+        {t("settings.data.restoreDescription")}
       </Typography>
       <input
         ref={fileInputRef}
@@ -72,7 +74,7 @@ export default function DataManagementSection() {
         onClick={() => fileInputRef.current?.click()}
         loading={restoreBackup.isPending}
       >
-        Restore from Backup
+        {t("settings.data.restoreButton")}
       </Button>
     </Box>
   );

@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api.routes import auth, cars, catalog, dashboard, export, health, lookups, tags, uploads
+from app.api.routes import auth, cars, catalog, dashboard, export, health, lookups, public, sets, share, tags, uploads
 from app.core.config import REPO_ROOT, UPLOADS_DIR, get_settings
 from app.core.logging import configure_logging
 from app.services.exceptions import ConflictError, NotFoundError
@@ -62,12 +62,15 @@ async def catalog_unavailable_handler(request: Request, exc: CatalogUnavailableE
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(cars.router)
+app.include_router(sets.router)
 app.include_router(catalog.router)
 app.include_router(lookups.router)
 app.include_router(tags.router)
 app.include_router(uploads.router)
 app.include_router(dashboard.router)
 app.include_router(export.router)
+app.include_router(share.router)
+app.include_router(public.router)
 
 # Uploaded car photos — created on first use rather than committed to the repo, so it needs
 # to exist before StaticFiles will mount it.

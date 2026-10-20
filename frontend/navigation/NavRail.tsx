@@ -2,13 +2,15 @@ import { Link, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import Typography from "@mui/material/Typography";
-import { navDestinations } from "./destinations";
+import { isPathWithin, navDestinations } from "./destinations";
+import { useTranslation } from "react-i18next";
 
 export const NAV_RAIL_WIDTH = 80;
 
 const APP_BAR_HEIGHT = 64;
 
 const NavRail = () => {
+  const { t } = useTranslation();
   const location = useLocation();
 
   return (
@@ -28,11 +30,11 @@ const NavRail = () => {
     >
       <Box
         component="nav"
-        aria-label="Primary"
+        aria-label={t("nav.primary")}
         sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1.5, pt: 2 }}
       >
         {navDestinations.map((destination) => {
-          const isSelected = location.pathname === destination.to;
+          const isSelected = isPathWithin(location.pathname, destination.to);
           return (
             <Box
               key={destination.to}
@@ -65,7 +67,7 @@ const NavRail = () => {
                 {destination.icon}
               </Box>
               <Typography variant="caption" sx={{ fontSize: "0.6875rem" }}>
-                {destination.label}
+                {t(destination.labelKey)}
               </Typography>
             </Box>
           );

@@ -37,13 +37,8 @@ export type CarStatus = "owned" | "wishlist";
 
 export type CarCondition = "mint_in_box" | "near_mint" | "good" | "fair" | "poor";
 
-export const CONDITION_LABELS: Record<CarCondition, string> = {
-  mint_in_box: "Mint in Box",
-  near_mint: "Near Mint",
-  good: "Good",
-  fair: "Fair",
-  poor: "Poor",
-};
+// Labels live in locales/*/translation.json under "conditions".
+export const CAR_CONDITIONS: CarCondition[] = ["mint_in_box", "near_mint", "good", "fair", "poor"];
 
 export interface CarPhoto {
   id: number;
@@ -97,4 +92,48 @@ export interface CarInput {
   catalogTitle: string | null;
   photo?: string | null;
   tags: string[];
+}
+
+// Playsets and track sets only — multi-packs and gift packs are tracked car by car.
+export type SetType = "playset" | "track_set";
+
+// Labels live in locales/*/translation.json under "setTypes".
+export const SET_TYPES: SetType[] = ["playset", "track_set"];
+
+export interface CarSet {
+  id: number;
+  name: string;
+  manufacturerId: number;
+  manufacturerName: string;
+  setType: SetType;
+  toyNumber: string | null;
+  year: number | null;
+  status: CarStatus;
+  sealed: boolean;
+  quantity: number;
+  purchasePrice: number | null;
+  notes: string | null;
+  photo: string | null;
+  // One entry per car that came with it, e.g. "Backdrafter (Red)".
+  contents: string[];
+  catalogSource: CatalogSourceId | null;
+  catalogTitle: string | null;
+  catalogUrl: string | null;
+}
+
+export interface SetInput {
+  name: string;
+  manufacturer: string;
+  setType: SetType;
+  toyNumber: string | null;
+  year: number | null;
+  status: CarStatus;
+  sealed: boolean;
+  quantity: number;
+  purchasePrice: number | null;
+  notes: string | null;
+  photo: string | null;
+  contents: string[];
+  catalogSource: CatalogSourceId | null;
+  catalogTitle: string | null;
 }

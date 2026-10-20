@@ -9,6 +9,7 @@ import {
   deleteSeries,
   deleteVehicleType,
   listColors,
+  listManufacturerOverview,
   listManufacturers,
   listSeries,
   listVehicleTypes,
@@ -16,6 +17,12 @@ import {
 
 export function useManufacturers() {
   return useQuery({ queryKey: ["manufacturers"], queryFn: listManufacturers });
+}
+
+// Keyed under "dashboard" so every car and set change (which refreshes the dashboard) keeps
+// the counts current too.
+export function useManufacturerOverview() {
+  return useQuery({ queryKey: ["dashboard", "manufacturers"], queryFn: listManufacturerOverview });
 }
 
 export function useCreateManufacturer() {
@@ -75,7 +82,10 @@ export function useDeleteColor() {
 }
 
 export function useSeries(manufacturerId?: number) {
-  return useQuery({ queryKey: ["series", manufacturerId ?? null], queryFn: () => listSeries(manufacturerId) });
+  return useQuery({
+    queryKey: ["series", manufacturerId ?? null],
+    queryFn: () => listSeries(manufacturerId),
+  });
 }
 
 export function useCreateSeries() {

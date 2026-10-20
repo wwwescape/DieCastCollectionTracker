@@ -12,15 +12,20 @@ export default defineConfig({
         name: "DieCastCollectionTracker",
         short_name: "DCT",
         description: "Track and organize your die-cast car collection.",
-        theme_color: "#E10600",
-        background_color: "#E10600",
+        theme_color: "#1F67D8",
+        background_color: "#1F67D8",
         display: "standalone",
         start_url: "/",
         icons: [
           { src: "pwa-64x64.png", sizes: "64x64", type: "image/png" },
           { src: "pwa-192x192.png", sizes: "192x192", type: "image/png" },
           { src: "pwa-512x512.png", sizes: "512x512", type: "image/png" },
-          { src: "maskable-icon-512x512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+          {
+            src: "maskable-icon-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
         ],
       },
       workbox: {

@@ -60,7 +60,7 @@ alembic upgrade head
 
 ## Layout
 
-- `app/api/routes/` — one file per resource (`cars.py`, `auth.py`, `dashboard.py`, ...)
+- `app/api/routes/` — one file per resource (`cars.py`, `sets.py`, `auth.py`, `dashboard.py`, ...)
 - `app/core/` — config, logging, security, database session
 - `app/models/` — SQLAlchemy ORM models
 - `app/schemas/` — Pydantic schemas; all extend `CamelModel` (camelCase aliases,

@@ -17,25 +17,36 @@
 
 ## Features
 
-- **Collection tracking** — owned cars and a wishlist, with manufacturer, series, vehicle type,
-  color, toy/cast and collection numbers, year, condition (Mint in Box to Poor), quantity, purchase
-  price, notes, and tags.
+- **Collection tracking** — cars you own or have wishlisted, with manufacturer, series, vehicle
+  type, color, toy/cast and collection numbers, year, condition (Mint in Box to Poor), quantity,
+  purchase price, notes, and tags. Every card shows Owned or Wishlisted and how many you have.
 - **Wiki catalog matching** — find a car on the community
   [Hot Wheels Wiki](https://hotwheels.fandom.com) or [Matchbox Wiki](https://matchbox.fandom.com)
   by name or by the toy number on the card (e.g. `HYW18`), pick the exact release, and the form
-  fills in name, series, color, toy and collector numbers, year, and photo. Existing cars can be
+  fills in name, series, color, toy and collector numbers, year, and photo. Search results show
+  what you already have, and flag castings and series you own cars from. Existing cars can be
   matched from their edit page. No API key needed; the instance needs outbound internet access.
+- **Sets** — track playsets and track sets (like Hot Wheels City's fire stations) as single
+  items, with toy number, year, sealed or opened, and the cars that came with them. Find a set on
+  the Hot Wheels Wiki by name or toy number (e.g. `FMY96`) to fill it in, photo included; Matchbox
+  sets are entered by hand, since that wiki has no page per set.
+- **Manufacturers** — every manufacturer with its logo (Hot Wheels, Matchbox, Majorette) and
+  counts; open one to see all of its cars and sets.
 - **Photo gallery** — several photos per car, with a primary photo for the card.
 - **Search & filters** — filter by manufacturer, series, vehicle type, color, or status.
 - **Your own lookup lists** — manufacturers, series, vehicle types, and colors grow as you type,
-  and can be managed on their own page.
-- **Dashboard** — collection stats by manufacturer and vehicle type, plus recently added cars.
-- **Undo deletes** — a 5-second grace window before a delete is applied.
+  and can be managed in Settings → Lookups.
+- **Collection overview** — car and set counts, collection value, stats by manufacturer and
+  vehicle type, plus recently added cars.
+- **Share links** — read-only links to your cars and sets for people without an account, without
+  your purchase prices, notes, or tags. Regenerate them to revoke access.
+- **Languages and currency** — English, Spanish, French, and Portuguese, and a choice of currency
+  for prices.
 - **Data portability** — CSV export, plus full JSON backup and restore.
 - **PWA** — installable, and works offline for anything you've already viewed (including car
   photos).
-- **Material 3 design** — light and dark mode, and responsive navigation for phone, tablet, and
-  desktop.
+- **Material 3 design** — light and dark mode, high contrast, a choice of accent colors (the
+  logo's blue by default), and responsive navigation for phone, tablet, and desktop.
 - **Single admin, self-hosted** — no public registration, no multi-tenancy.
 
 ## Installation

@@ -1,5 +1,6 @@
-import type { CatalogCasting, CatalogSourceId, CatalogVersion } from "../api/catalog";
+import type { CatalogCasting, CatalogSet, CatalogSourceId, CatalogVersion } from "../api/catalog";
 import type { CarFormValues } from "../components/CarForm";
+import type { SetFormValues } from "../components/SetForm";
 
 export const CATALOG_SOURCE_LABELS: Record<CatalogSourceId, string> = {
   hotwheels: "Hot Wheels Wiki",
@@ -50,5 +51,21 @@ export function versionToFormValues(
     year: version.year?.toString() ?? "",
     catalogSource: casting.source,
     catalogTitle: casting.title,
+  };
+}
+
+// Maps a wiki set page onto the set form: one "Name (color)" line per car in the box.
+export function catalogSetToFormValues(set: CatalogSet): Partial<SetFormValues> {
+  return {
+    name: castingDisplayName(set.title),
+    manufacturer: set.manufacturer,
+    setType: set.setType,
+    toyNumber: set.toyNumber ?? "",
+    year: set.year?.toString() ?? "",
+    contents: set.cars
+      .map((car) => (car.color ? `${car.name} (${car.color})` : car.name))
+      .join("\n"),
+    catalogSource: set.source,
+    catalogTitle: set.title,
   };
 }

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -63,8 +63,11 @@ function renderCarList() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
-        <CarList />
+      <MemoryRouter initialEntries={["/collection/cars"]}>
+        <Routes>
+          <Route path="/collection/cars" element={<CarList />} />
+          <Route path="/collection/cars/:id/edit" element={<div>Car page</div>} />
+        </Routes>
         <ToastContainer />
       </MemoryRouter>
     </QueryClientProvider>
@@ -96,62 +99,22 @@ describe("CarList", () => {
     expect(await screen.findByText("No cars found.")).toBeInTheDocument();
   });
 
-  it("hides the car immediately and shows undo toast when Delete is clicked", async () => {
-    vi.spyOn(carsApi, "listCars").mockResolvedValue([SAMPLE_CAR]);
-    vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([{ id: 1, name: "Hot Wheels" }]);
+  it("shows status and quantity chips, no delete button, and opens the car on click", async () => {
+    vi.spyOn(carsApi, "listCars").mockResolvedValue([
+      { ...SAMPLE_CAR, status: "wishlist", quantity: 3 },
+    ]);
+    vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([]);
     vi.spyOn(lookupsApi, "listVehicleTypes").mockResolvedValue([]);
     vi.spyOn(lookupsApi, "listColors").mockResolvedValue([]);
-    vi.spyOn(carsApi, "deleteCar").mockResolvedValue(undefined);
-    const user = userEvent.setup();
-    const { unmount } = renderCarList();
-
-    await screen.findByText("Custom Camaro");
-    await user.click(screen.getByRole("button", { name: "Delete Custom Camaro" }));
-
-    // Car is hidden optimistically before the timer fires
-    expect(screen.queryByText("Custom Camaro")).not.toBeInTheDocument();
-    // Undo button is present in the toast
-    expect(screen.getByRole("button", { name: /undo/i })).toBeInTheDocument();
-
-    // Unmounting commits the pending delete, so do it while deleteCar is still mocked.
-    unmount();
-  });
-
-  it("still deletes the car when the page is left during the undo window", async () => {
-    vi.spyOn(carsApi, "listCars").mockResolvedValue([SAMPLE_CAR]);
-    vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([{ id: 1, name: "Hot Wheels" }]);
-    vi.spyOn(lookupsApi, "listVehicleTypes").mockResolvedValue([]);
-    vi.spyOn(lookupsApi, "listColors").mockResolvedValue([]);
-    const deleteSpy = vi.spyOn(carsApi, "deleteCar").mockResolvedValue(undefined);
-    const user = userEvent.setup();
-    const { unmount } = renderCarList();
-
-    await screen.findByText("Custom Camaro");
-    await user.click(screen.getByRole("button", { name: "Delete Custom Camaro" }));
-    expect(deleteSpy).not.toHaveBeenCalled();
-
-    unmount();
-
-    await waitFor(() => expect(deleteSpy).toHaveBeenCalledTimes(1));
-    expect(deleteSpy.mock.calls[0][0]).toBe(1);
-  });
-
-  it("restores the car when Undo is clicked in the toast", async () => {
-    vi.spyOn(carsApi, "listCars").mockResolvedValue([SAMPLE_CAR]);
-    vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([{ id: 1, name: "Hot Wheels" }]);
-    vi.spyOn(lookupsApi, "listVehicleTypes").mockResolvedValue([]);
-    vi.spyOn(lookupsApi, "listColors").mockResolvedValue([]);
-    const deleteSpy = vi.spyOn(carsApi, "deleteCar").mockResolvedValue(undefined);
     const user = userEvent.setup();
     renderCarList();
 
     await screen.findByText("Custom Camaro");
-    await user.click(screen.getByRole("button", { name: "Delete Custom Camaro" }));
-    await user.click(screen.getByRole("button", { name: /undo/i }));
+    expect(screen.getByText("Wishlisted")).toBeInTheDocument();
+    expect(screen.getByLabelText("Quantity")).toHaveTextContent("3");
+    expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
 
-    // Car is visible again
-    await waitFor(() => expect(screen.getByText("Custom Camaro")).toBeInTheDocument());
-    // deleteCar was never called (undo fired before the 5s grace period)
-    expect(deleteSpy).not.toHaveBeenCalled();
+    await user.click(screen.getByText("Custom Camaro"));
+    await waitFor(() => expect(screen.getByText("Car page")).toBeInTheDocument());
   });
 });

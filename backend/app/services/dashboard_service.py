@@ -2,6 +2,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.car import Car, CarStatus
+from app.models.car_set import CarSet
 from app.models.lookups import Manufacturer, VehicleType
 from app.repositories import tag_repository
 from app.schemas.car import car_from_orm
@@ -15,6 +16,19 @@ def get_dashboard_stats(db: Session) -> DashboardStats:
     total_quantity = db.scalar(select(func.sum(Car.quantity)).where(Car.status == CarStatus.OWNED)) or 0
     owned_count = db.scalar(select(func.count()).select_from(Car).where(Car.status == CarStatus.OWNED)) or 0
     wishlist_count = db.scalar(select(func.count()).select_from(Car).where(Car.status == CarStatus.WISHLIST)) or 0
+
+    total_sets = db.scalar(select(func.count()).select_from(CarSet)) or 0
+    sets_owned = db.scalar(select(func.count()).select_from(CarSet).where(CarSet.status == CarStatus.OWNED)) or 0
+
+    collection_value = sum(
+        db.scalar(
+            select(func.coalesce(func.sum(model.purchase_price * model.quantity), 0)).where(
+                model.status == CarStatus.OWNED, model.purchase_price.is_not(None)
+            )
+        )
+        or 0
+        for model in (Car, CarSet)
+    )
 
     mfr_rows = db.execute(
         select(Manufacturer.name, func.count(Car.id).label("car_count"))
@@ -52,6 +66,9 @@ def get_dashboard_stats(db: Session) -> DashboardStats:
         total_quantity=total_quantity,
         owned_count=owned_count,
         wishlist_count=wishlist_count,
+        total_sets=total_sets,
+        sets_owned=sets_owned,
+        collection_value=float(collection_value),
         by_manufacturer=by_manufacturer,
         by_vehicle_type=by_vehicle_type,
         recently_added=recently_added,

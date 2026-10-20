@@ -6,6 +6,11 @@ page carries a "Versions" table (Col #, Year, Series, Color, Toy #, Photo ...), 
 release, which is what a collector matches a car in hand against. Wiki content is CC BY-SA,
 so the UI credits the wiki and links back to the casting page.
 
+Sets (playsets and track sets) are only matched on the Hot Wheels Wiki, which gives each one
+its own page, often with a table of the cars that came with it. Those pages don't share a
+template, so they're recognised by their categories instead. The Matchbox Wiki has no
+comparable page per set.
+
 Searches and parsed casting pages are cached in memory for a while: the wikis change slowly,
 and it keeps a self-hosted instance from re-hitting Fandom on every keystroke or revisit.
 """
@@ -25,6 +30,9 @@ from app.services.exceptions import NotFoundError
 USER_AGENT = "DieCastCollectionTracker/1.1 (+https://github.com/wwwescape/DieCastCollectionTracker)"
 REQUEST_TIMEOUT_SECONDS = 15
 SEARCH_LIMIT = 20
+# Set pages are a minority of search hits (castings dominate), so ask for more and filter.
+SET_SEARCH_LIMIT = 50
+SET_SOURCES = ("hotwheels",)
 SEARCH_CACHE_TTL_SECONDS = 60 * 60
 CASTING_CACHE_TTL_SECONDS = 24 * 60 * 60
 CASTING_TEMPLATE = "Template:Casting"
@@ -77,6 +85,36 @@ class CastingVersion:
     notes: str | None
     photo_url: str | None
     thumbnail_url: str | None
+
+
+@dataclass
+class SetSummary:
+    source: str
+    title: str
+    url: str
+    thumbnail_url: str | None
+    set_type: str
+
+
+@dataclass
+class SetCar:
+    name: str
+    color: str | None
+    photo_url: str | None
+    thumbnail_url: str | None
+
+
+@dataclass
+class SetDetail:
+    source: str
+    title: str
+    url: str
+    manufacturer: str
+    image_url: str | None
+    set_type: str
+    toy_number: str | None
+    year: int | None
+    cars: list[SetCar] = field(default_factory=list)
 
 
 @dataclass
@@ -139,6 +177,34 @@ def _get_json(source: WikiSource, params: dict[str, str]) -> dict[str, Any]:
     return payload
 
 
+# Generator queries return per-page props (categories, templates) in batches; with dozens of
+# pages, most arrive with an empty list until the "continue" rounds fill them in.
+MAX_CONTINUE_ROUNDS = 5
+
+
+def _query_pages(source: WikiSource, params: dict[str, str]) -> list[dict[str, Any]]:
+    payload = _get_json(source, params)
+    pages: dict[int | str, dict[str, Any]] = {
+        page.get("pageid", page["title"]): page for page in payload.get("query", {}).get("pages", [])
+    }
+    for _ in range(MAX_CONTINUE_ROUNDS):
+        cont = payload.get("continue")
+        # Only finish the current batch's props; a bare "gsroffset" is the next page of search
+        # results, which nobody asked for.
+        if not cont or not any(key in cont for key in ("clcontinue", "tlcontinue")):
+            break
+        payload = _get_json(source, {**params, **cont})
+        for page in payload.get("query", {}).get("pages", []):
+            existing = pages.setdefault(page.get("pageid", page["title"]), page)
+            if existing is not page:
+                for key in ("categories", "templates"):
+                    if page.get(key):
+                        existing[key] = existing.get(key, []) + page[key]
+                if page.get("thumbnail") and not existing.get("thumbnail"):
+                    existing["thumbnail"] = page["thumbnail"]
+    return list(pages.values())
+
+
 # --- Search -------------------------------------------------------------------------------
 
 
@@ -172,7 +238,7 @@ def search(query: str, source_ids: list[str]) -> list[CastingSummary]:
 
 
 def _search(source: WikiSource, query: str) -> list[CastingSummary]:
-    payload = _get_json(
+    pages = _query_pages(
         source,
         {
             "action": "query",
@@ -180,15 +246,22 @@ def _search(source: WikiSource, query: str) -> list[CastingSummary]:
             "gsrsearch": query,
             "gsrnamespace": "0",
             "gsrlimit": str(SEARCH_LIMIT),
-            "prop": "pageimages|templates",
+            "prop": "pageimages|templates|categories",
             "piprop": "thumbnail",
             "pithumbsize": "320",
             "tltemplates": CASTING_TEMPLATE,
             "tllimit": "max",
+            "clshow": "!hidden",
+            "cllimit": "max",
         },
     )
-    pages = payload.get("query", {}).get("pages", [])
-    castings = [page for page in pages if page.get("templates")]
+    # Track sets and playsets are written up with the Casting template too; they belong in
+    # set search, not among the cars.
+    castings = [
+        page
+        for page in pages
+        if page.get("templates") and set_type_from_categories(page["title"], _categories(page)) not in _BOXED_SETS
+    ]
     castings.sort(key=lambda page: page.get("index", 0))
     return [
         CastingSummary(
@@ -199,6 +272,224 @@ def _search(source: WikiSource, query: str) -> list[CastingSummary]:
         )
         for page in castings
     ]
+
+
+# --- Sets ---------------------------------------------------------------------------------
+
+_BOXED_SETS = ("track_set", "playset")
+_TRACK_SET_CATEGORIES = {"Track Sets", "Tracksets"}
+_PLAYSET_CATEGORIES = {"Playsets", "Play Sets", "City Sets", "Unreleased Playsets"}
+# Year overviews ("1977 Track Sets") and "List of ..." pages sit in the same categories as the sets.
+_LIST_PAGE = re.compile(r"^(?:\d{4} |List of )", re.IGNORECASE)
+
+
+def _categories(page: dict[str, Any]) -> list[str]:
+    return [category["title"] for category in page.get("categories", [])]
+
+
+def set_type_from_categories(title: str, categories: list[str]) -> str | None:
+    """Classifies a wiki page as a playset or track set from its categories, or None if it
+    isn't one (multi-packs and gift packs included). Accepts both "Category:Track Sets"
+    (query API) and "Track_Sets" (parse API)."""
+    names = {category.removeprefix("Category:").replace("_", " ") for category in categories}
+    if "Lists" in names:
+        return None
+    if names & _PLAYSET_CATEGORIES:
+        return "playset"
+    if names & _TRACK_SET_CATEGORIES:
+        return "track_set"
+    return None
+
+
+def search_sets(query: str) -> list[SetSummary]:
+    query = query.strip()
+    results: list[SetSummary] = []
+    for source_id in SET_SOURCES:
+        source = get_source(source_id)
+        results.extend(
+            _cached(
+                f"set-search:{source.id}:{query.lower()}",
+                SEARCH_CACHE_TTL_SECONDS,
+                lambda source=source: _search_sets(source, query),
+            )
+        )
+    return results
+
+
+def _search_sets(source: WikiSource, query: str) -> list[SetSummary]:
+    pages = _query_pages(
+        source,
+        {
+            "action": "query",
+            "generator": "search",
+            "gsrsearch": query,
+            "gsrnamespace": "0",
+            "gsrlimit": str(SET_SEARCH_LIMIT),
+            "prop": "pageimages|templates|categories",
+            "piprop": "thumbnail",
+            "pithumbsize": "320",
+            "tltemplates": CASTING_TEMPLATE,
+            "tllimit": "max",
+            "clshow": "!hidden",
+            "cllimit": "max",
+        },
+    )
+    pages.sort(key=lambda page: page.get("index", 0))
+    results: list[SetSummary] = []
+    for page in pages:
+        if _LIST_PAGE.match(page["title"]):
+            continue
+        set_type = set_type_from_categories(page["title"], _categories(page))
+        if set_type is None:
+            continue
+        results.append(
+            SetSummary(
+                source=source.id,
+                title=page["title"],
+                url=source.page_url(page["title"]),
+                thumbnail_url=(page.get("thumbnail") or {}).get("source"),
+                set_type=set_type,
+            )
+        )
+    return results
+
+
+def get_set(source_id: str, title: str) -> SetDetail:
+    source = get_source(source_id)
+    if source.id not in SET_SOURCES:
+        raise NotFoundError(f"Sets aren't matched on the {source.label}")
+    return _cached(f"set:{source.id}:{title}", CASTING_CACHE_TTL_SECONDS, lambda: _get_set(source, title))
+
+
+_PAREN_CODE = re.compile(r"\(([A-Z0-9]{4,7})\)")
+_CATEGORY_YEAR = re.compile(r"^(19[5-9]\d|20\d\d)[ _]")
+
+
+def _get_set(source: WikiSource, title: str) -> SetDetail:
+    parsed = _get_json(
+        source, {"action": "parse", "page": title, "prop": "text|categories|wikitext", "redirects": "1"}
+    )["parse"]
+    resolved_title = parsed["title"]
+    categories = [category["category"] for category in parsed.get("categories", []) if not category.get("hidden")]
+    html = parsed["text"]
+    wikitext = parsed.get("wikitext") or ""
+    intro = re.sub(r"<[^>]+>", " ", html.split("<table", 1)[0])
+
+    # Most playsets carry the same {{casting}} infobox as a car, with the toy number in
+    # number= and the year in years=. Older pages print the toy number in brackets after the
+    # name instead ("The Funny Car Gift Pack (7456) ..."). Bare years aren't toy numbers.
+    toy_number = next(iter(_TOY_NUMBER.findall(_infobox_field(wikitext, "number"))), None) or next(
+        (code for code in _PAREN_CODE.findall(f"{resolved_title} {intro}") if not _YEAR.fullmatch(code)), None
+    )
+    year_match = _YEAR.search(_infobox_field(wikitext, "years"))
+    year = int(year_match.group(1)) if year_match else None
+    if year is None:
+        year = next((int(match.group(1)) for c in categories if (match := _CATEGORY_YEAR.match(c))), None)
+    if year is None and (match := _YEAR.search(resolved_title)):
+        year = int(match.group(1))
+
+    image_payload = _get_json(
+        source,
+        {"action": "query", "titles": resolved_title, "prop": "pageimages", "piprop": "original"},
+    )
+    pages = image_payload.get("query", {}).get("pages", [])
+    image_url = (pages[0].get("original") or {}).get("source") if pages else None
+    if image_url and any(marker in image_url.lower() for marker in _PLACEHOLDER_IMAGES):
+        image_url = None
+
+    return SetDetail(
+        source=source.id,
+        title=resolved_title,
+        url=source.page_url(resolved_title),
+        manufacturer=source.manufacturer,
+        image_url=image_url,
+        set_type=set_type_from_categories(resolved_title, categories) or "playset",
+        toy_number=toy_number,
+        year=year,
+        cars=parse_set_cars(html) or parse_included_cars(wikitext),
+    )
+
+
+def _infobox_field(wikitext: str, name: str) -> str:
+    match = re.search(rf"\|\s*{name}\s*=\s*([^|}}\n]*)", wikitext)
+    return match.group(1) if match else ""
+
+
+_INCLUDED_HEADING = re.compile(r"^==+\s*(?:cars?|car\(s\)|vehicles?|vehicle\(s\))\s+included\s*==+\s*$", re.I | re.M)
+_WIKI_LINK = re.compile(r"\[\[([^\]|]+)(?:\|([^\]]+))?\]\]")
+
+
+def parse_included_cars(wikitext: str) -> list[SetCar]:
+    """The "Car(s) included" bullet list most playset pages use instead of a table, e.g.
+    "*2018: [[Backdrafter]]". Only the linked castings are taken, without color."""
+    heading = _INCLUDED_HEADING.search(wikitext)
+    if heading is None:
+        return []
+    section = re.split(r"^==", wikitext[heading.end():], maxsplit=1, flags=re.M)[0]
+    cars: list[SetCar] = []
+    seen: set[str] = set()
+    for line in section.splitlines():
+        if not line.lstrip().startswith("*"):
+            continue
+        for target, label in _WIKI_LINK.findall(line):
+            if target.split(":", 1)[0].lower() in ("file", "image", "category"):
+                continue
+            name = (label or target).strip()
+            if name and name not in seen:
+                seen.add(name)
+                cars.append(SetCar(name=name, color=None, photo_url=None, thumbnail_url=None))
+    return cars
+
+
+def parse_set_cars(html: str) -> list[SetCar]:
+    """The "Cars"/"Vehicles" table of a set page: one row per car (or per variant, with the
+    casting and color rowspanned), keyed by its "Casting Name" column."""
+    parser = _TableParser()
+    parser.feed(html)
+
+    cars: list[SetCar] = []
+    seen: set[tuple[str, str | None]] = set()
+    for table in parser.tables:
+        header_index = next((i for i, row in enumerate(table) if row and all(cell.header for cell in row)), None)
+        if header_index is None:
+            continue
+        grid = _expand_rows(table[header_index:])
+        keys = [_set_column_key(cell.text) for cell in grid[0]]
+        if "name" not in keys:
+            continue
+        for cells in grid[1:]:
+            row = {key: cell for key, cell in zip(keys, cells, strict=False) if key}
+            name = _blank(row["name"].text.replace("\n", " ")) if "name" in row else None
+            if not name:
+                continue
+            color = _blank(row["color"].text.replace("\n", " ")) if "color" in row else None
+            if (name, color) in seen:
+                continue
+            seen.add((name, color))
+            photo = row.get("photo")
+            photo_url = photo.image_href if photo is not None else None
+            if photo_url and any(marker in photo_url.lower() for marker in _PLACEHOLDER_IMAGES):
+                photo_url = None
+            cars.append(
+                SetCar(
+                    name=name,
+                    color=color,
+                    photo_url=photo_url,
+                    thumbnail_url=photo.image_thumb if photo is not None and photo_url else None,
+                )
+            )
+    return cars
+
+
+def _set_column_key(header: str) -> str | None:
+    name = re.sub(r"[^a-z ]", "", header.lower()).strip()
+    if name.startswith("casting") or name in ("car", "vehicle", "model"):
+        return "name"
+    if name in ("color", "body color"):
+        return "color"
+    if name.startswith("photo"):
+        return "photo"
+    return None
 
 
 # --- Casting page -------------------------------------------------------------------------

@@ -52,7 +52,12 @@ describe("CarForm", () => {
     await user.click(screen.getByRole("button", { name: "Add Car" }));
 
     expect(onSubmit).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "Custom Camaro", manufacturer: "Hot Wheels", status: "owned", quantity: 1 })
+      expect.objectContaining({
+        name: "Custom Camaro",
+        manufacturer: "Hot Wheels",
+        status: "owned",
+        quantity: 1,
+      })
     );
   });
 });

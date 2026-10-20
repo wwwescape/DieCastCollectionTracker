@@ -1,8 +1,19 @@
 import { apiClient } from "./client";
 import type { NamedLookup, Series } from "./types";
 
+export interface ManufacturerOverview {
+  id: number;
+  name: string;
+  carCount: number;
+  setCount: number;
+}
+
 export async function listManufacturers(): Promise<NamedLookup[]> {
   return (await apiClient.get<NamedLookup[]>("/api/manufacturers")).data;
+}
+
+export async function listManufacturerOverview(): Promise<ManufacturerOverview[]> {
+  return (await apiClient.get<ManufacturerOverview[]>("/api/manufacturers/overview")).data;
 }
 
 export async function createManufacturer(name: string): Promise<NamedLookup> {

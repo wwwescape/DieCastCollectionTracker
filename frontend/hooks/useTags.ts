@@ -8,7 +8,8 @@ export function useTags() {
 export function useCreateTag() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ name, color }: { name: string; color?: string | null }) => createTag(name, color),
+    mutationFn: ({ name, color }: { name: string; color?: string | null }) =>
+      createTag(name, color),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["tags"] }),
   });
 }

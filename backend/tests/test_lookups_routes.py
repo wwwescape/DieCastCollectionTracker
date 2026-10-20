@@ -65,3 +65,20 @@ def test_vehicle_type_and_color_crud(auth_client):
 
     assert auth_client.delete(f"/api/vehicle-types/{vt['id']}").status_code == 204
     assert auth_client.delete(f"/api/colors/{color['id']}").status_code == 204
+
+
+def test_manufacturers_overview_counts_cars_and_sets(auth_client):
+    auth_client.post("/api/cars", json={"name": "Skyline", "manufacturer": "Hot Wheels"})
+    auth_client.post("/api/cars", json={"name": "Supra", "manufacturer": "Hot Wheels"})
+    auth_client.post("/api/sets", json={"name": "Fire Station", "manufacturer": "Hot Wheels"})
+    auth_client.post("/api/sets", json={"name": "Action Garage", "manufacturer": "Matchbox"})
+    auth_client.post("/api/manufacturers", json={"name": "Majorette"})
+
+    response = auth_client.get("/api/manufacturers/overview")
+
+    assert response.status_code == 200
+    assert [(m["name"], m["carCount"], m["setCount"]) for m in response.json()] == [
+        ("Hot Wheels", 2, 1),
+        ("Matchbox", 0, 1),
+        ("Majorette", 0, 0),
+    ]

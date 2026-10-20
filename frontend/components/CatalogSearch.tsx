@@ -1,8 +1,5 @@
 import { useState } from "react";
 import { isAxiosError } from "axios";
-import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardActionArea from "@mui/material/CardActionArea";
 import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -15,16 +12,16 @@ import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid2";
 import SearchIcon from "@mui/icons-material/Search";
+import { Trans, useTranslation } from "react-i18next";
 import type { CatalogCastingSummary, CatalogSearchSource } from "../api/catalog";
 import { MIN_CATALOG_SEARCH_LENGTH, useCatalogSearch } from "../hooks/useCatalog";
+import { useCollectionIndex } from "../hooks/useCollectionIndex";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { CATALOG_SOURCE_LABELS, castingDisplayName } from "../utils/catalog";
+import { hasCasting } from "../utils/collectionIndex";
+import ItemCard from "./ItemCard";
 
-const SOURCE_OPTIONS: { value: CatalogSearchSource; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "hotwheels", label: "Hot Wheels" },
-  { value: "matchbox", label: "Matchbox" },
-];
+const SOURCES: CatalogSearchSource[] = ["all", "hotwheels", "matchbox"];
 
 interface CatalogSearchProps {
   initialQuery?: string;
@@ -33,16 +30,19 @@ interface CatalogSearchProps {
   onQueryChange?: (query: string, source: CatalogSearchSource) => void;
 }
 
-// Searches the Hot Wheels and Matchbox wikis by name or by the toy number printed on the
-// card (e.g. HYW18). Results are casting pages; picking one moves on to its versions.
+// Searches the Hot Wheels and Matchbox wikis by name or by the toy number printed on the card
+// (e.g. HYW18). Results are casting pages; picking one moves on to its versions. A casting you
+// already have a version of is marked with the bottom-left "related" chip.
 const CatalogSearch = ({
   initialQuery = "",
   initialSource = "all",
   onSelect,
   onQueryChange,
 }: CatalogSearchProps) => {
+  const { t } = useTranslation();
   const [query, setQuery] = useState(initialQuery);
   const [source, setSource] = useState<CatalogSearchSource>(initialSource);
+  const collection = useCollectionIndex();
 
   const trimmed = query.trim();
   const debounced = useDebouncedValue(trimmed, 600);
@@ -53,9 +53,9 @@ const CatalogSearch = ({
 
   const errorMessage =
     error && isAxiosError(error) && error.response?.status === 502
-      ? "The wiki can't be reached right now. Try again in a moment, or add the car manually."
+      ? t("catalog.unreachable")
       : error
-        ? "Search failed. Please try again."
+        ? t("common.searchFailed")
         : null;
 
   const update = (nextQuery: string, nextSource: CatalogSearchSource) => {
@@ -73,8 +73,8 @@ const CatalogSearch = ({
           sx={{ alignItems: { sm: "center" } }}
         >
           <TextField
-            label="Search by name or toy number"
-            placeholder="e.g. Skyline GT-R or HYW18"
+            label={t("catalog.searchLabel")}
+            placeholder={t("catalog.searchPlaceholder")}
             fullWidth
             autoFocus
             value={query}
@@ -88,7 +88,7 @@ const CatalogSearch = ({
                 ),
                 endAdornment: isSearching ? (
                   <InputAdornment position="end">
-                    <CircularProgress size={20} aria-label="Searching" />
+                    <CircularProgress size={20} aria-label={t("common.searching")} />
                   </InputAdornment>
                 ) : null,
               },
@@ -99,26 +99,38 @@ const CatalogSearch = ({
             size="small"
             value={source}
             onChange={(_event, value: CatalogSearchSource | null) => value && update(query, value)}
-            aria-label="Catalog source"
+            aria-label={t("catalog.sourceLabel")}
             sx={{ flexShrink: 0 }}
           >
-            {SOURCE_OPTIONS.map((option) => (
-              <ToggleButton key={option.value} value={option.value}>
-                {option.label}
+            {SOURCES.map((option) => (
+              <ToggleButton key={option} value={option}>
+                {option === "all"
+                  ? t("common.all")
+                  : CATALOG_SOURCE_LABELS[option].replace(" Wiki", "")}
               </ToggleButton>
             ))}
           </ToggleButtonGroup>
         </Stack>
         <Typography variant="caption" color="text.secondary" component="p" sx={{ mt: 1 }}>
-          Catalog data comes from the community{" "}
-          <Link href="https://hotwheels.fandom.com" target="_blank" rel="noopener noreferrer">
-            Hot Wheels Wiki
-          </Link>{" "}
-          and{" "}
-          <Link href="https://matchbox.fandom.com" target="_blank" rel="noopener noreferrer">
-            Matchbox Wiki
-          </Link>{" "}
-          (CC BY-SA).
+          <Trans
+            i18nKey="catalog.attribution"
+            components={{
+              hw: (
+                <Link
+                  href="https://hotwheels.fandom.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
+              ),
+              mb: (
+                <Link
+                  href="https://matchbox.fandom.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                />
+              ),
+            }}
+          />
         </Typography>
       </Paper>
 
@@ -126,49 +138,30 @@ const CatalogSearch = ({
         <Paper sx={{ p: 3, textAlign: "center" }}>{errorMessage}</Paper>
       ) : !isActive ? (
         <Paper sx={{ p: 3, textAlign: "center", color: "text.secondary" }}>
-          Type at least {MIN_CATALOG_SEARCH_LENGTH} characters to search.
+          {t("common.minSearchLength", { count: MIN_CATALOG_SEARCH_LENGTH })}
         </Paper>
       ) : results && results.length === 0 && !isSearching ? (
-        <Paper sx={{ p: 3, textAlign: "center" }}>
-          No castings found. Try another name or add the car manually.
-        </Paper>
+        <Paper sx={{ p: 3, textAlign: "center" }}>{t("catalog.noResults")}</Paper>
       ) : (
         <Grid container spacing={2}>
           {(results ?? []).map((result) => (
             <Grid key={`${result.source}:${result.title}`} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
-              <Card sx={{ height: "100%", borderRadius: 2, border: 1, borderColor: "divider" }}>
-                <CardActionArea onClick={() => onSelect(result, debounced)} sx={{ height: "100%" }}>
-                  <Box sx={{ position: "relative", aspectRatio: "4 / 3", bgcolor: "action.hover" }}>
-                    {result.thumbnailUrl ? (
-                      <Box
-                        component="img"
-                        src={result.thumbnailUrl}
-                        alt={result.title}
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                        sx={{
-                          position: "absolute",
-                          inset: 0,
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "contain",
-                        }}
-                      />
-                    ) : null}
-                  </Box>
-                  <Box sx={{ p: 1.25 }}>
-                    <Typography variant="subtitle2" sx={{ lineHeight: 1.3 }}>
-                      {castingDisplayName(result.title)}
-                    </Typography>
-                    <Chip
-                      label={CATALOG_SOURCE_LABELS[result.source]}
-                      size="small"
-                      variant="outlined"
-                      sx={{ mt: 0.75 }}
-                    />
-                  </Box>
-                </CardActionArea>
-              </Card>
+              <ItemCard
+                title={castingDisplayName(result.title)}
+                imageUrl={result.thumbnailUrl}
+                imageFit="contain"
+                relatedHint={
+                  hasCasting(collection, result.title) ? t("catalog.relatedCasting") : null
+                }
+                chips={
+                  <Chip
+                    label={CATALOG_SOURCE_LABELS[result.source]}
+                    size="small"
+                    variant="outlined"
+                  />
+                }
+                onClick={() => onSelect(result, debounced)}
+              />
             </Grid>
           ))}
         </Grid>

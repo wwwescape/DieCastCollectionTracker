@@ -16,6 +16,9 @@ export interface DashboardStats {
   totalQuantity: number;
   ownedCount: number;
   wishlistCount: number;
+  totalSets: number;
+  setsOwned: number;
+  collectionValue: number;
   byManufacturer: ManufacturerStat[];
   byVehicleType: VehicleTypeStat[];
   recentlyAdded: Car[];

@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { fetchCurrentUser, fetchSetupStatus, isAuthenticated, login, logout, setupAdmin } from "../api/auth";
+import {
+  fetchCurrentUser,
+  fetchSetupStatus,
+  isAuthenticated,
+  login,
+  logout,
+  setupAdmin,
+} from "../api/auth";
 
 export const currentUserQueryKey = ["auth", "me"] as const;
 
@@ -15,7 +22,8 @@ export function useCurrentUser() {
 export function useLogin() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ username, password }: { username: string; password: string }) => login(username, password),
+    mutationFn: ({ username, password }: { username: string; password: string }) =>
+      login(username, password),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: currentUserQueryKey });
     },
@@ -35,7 +43,8 @@ export function useSetupStatus() {
 export function useSetupAdmin() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ username, password }: { username: string; password: string }) => setupAdmin(username, password),
+    mutationFn: ({ username, password }: { username: string; password: string }) =>
+      setupAdmin(username, password),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: currentUserQueryKey });
     },

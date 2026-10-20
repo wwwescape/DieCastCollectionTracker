@@ -35,3 +35,30 @@ class CatalogCastingResponse(CamelModel):
     manufacturer: str
     image_url: str | None
     versions: list[CatalogVersionResponse]
+
+
+class CatalogSetSummaryResponse(CamelModel):
+    source: str
+    title: str
+    url: str
+    thumbnail_url: str | None
+    set_type: str
+
+
+class CatalogSetCarResponse(CamelModel):
+    name: str
+    color: str | None
+    photo_url: str | None
+    thumbnail_url: str | None
+
+
+class CatalogSetResponse(CamelModel):
+    source: str
+    title: str
+    url: str
+    manufacturer: str
+    image_url: str | None
+    set_type: str
+    toy_number: str | None
+    year: int | None
+    cars: list[CatalogSetCarResponse]

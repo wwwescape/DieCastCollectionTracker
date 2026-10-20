@@ -19,7 +19,13 @@ export const m3Typography: TypographyOptions = {
   body1: { fontFamily, fontSize: "1rem", lineHeight: 1.5, fontWeight: 400 }, // bodyLarge
   body2: { fontFamily, fontSize: "0.875rem", lineHeight: 1.43, fontWeight: 400 }, // bodyMedium
   caption: { fontFamily, fontSize: "0.75rem", lineHeight: 1.33, fontWeight: 400 }, // bodySmall
-  button: { fontFamily, fontSize: "0.875rem", lineHeight: 1.43, fontWeight: 500, textTransform: "none" }, // labelLarge
+  button: {
+    fontFamily,
+    fontSize: "0.875rem",
+    lineHeight: 1.43,
+    fontWeight: 500,
+    textTransform: "none",
+  }, // labelLarge
   overline: {
     fontFamily,
     fontSize: "0.6875rem",

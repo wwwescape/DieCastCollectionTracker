@@ -7,46 +7,37 @@ import Chip from "@mui/material/Chip";
 import CircularProgress from "@mui/material/CircularProgress";
 import Grid from "@mui/material/Grid2";
 import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
 import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import CloseIcon from "@mui/icons-material/Close";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { useTranslation } from "react-i18next";
 import { resolveAssetUrl } from "../api/client";
 import type { CatalogSourceId } from "../api/catalog";
-import type { Car, CarCondition, CarInput, CarStatus } from "../api/types";
-import { CONDITION_LABELS } from "../api/types";
+import {
+  CAR_CONDITIONS,
+  type Car,
+  type CarCondition,
+  type CarInput,
+  type CarStatus,
+} from "../api/types";
 import { useManufacturers, useSeries, useVehicleTypes, useColors } from "../hooks/useLookups";
 import { useTags } from "../hooks/useTags";
 import { useUploadCarImage } from "../hooks/useUploads";
+import { useCurrency } from "../theme/CurrencyProvider";
 import { CATALOG_SOURCE_LABELS } from "../utils/catalog";
+import { getCurrencySymbol } from "../utils/currency";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
 import AutocompleteSelect from "./AutocompleteSelect";
 import FreeSoloLookupField from "./FreeSoloLookupField";
 
-interface StatusOption {
-  value: CarStatus;
-  label: string;
-}
-
-interface ConditionOption {
-  value: CarCondition | null;
-  label: string;
-}
-
-const STATUS_OPTIONS: StatusOption[] = [
-  { value: "owned", label: "Owned" },
-  { value: "wishlist", label: "Wishlist" },
-];
-
-const CONDITION_OPTIONS: ConditionOption[] = [
-  { value: null, label: "Not specified" },
-  ...Object.entries(CONDITION_LABELS).map(([value, label]) => ({
-    value: value as CarCondition,
-    label,
-  })),
-];
+const STATUSES: CarStatus[] = ["owned", "wishlist"];
+// "none" stands in for "not specified" so the select always has a value.
+type ConditionOption = CarCondition | "none";
+const CONDITION_OPTIONS: ConditionOption[] = ["none", ...CAR_CONDITIONS];
 
 export interface CarFormValues {
   name: string;
@@ -143,9 +134,16 @@ interface CarFormProps {
   showPhotoUpload?: boolean;
 }
 
-const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhotoUpload = true }: CarFormProps) => {
+const CarForm = ({
+  initialValues = EMPTY_VALUES,
+  submitLabel,
+  onSubmit,
+  showPhotoUpload = true,
+}: CarFormProps) => {
+  const { t } = useTranslation();
   const [values, setValues] = useState<CarFormValues>(initialValues);
   const [submitting, setSubmitting] = useState(false);
+  const { currency } = useCurrency();
 
   const { data: manufacturers } = useManufacturers();
   const { data: vehicleTypes } = useVehicleTypes();
@@ -167,14 +165,14 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
       setField("photo", url);
     } catch (error) {
       console.error("Error uploading car photo:", error);
-      toast.error("Error uploading photo. Please try again.", TOAST_OPTIONS);
+      toast.error(t("common.uploadPhotoError"), TOAST_OPTIONS);
     }
   };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (!values.name.trim() || !values.manufacturer.trim()) {
-      toast.error("Name and manufacturer are required.", TOAST_OPTIONS);
+      toast.error(t("common.nameAndManufacturerRequired"), TOAST_OPTIONS);
       return;
     }
     setSubmitting(true);
@@ -192,7 +190,10 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
           <Grid size={12}>
             <Chip
               icon={<MenuBookIcon />}
-              label={`Matched to ${values.catalogTitle} · ${CATALOG_SOURCE_LABELS[values.catalogSource]}`}
+              label={t("common.matchedTo", {
+                title: values.catalogTitle,
+                wiki: CATALOG_SOURCE_LABELS[values.catalogSource],
+              })}
               variant="outlined"
               color="primary"
               onDelete={() =>
@@ -204,7 +205,7 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
         ) : null}
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
-            label="Name"
+            label={t("common.name")}
             required
             fullWidth
             value={values.name}
@@ -213,7 +214,7 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <FreeSoloLookupField
-            label="Manufacturer"
+            label={t("common.manufacturer")}
             required
             options={manufacturers ?? []}
             value={values.manufacturer}
@@ -222,7 +223,7 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <FreeSoloLookupField
-            label="Series"
+            label={t("cars.series")}
             options={series ?? []}
             value={values.series}
             onChange={(value) => setField("series", value)}
@@ -230,7 +231,7 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <FreeSoloLookupField
-            label="Vehicle type"
+            label={t("cars.vehicleType")}
             options={vehicleTypes ?? []}
             value={values.vehicleType}
             onChange={(value) => setField("vehicleType", value)}
@@ -238,7 +239,7 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <FreeSoloLookupField
-            label="Color"
+            label={t("common.color")}
             options={colors ?? []}
             value={values.color}
             onChange={(value) => setField("color", value)}
@@ -246,7 +247,7 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
-            label="Toy / cast number"
+            label={t("cars.castNumber")}
             fullWidth
             value={values.castNumber}
             onChange={(event) => setField("castNumber", event.target.value)}
@@ -254,7 +255,7 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
-            label="Collection number"
+            label={t("cars.collectionNumber")}
             fullWidth
             value={values.collectionNumber}
             onChange={(event) => setField("collectionNumber", event.target.value)}
@@ -263,39 +264,41 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             type="number"
-            label="Year"
+            label={t("common.year")}
             fullWidth
             value={values.year}
             onChange={(event) => setField("year", event.target.value)}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
-          <AutocompleteSelect<StatusOption>
-            label="Status"
+          <AutocompleteSelect<CarStatus>
+            label={t("common.status")}
             fullWidth
             disableClearable
-            options={STATUS_OPTIONS}
-            value={STATUS_OPTIONS.find((option) => option.value === values.status) ?? null}
-            getOptionLabel={(option) => option.label}
-            isOptionEqualToValue={(option, val) => option.value === val.value}
-            onChange={(newValue) => setField("status", newValue?.value ?? "owned")}
+            options={STATUSES}
+            value={values.status}
+            getOptionLabel={(option) => t(`status.${option}`)}
+            onChange={(newValue) => setField("status", newValue ?? "owned")}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <AutocompleteSelect<ConditionOption>
-            label="Condition"
+            label={t("cars.condition")}
             fullWidth
             options={CONDITION_OPTIONS}
-            value={CONDITION_OPTIONS.find((o) => o.value === values.condition) ?? CONDITION_OPTIONS[0]}
-            getOptionLabel={(o) => o.label}
-            isOptionEqualToValue={(o, v) => o.value === v.value}
-            onChange={(newValue) => setField("condition", newValue?.value ?? null)}
+            value={values.condition ?? "none"}
+            getOptionLabel={(option) =>
+              option === "none" ? t("conditions.notSpecified") : t(`conditions.${option}`)
+            }
+            onChange={(newValue) =>
+              setField("condition", newValue && newValue !== "none" ? newValue : null)
+            }
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             type="number"
-            label="Quantity"
+            label={t("common.quantity")}
             fullWidth
             value={values.quantity}
             onChange={(event) => setField("quantity", event.target.value)}
@@ -304,10 +307,17 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
             type="number"
-            label="Purchase price"
+            label={t("common.purchasePrice")}
             fullWidth
             value={values.purchasePrice}
             onChange={(event) => setField("purchasePrice", event.target.value)}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">{getCurrencySymbol(currency)}</InputAdornment>
+                ),
+              },
+            }}
           />
         </Grid>
         <Grid size={12}>
@@ -317,12 +327,14 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
             options={(allTags ?? []).map((tag) => tag.name)}
             value={values.tags}
             onChange={(_event, newValue) => setField("tags", newValue)}
-            renderInput={(params) => <TextField {...params} label="Tags" placeholder="Add a tag" />}
+            renderInput={(params) => (
+              <TextField {...params} label={t("common.tags")} placeholder={t("common.addTag")} />
+            )}
           />
         </Grid>
         <Grid size={12}>
           <TextField
-            label="Notes"
+            label={t("common.notes")}
             fullWidth
             multiline
             minRows={3}
@@ -336,21 +348,38 @@ const CarForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit, showPhot
               <Button
                 component="label"
                 variant="outlined"
-                startIcon={uploadCarImage.isPending ? <CircularProgress size={16} /> : <CloudUploadIcon />}
+                startIcon={
+                  uploadCarImage.isPending ? <CircularProgress size={16} /> : <CloudUploadIcon />
+                }
                 disabled={uploadCarImage.isPending}
               >
-                {values.photo ? "Replace photo" : "Upload photo"}
-                <input type="file" accept="image/*" hidden onChange={(event) => void handlePhotoChange(event)} />
+                {values.photo ? t("common.replacePhoto") : t("common.uploadPhoto")}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(event) => void handlePhotoChange(event)}
+                />
               </Button>
               {values.photo ? (
                 <>
                   <Box
                     component="img"
                     src={resolveAssetUrl(values.photo) ?? undefined}
-                    alt="Car photo preview"
-                    sx={{ height: 56, width: "auto", borderRadius: 1, border: "1px solid", borderColor: "divider" }}
+                    alt={t("cars.photoPreview")}
+                    sx={{
+                      height: 56,
+                      width: "auto",
+                      borderRadius: 1,
+                      border: "1px solid",
+                      borderColor: "divider",
+                    }}
                   />
-                  <IconButton size="small" aria-label="Remove photo" onClick={() => setField("photo", "")}>
+                  <IconButton
+                    size="small"
+                    aria-label={t("common.removePhoto")}
+                    onClick={() => setField("photo", "")}
+                  >
                     <CloseIcon fontSize="small" />
                   </IconButton>
                 </>

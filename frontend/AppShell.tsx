@@ -18,11 +18,13 @@ import BottomNavBar, { BOTTOM_NAV_HEIGHT } from "./navigation/BottomNavBar";
 import NavDrawer, { NAV_DRAWER_WIDTH } from "./navigation/NavDrawer";
 import NavRail, { NAV_RAIL_WIDTH } from "./navigation/NavRail";
 import { useColorMode } from "./theme/ColorModeProvider";
+import { useTranslation } from "react-i18next";
 
 // M3's three responsive navigation patterns: Navigation Bar (compact/mobile, bottom),
 // Navigation Rail (medium/tablet, icons+labels side rail), Navigation Drawer
 // (expanded/desktop, icons+labels side panel) — picked by breakpoint, not a user toggle.
 const AppShell = () => {
+  const { t } = useTranslation();
   const { mode, toggleColorMode } = useColorMode();
   const theme = useTheme();
   const isCompact = useMediaQuery(theme.breakpoints.down("sm"));
@@ -58,7 +60,7 @@ const AppShell = () => {
           },
         }}
       >
-        Skip to main content
+        {t("appShell.skipToMainContent")}
       </Link>
       <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}>
         <Toolbar>
@@ -80,13 +82,18 @@ const AppShell = () => {
           <OfflineStatusIndicator />
           <FormControlLabel
             control={<Switch checked={mode === "dark"} onChange={toggleColorMode} />}
-            label="Dark Mode"
+            label={t("appShell.darkMode")}
             sx={{
               mr: 1,
               ".MuiFormControlLabel-label": { display: { xs: "none", sm: "block" } },
             }}
           />
-          <IconButton color="inherit" onClick={handleLogout} title="Log out" aria-label="Log out">
+          <IconButton
+            color="inherit"
+            onClick={handleLogout}
+            title={t("common.logOut")}
+            aria-label={t("common.logOut")}
+          >
             <LogoutIcon />
           </IconButton>
         </Toolbar>

@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import i18next from "i18next";
 import { toast } from "react-toastify";
 import { exportBackupBlob, exportCsvBlob, restoreBackup } from "../api/importExport";
 import { downloadBlob } from "../utils/download";
@@ -31,7 +32,12 @@ export function useRestoreBackup() {
     networkMode: "always",
     onSuccess: (result) => {
       queryClient.invalidateQueries();
-      toast.success(`Restored ${result.restoredCars} car(s) from backup.`);
+      toast.success(
+        i18next.t("settings.data.restored", {
+          cars: result.restoredCars,
+          sets: result.restoredSets,
+        })
+      );
     },
   });
 }

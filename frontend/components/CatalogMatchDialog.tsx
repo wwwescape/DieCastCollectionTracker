@@ -9,6 +9,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import { useTheme } from "@mui/material/styles";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useTranslation } from "react-i18next";
 import type { CatalogCasting, CatalogCastingSummary, CatalogVersion } from "../api/catalog";
 import CatalogSearch from "./CatalogSearch";
 import CatalogVersionPicker from "./CatalogVersionPicker";
@@ -35,6 +36,7 @@ const CatalogMatchDialog = ({
   onClose,
   onMatch,
 }: CatalogMatchDialogProps) => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("sm"));
   const [selected, setSelected] = useState<{
@@ -50,14 +52,14 @@ const CatalogMatchDialog = ({
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="lg" fullScreen={fullScreen}>
-      <DialogTitle>{selected ? "Pick the version you have" : "Match to wiki catalog"}</DialogTitle>
+      <DialogTitle>{selected ? t("catalog.pickVersion") : t("catalog.matchTitle")}</DialogTitle>
       <DialogContent dividers>
         {selected ? (
           <CatalogVersionPicker
             source={selected.casting.source}
             title={selected.casting.title}
             query={selected.query}
-            pickLabel="Use this version"
+            pickLabel={t("catalog.useThisVersion")}
             busy={busy}
             onPick={(casting, version) => {
               onMatch({ casting, version, query: selected.query, addPhoto });
@@ -74,7 +76,7 @@ const CatalogMatchDialog = ({
       <DialogActions sx={{ justifyContent: "space-between", flexWrap: "wrap", gap: 1 }}>
         {selected ? (
           <Button startIcon={<ArrowBackIcon />} onClick={() => setSelected(null)}>
-            Back to search
+            {t("common.backToSearch")}
           </Button>
         ) : (
           <span />
@@ -87,9 +89,9 @@ const CatalogMatchDialog = ({
                 onChange={(event) => setAddPhoto(event.target.checked)}
               />
             }
-            label="Add the wiki photo to the gallery"
+            label={t("catalog.addWikiPhoto")}
           />
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleClose}>{t("common.cancel")}</Button>
         </div>
       </DialogActions>
     </Dialog>

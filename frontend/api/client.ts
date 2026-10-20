@@ -1,7 +1,8 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { tokenStorage } from "./tokenStorage";
 
-const isDevelopmentServer = window.location.hostname === "localhost" && window.location.port === "3000";
+const isDevelopmentServer =
+  window.location.hostname === "localhost" && window.location.port === "3000";
 
 // Dev: Vite serves the frontend on :3000, FastAPI runs separately on :8000. Prod: FastAPI
 // serves the built frontend itself, so they're the same origin.

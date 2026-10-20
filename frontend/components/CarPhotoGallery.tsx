@@ -14,6 +14,7 @@ import { resolveAssetUrl } from "../api/client";
 import type { CarPhoto } from "../api/types";
 import { useAddCarPhoto, useDeleteCarPhoto, useSetCarPhotoPrimary } from "../hooks/useCars";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
+import { useTranslation } from "react-i18next";
 
 interface CarPhotoGalleryProps {
   carId: number;
@@ -21,12 +22,15 @@ interface CarPhotoGalleryProps {
 }
 
 const CarPhotoGallery = ({ carId, photos }: CarPhotoGalleryProps) => {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const addPhoto = useAddCarPhoto(carId);
   const deletePhoto = useDeleteCarPhoto(carId);
   const setPrimary = useSetCarPhotoPrimary(carId);
 
-  const sorted = [...photos].sort((a, b) => (a.isPrimary ? -1 : b.isPrimary ? 1 : a.sortOrder - b.sortOrder));
+  const sorted = [...photos].sort((a, b) =>
+    a.isPrimary ? -1 : b.isPrimary ? 1 : a.sortOrder - b.sortOrder
+  );
 
   const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -35,7 +39,7 @@ const CarPhotoGallery = ({ carId, photos }: CarPhotoGalleryProps) => {
     try {
       await addPhoto.mutateAsync(file);
     } catch {
-      toast.error("Error uploading photo. Please try again.", TOAST_OPTIONS);
+      toast.error(t("gallery.uploadError"), TOAST_OPTIONS);
     }
   };
 
@@ -43,7 +47,7 @@ const CarPhotoGallery = ({ carId, photos }: CarPhotoGalleryProps) => {
     try {
       await deletePhoto.mutateAsync(photoId);
     } catch {
-      toast.error("Error deleting photo. Please try again.", TOAST_OPTIONS);
+      toast.error(t("gallery.deleteError"), TOAST_OPTIONS);
     }
   };
 
@@ -51,7 +55,7 @@ const CarPhotoGallery = ({ carId, photos }: CarPhotoGalleryProps) => {
     try {
       await setPrimary.mutateAsync(photoId);
     } catch {
-      toast.error("Error updating primary photo. Please try again.", TOAST_OPTIONS);
+      toast.error(t("gallery.primaryError"), TOAST_OPTIONS);
     }
   };
 
@@ -59,26 +63,32 @@ const CarPhotoGallery = ({ carId, photos }: CarPhotoGalleryProps) => {
     <Paper sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2 }}>
       <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
         <Typography variant="subtitle1" fontWeight={600}>
-          Photos
+          {t("gallery.title")}
         </Typography>
-        <Tooltip title="Add photo">
+        <Tooltip title={t("gallery.add")}>
           <span>
             <IconButton
               size="small"
               onClick={() => fileInputRef.current?.click()}
               disabled={addPhoto.isPending}
-              aria-label="Add photo"
+              aria-label={t("gallery.add")}
             >
               {addPhoto.isPending ? <CircularProgress size={18} /> : <AddPhotoAlternateIcon />}
             </IconButton>
           </span>
         </Tooltip>
-        <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={(e) => void handleFileChange(e)} />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          hidden
+          onChange={(e) => void handleFileChange(e)}
+        />
       </Box>
 
       {sorted.length === 0 ? (
         <Typography variant="body2" color="text.secondary">
-          No photos yet. Click the + button to add one.
+          {t("gallery.empty")}
         </Typography>
       ) : (
         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5 }}>
@@ -99,7 +109,7 @@ const CarPhotoGallery = ({ carId, photos }: CarPhotoGalleryProps) => {
               <Box
                 component="img"
                 src={resolveAssetUrl(photo.url) ?? undefined}
-                alt={photo.isPrimary ? "Primary photo" : "Car photo"}
+                alt={photo.isPrimary ? t("gallery.primaryPhoto") : t("gallery.carPhoto")}
                 sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
               />
               <Box
@@ -116,27 +126,35 @@ const CarPhotoGallery = ({ carId, photos }: CarPhotoGalleryProps) => {
                   "&:hover": { opacity: 1 },
                 }}
               >
-                <Tooltip title={photo.isPrimary ? "Primary photo" : "Set as primary"}>
+                <Tooltip
+                  title={photo.isPrimary ? t("gallery.primaryPhoto") : t("gallery.setPrimary")}
+                >
                   <span>
                     <IconButton
                       size="small"
                       sx={{ color: "white" }}
                       disabled={photo.isPrimary || setPrimary.isPending}
                       onClick={() => void handleSetPrimary(photo.id)}
-                      aria-label={photo.isPrimary ? "Primary photo" : "Set as primary"}
+                      aria-label={
+                        photo.isPrimary ? t("gallery.primaryPhoto") : t("gallery.setPrimary")
+                      }
                     >
-                      {photo.isPrimary ? <StarIcon fontSize="small" /> : <StarBorderIcon fontSize="small" />}
+                      {photo.isPrimary ? (
+                        <StarIcon fontSize="small" />
+                      ) : (
+                        <StarBorderIcon fontSize="small" />
+                      )}
                     </IconButton>
                   </span>
                 </Tooltip>
-                <Tooltip title="Delete photo">
+                <Tooltip title={t("gallery.delete")}>
                   <span>
                     <IconButton
                       size="small"
                       sx={{ color: "white" }}
                       disabled={deletePhoto.isPending}
                       onClick={() => void handleDelete(photo.id)}
-                      aria-label="Delete photo"
+                      aria-label={t("gallery.delete")}
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
@@ -160,7 +178,7 @@ const CarPhotoGallery = ({ carId, photos }: CarPhotoGalleryProps) => {
                     textTransform: "uppercase",
                   }}
                 >
-                  Primary
+                  {t("gallery.primary")}
                 </Box>
               ) : null}
             </Box>

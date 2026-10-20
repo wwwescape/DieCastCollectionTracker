@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 import { act, render, screen, waitFor } from "@testing-library/react";
-import { QueryClient, QueryClientProvider, onlineManager, useMutation } from "@tanstack/react-query";
+import {
+  QueryClient,
+  QueryClientProvider,
+  onlineManager,
+  useMutation,
+} from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { toast } from "react-toastify";
 import OfflineStatusIndicator from "../OfflineStatusIndicator";

@@ -14,7 +14,13 @@ interface FreeSoloLookupFieldProps {
 // either by name (get-or-create), so there's no separate "create this lookup row first"
 // step. Used for manufacturer/vehicle type/color/series fields, all of which are meant to
 // grow from user input rather than a hardcoded list.
-const FreeSoloLookupField = ({ label, options, value, onChange, required }: FreeSoloLookupFieldProps) => (
+const FreeSoloLookupField = ({
+  label,
+  options,
+  value,
+  onChange,
+  required,
+}: FreeSoloLookupFieldProps) => (
   <Autocomplete
     freeSolo
     options={options.map((option) => option.name)}

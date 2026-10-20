@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as carsApi from "../../api/cars";
 import * as catalogApi from "../../api/catalog";
+import * as setsApi from "../../api/sets";
 import type { CatalogCasting } from "../../api/catalog";
 import CatalogVersionPicker from "../CatalogVersionPicker";
 
@@ -53,7 +54,11 @@ const CASTING: CatalogCasting = {
   ],
 };
 
-function renderPicker(onPick = vi.fn(), query?: string) {
+function renderPicker(
+  onPick = vi.fn(),
+  query?: string,
+  onOpenExisting?: (holding: { id: number }) => void
+) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={queryClient}>
@@ -63,6 +68,7 @@ function renderPicker(onPick = vi.fn(), query?: string) {
         query={query}
         pickLabel="Add this version"
         onPick={onPick}
+        onOpenExisting={onOpenExisting}
       />
     </QueryClientProvider>
   );
@@ -70,16 +76,29 @@ function renderPicker(onPick = vi.fn(), query?: string) {
 }
 
 describe("CatalogVersionPicker", () => {
+  beforeEach(() => {
+    vi.spyOn(setsApi, "listSets").mockResolvedValue([]);
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
-  it("lists the toy-number match first and flags versions already in the collection", async () => {
+  it("lists the toy-number match first and marks what's already in the collection", async () => {
     vi.spyOn(catalogApi, "getCatalogCasting").mockResolvedValue(CASTING);
     vi.spyOn(carsApi, "listCars").mockResolvedValue([
-      { castNumber: "jpd52" } as unknown as Awaited<ReturnType<typeof carsApi.listCars>>[number],
+      {
+        id: 9,
+        castNumber: "jpd52",
+        status: "owned",
+        quantity: 3,
+        name: "Skyline",
+        seriesName: "HW Showroom",
+      } as unknown as Awaited<ReturnType<typeof carsApi.listCars>>[number],
     ]);
-    renderPicker(vi.fn(), "x1786");
+    const onOpenExisting = vi.fn();
+    const user = userEvent.setup();
+    renderPicker(vi.fn(), "x1786", onOpenExisting);
 
     const titles = await screen.findAllByText(/^\d{4} · /);
     expect(titles.map((node) => node.textContent)).toEqual([
@@ -88,7 +107,27 @@ describe("CatalogVersionPicker", () => {
       "2010 · Metalflake Grey",
     ]);
     expect(screen.getByText("Matches your search")).toBeInTheDocument();
-    expect(await screen.findByText("In collection")).toBeInTheDocument();
+
+    // The owned version: status and quantity chips, and "View in collection" instead of adding.
+    const owned = (await screen.findByText("2026 · Yellow")).closest(
+      ".MuiCard-root"
+    ) as HTMLElement;
+    expect(within(owned).getByText("Owned")).toBeInTheDocument();
+    expect(within(owned).getByLabelText("Quantity")).toHaveTextContent("3");
+    await user.click(within(owned).getByRole("button", { name: "View in collection" }));
+    expect(onOpenExisting.mock.calls[0]?.[0]).toMatchObject({
+      id: 9,
+      status: "owned",
+      quantity: 3,
+    });
+
+    // Not owned, but a car from its series is: only the "related" chip.
+    const sameSeries = screen.getByText("2013 · Red").closest(".MuiCard-root") as HTMLElement;
+    expect(within(sameSeries).queryByText("Owned")).not.toBeInTheDocument();
+    expect(within(sameSeries).getByLabelText("You have cars from this series")).toBeInTheDocument();
+    expect(
+      within(sameSeries).getByRole("button", { name: "Add this version" })
+    ).toBeInTheDocument();
   });
 
   it("hands the picked version back", async () => {

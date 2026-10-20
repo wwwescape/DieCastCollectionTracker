@@ -8,6 +8,7 @@ from app.schemas.lookups import (
     ColorCreateRequest,
     ColorResponse,
     ManufacturerCreateRequest,
+    ManufacturerOverviewResponse,
     ManufacturerResponse,
     SeriesCreateRequest,
     SeriesResponse,
@@ -21,7 +22,7 @@ router = APIRouter(prefix="/api", tags=["lookups"], dependencies=[Depends(get_cu
 
 def _conflict_if_in_use(in_use: bool, kind: str) -> None:
     if in_use:
-        raise ConflictError(f"{kind} is still in use by a car")
+        raise ConflictError(f"{kind} is still in use by a car or set")
 
 
 def _not_found(kind: str) -> NotFoundError:
@@ -31,6 +32,15 @@ def _not_found(kind: str) -> NotFoundError:
 @router.get("/manufacturers", response_model=list[ManufacturerResponse])
 def list_manufacturers(db: Session = Depends(get_db)) -> list[ManufacturerResponse]:
     return [ManufacturerResponse.model_validate(m) for m in manufacturer_repository.list_manufacturers(db)]
+
+
+@router.get("/manufacturers/overview", response_model=list[ManufacturerOverviewResponse])
+def manufacturers_overview(db: Session = Depends(get_db)) -> list[ManufacturerOverviewResponse]:
+    """Collection → Manufacturers: each manufacturer with its car and set counts."""
+    return [
+        ManufacturerOverviewResponse(id=m.id, name=m.name, car_count=cars, set_count=sets)
+        for m, cars, sets in manufacturer_repository.list_with_counts(db)
+    ]
 
 
 @router.post("/manufacturers", response_model=ManufacturerResponse, status_code=status.HTTP_201_CREATED)

@@ -35,7 +35,10 @@ rendering worth protecting. Tests run in jsdom.
   shapes matching the backend's Pydantic schemas).
 - `hooks/` — TanStack Query hooks wrapping `api/*`. Components call these, never `api/*` directly.
 - `components/` — shared and page-level components, plus `__tests__/`.
-- `pages/` — routed page components (`DashboardPage`, `ManagePage`, `LoginPage`, ...).
+- `pages/` — routed page components (`DashboardPage`, `CollectionPage`, `ManufacturersPage`,
+  `SettingsPage`, `LookupsPage`, `PublicCollectionPage`, `Login`, ...).
+- `locales/` — UI text per language (`en`, `es`, `fr`, `pt`); `i18n/` sets up i18next.
+  Add a key to every `translation.json` — `i18n/__tests__/locales.test.ts` fails on a missing one.
 - `navigation/` — the three responsive nav patterns: `BottomNavBar` (mobile), `NavRail`
   (tablet), `NavDrawer` (desktop). All read from one shared `destinations.tsx` so they
   can't drift apart.

@@ -8,6 +8,13 @@ class ManufacturerResponse(CamelModel):
     name: str
 
 
+class ManufacturerOverviewResponse(CamelModel):
+    id: int
+    name: str
+    car_count: int
+    set_count: int
+
+
 class ManufacturerCreateRequest(CamelModel):
     name: str = Field(min_length=1, max_length=255)
 

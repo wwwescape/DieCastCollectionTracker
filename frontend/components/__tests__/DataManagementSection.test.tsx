@@ -9,7 +9,9 @@ import DataManagementSection from "../DataManagementSection";
 vi.mock("../../utils/download", () => ({ downloadBlob: vi.fn() }));
 
 function renderSection() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
   render(
     <QueryClientProvider client={queryClient}>
       <DataManagementSection />
@@ -57,6 +59,7 @@ describe("DataManagementSection", () => {
   it("shows success toast after successful restore", async () => {
     vi.spyOn(importExportApi, "restoreBackup").mockResolvedValue({
       restoredCars: 42,
+      restoredSets: 3,
       safetySnapshotPath: "/backups/pre-restore.json",
     });
     const toastSpy = vi.spyOn(toast, "success");
@@ -64,10 +67,14 @@ describe("DataManagementSection", () => {
     renderSection();
 
     const fileInput = document.querySelector<HTMLInputElement>('input[type="file"]')!;
-    const file = new File([JSON.stringify({ version: 1 })], "backup.json", { type: "application/json" });
+    const file = new File([JSON.stringify({ version: 1 })], "backup.json", {
+      type: "application/json",
+    });
     await userEvent.upload(fileInput, file);
 
-    await waitFor(() => expect(toastSpy).toHaveBeenCalledWith(expect.stringContaining("42")));
+    await waitFor(() =>
+      expect(toastSpy).toHaveBeenCalledWith(expect.stringContaining("42 car(s) and 3 set(s)"))
+    );
   });
 
   it("shows error toast when restore fails", async () => {
@@ -80,6 +87,11 @@ describe("DataManagementSection", () => {
     const file = new File(["invalid"], "bad.json", { type: "application/json" });
     await userEvent.upload(fileInput, file);
 
-    await waitFor(() => expect(toastSpy).toHaveBeenCalledWith(expect.stringContaining("Failed to restore"), expect.anything()));
+    await waitFor(() =>
+      expect(toastSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Failed to restore"),
+        expect.anything()
+      )
+    );
   });
 });
