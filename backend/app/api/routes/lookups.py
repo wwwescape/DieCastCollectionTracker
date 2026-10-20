@@ -11,6 +11,7 @@ from app.schemas.lookups import (
     ManufacturerOverviewResponse,
     ManufacturerResponse,
     SeriesCreateRequest,
+    SeriesOverviewResponse,
     SeriesResponse,
     VehicleTypeCreateRequest,
     VehicleTypeResponse,
@@ -118,6 +119,15 @@ def list_series(
     manufacturer_id: int | None = Query(default=None, alias="manufacturerId"), db: Session = Depends(get_db)
 ) -> list[SeriesResponse]:
     return [_series_response(s) for s in series_repository.list_series(db, manufacturer_id=manufacturer_id)]
+
+
+@router.get("/series/overview", response_model=list[SeriesOverviewResponse])
+def series_overview(db: Session = Depends(get_db)) -> list[SeriesOverviewResponse]:
+    """Collection → Series: each series with its vehicle and set counts."""
+    return [
+        SeriesOverviewResponse(**_series_response(s).model_dump(), car_count=cars, set_count=sets)
+        for s, cars, sets in series_repository.list_with_counts(db)
+    ]
 
 
 @router.post("/series", response_model=SeriesResponse, status_code=status.HTTP_201_CREATED)

@@ -12,6 +12,7 @@ import {
   listManufacturerOverview,
   listManufacturers,
   listSeries,
+  listSeriesOverview,
   listVehicleTypes,
 } from "../api/lookups";
 
@@ -23,6 +24,10 @@ export function useManufacturers() {
 // the counts current too.
 export function useManufacturerOverview() {
   return useQuery({ queryKey: ["dashboard", "manufacturers"], queryFn: listManufacturerOverview });
+}
+
+export function useSeriesOverview() {
+  return useQuery({ queryKey: ["dashboard", "series"], queryFn: listSeriesOverview });
 }
 
 export function useCreateManufacturer() {

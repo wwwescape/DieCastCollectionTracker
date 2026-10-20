@@ -72,7 +72,9 @@ def public_set_from_orm(car_set: CarSet) -> PublicSetResponse:
         status=car_set.status,
         sealed=car_set.sealed,
         quantity=car_set.quantity,
-        photo=car_set.photo,
+        photo=next(
+            (p.url for p in sorted(car_set.photos, key=lambda p: (not p.is_primary, p.sort_order))), None
+        ),
         contents=list(car_set.contents or []),
         catalog_title=car_set.catalog_title,
     )

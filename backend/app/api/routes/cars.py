@@ -5,6 +5,7 @@ from app.api.deps import get_current_user, get_db
 from app.api.routes.uploads import image_upload_error_to_http
 from app.models.car import CarStatus
 from app.schemas.car import CarCreateRequest, CarPhotoResponse, CarResponse, CarUpdateRequest, car_from_orm
+from app.schemas.car_set import linked_set_from_orm
 from app.schemas.upload import ImageImportRequest
 from app.services import car_service, upload_service
 
@@ -12,7 +13,8 @@ router = APIRouter(prefix="/api/cars", tags=["cars"], dependencies=[Depends(get_
 
 
 def _car_response(db: Session, car) -> CarResponse:
-    return car_from_orm(car, car_service.get_car_tags(db, car.id))
+    sets = [linked_set_from_orm(car_set) for car_set in car_service.get_car_sets(db, car.id)]
+    return car_from_orm(car, car_service.get_car_tags(db, car.id), sets)
 
 
 @router.get("", response_model=list[CarResponse])

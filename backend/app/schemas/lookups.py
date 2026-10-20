@@ -44,6 +44,11 @@ class SeriesResponse(CamelModel):
     manufacturer_name: str | None
 
 
+class SeriesOverviewResponse(SeriesResponse):
+    car_count: int
+    set_count: int
+
+
 class SeriesCreateRequest(CamelModel):
     name: str = Field(min_length=1, max_length=255)
     manufacturer: str | None = None

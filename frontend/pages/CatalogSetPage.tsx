@@ -25,7 +25,7 @@ import {
   catalogSetToFormValues,
   wikiImageAtWidth,
 } from "../utils/catalog";
-import { hasCarNamed, holdingForSet } from "../utils/collectionIndex";
+import { hasCarNamed, holdingForSet, vehicleIdsNamed } from "../utils/collectionIndex";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
 
 const SOURCES: CatalogSourceId[] = ["hotwheels", "matchbox"];
@@ -45,6 +45,11 @@ const CatalogSetPage = () => {
 
   const handleAdd = async (picked: CatalogSet) => {
     const prefill = catalogSetToFormValues(picked);
+    // Vehicles already in the collection start out linked; the form lets the user adjust.
+    prefill.vehicleIds = vehicleIdsNamed(
+      collection,
+      picked.cars.map((car) => car.name)
+    );
     if (picked.imageUrl) {
       try {
         prefill.photo = await importImage.mutateAsync(picked.imageUrl);

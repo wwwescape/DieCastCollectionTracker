@@ -7,6 +7,7 @@ import {
   hasSeries,
   holdingForSet,
   holdingForToyNumbers,
+  vehicleIdsNamed,
 } from "../collectionIndex";
 
 const car = (overrides: Partial<Car>) =>
@@ -67,5 +68,9 @@ describe("buildCollectionIndex", () => {
     expect(hasSeries(index, null)).toBe(false);
     expect(hasCarNamed(index, "bone shaker")).toBe(true);
     expect(hasCarNamed(index, "Rodger Dodger")).toBe(false);
+  });
+
+  it("finds vehicle ids by name or wiki casting, once each", () => {
+    expect(vehicleIdsNamed(index, ["BONE SHAKER", "Bone Shaker", "Car", "Nope"])).toEqual([4, 1]);
   });
 });

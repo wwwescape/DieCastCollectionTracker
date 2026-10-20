@@ -81,7 +81,7 @@ def test_export_backup_json_structure(auth_client):
     assert response.status_code == 200
     assert "application/json" in response.headers["content-type"]
     payload = response.json()
-    assert payload["version"] == 4
+    assert payload["version"] == 5
     assert "exportedAt" in payload
     assert len(payload["manufacturers"]) == 1
     assert payload["manufacturers"][0]["name"] == "Matchbox"

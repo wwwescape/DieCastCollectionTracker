@@ -52,6 +52,15 @@ export async function listSeries(manufacturerId?: number): Promise<Series[]> {
   return (await apiClient.get<Series[]>("/api/series", { params: { manufacturerId } })).data;
 }
 
+export interface SeriesOverview extends Series {
+  carCount: number;
+  setCount: number;
+}
+
+export async function listSeriesOverview(): Promise<SeriesOverview[]> {
+  return (await apiClient.get<SeriesOverview[]>("/api/series/overview")).data;
+}
+
 export async function createSeries(name: string, manufacturer: string | null): Promise<Series> {
   return (await apiClient.post<Series>("/api/series", { name, manufacturer })).data;
 }

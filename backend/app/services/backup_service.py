@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.core.config import BACKEND_DIR
 from app.models.car import Car, CarCondition, CarPhoto, CarStatus, CarTag
-from app.models.car_set import CarSet, SetType
+from app.models.car_set import CarSet, SetPhoto, SetTag, SetType, SetVehicle
 from app.models.lookups import Color, Manufacturer, Series, Tag, VehicleType
 from app.schemas.backup import (
     BACKUP_FORMAT_VERSION,
@@ -93,12 +93,24 @@ def build_backup_payload(db: Session) -> BackupPayload:
             quantity=car_set.quantity,
             purchase_price=car_set.purchase_price,
             notes=car_set.notes,
-            photo=car_set.photo,
+            photo=next((p.url for p in car_set.photos if p.is_primary), None),
+            photos=[
+                BackupPhoto(url=p.url, is_primary=p.is_primary, sort_order=p.sort_order)
+                for p in sorted(car_set.photos, key=lambda p: p.sort_order)
+            ],
             contents=list(car_set.contents or []),
             catalog_source=car_set.catalog_source,
             catalog_title=car_set.catalog_title,
+            series_id=car_set.series_id,
+            condition=car_set.condition.value if car_set.condition else None,
+            tag_ids=sorted(link.tag_id for link in car_set.tag_links),
+            vehicle_ids=sorted(link.car_id for link in car_set.vehicle_links),
         )
-        for car_set in db.scalars(select(CarSet))
+        for car_set in db.scalars(
+            select(CarSet).options(
+                joinedload(CarSet.photos), joinedload(CarSet.tag_links), joinedload(CarSet.vehicle_links)
+            )
+        ).unique()
     ]
 
     return BackupPayload(
@@ -134,6 +146,9 @@ def restore_backup(db: Session, payload: BackupPayload) -> BackupRestoreResult:
     safety_snapshot_path = _write_safety_snapshot(db)
 
     # Wipe in FK-safe order (children before parents)
+    db.execute(delete(SetVehicle))
+    db.execute(delete(SetTag))
+    db.execute(delete(SetPhoto))
     db.execute(delete(CarSet))
     db.execute(delete(CarPhoto))
     db.execute(delete(CarTag))
@@ -202,11 +217,30 @@ def restore_backup(db: Session, payload: BackupPayload) -> BackupRestoreResult:
             quantity=car_set.quantity,
             purchase_price=car_set.purchase_price,
             notes=car_set.notes,
-            photo=car_set.photo,
             contents=car_set.contents,
             catalog_source=car_set.catalog_source,
             catalog_title=car_set.catalog_title,
+            series_id=car_set.series_id,
+            condition=CarCondition(car_set.condition) if car_set.condition else None,
         ))
+    db.flush()
+
+    restored_car_ids = {car.id for car in payload.cars}
+    for car_set in payload.sets:
+        if car_set.photos:
+            for photo in car_set.photos:
+                db.add(
+                    SetPhoto(
+                        set_id=car_set.id, url=photo.url, is_primary=photo.is_primary, sort_order=photo.sort_order
+                    )
+                )
+        elif car_set.photo:
+            db.add(SetPhoto(set_id=car_set.id, url=car_set.photo, is_primary=True, sort_order=0))
+        for tag_id in car_set.tag_ids:
+            db.add(SetTag(set_id=car_set.id, tag_id=tag_id))
+        for car_id in car_set.vehicle_ids:
+            if car_id in restored_car_ids:
+                db.add(SetVehicle(set_id=car_set.id, car_id=car_id))
 
     db.commit()
 

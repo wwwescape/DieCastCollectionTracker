@@ -1,9 +1,10 @@
 from typing import Any
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import delete, select
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.car import Car, CarPhoto, CarStatus
+from app.models.car_set import CarSet, SetVehicle
 from app.repositories import (
     car_repository,
     color_repository,
@@ -111,7 +112,29 @@ def get_car_tags(db: Session, car_id: int) -> list:
     return tag_repository.list_tags_for_car(db, car_id)
 
 
-def create_car(db: Session, tags: list[str] | None = None, **fields: Any) -> Car:
+def get_car_sets(db: Session, car_id: int) -> list[CarSet]:
+    stmt = (
+        select(CarSet)
+        .join(SetVehicle, SetVehicle.set_id == CarSet.id)
+        .where(SetVehicle.car_id == car_id)
+        .options(joinedload(CarSet.manufacturer), joinedload(CarSet.photos))
+        .order_by(CarSet.name)
+    )
+    return list(db.scalars(stmt).unique())
+
+
+def set_car_set_links(db: Session, car_id: int, set_ids: list[int]) -> None:
+    """Replaces the sets this vehicle is linked to (the other side of set_service's
+    set_vehicle_links — both write the same set_vehicles rows). Unknown ids are ignored."""
+    db.execute(delete(SetVehicle).where(SetVehicle.car_id == car_id))
+    known = set(db.scalars(select(CarSet.id).where(CarSet.id.in_(set_ids)))) if set_ids else set()
+    for set_id in dict.fromkeys(set_ids):
+        if set_id in known:
+            db.add(SetVehicle(set_id=set_id, car_id=car_id))
+    db.flush()
+
+
+def create_car(db: Session, tags: list[str] | None = None, set_ids: list[int] | None = None, **fields: Any) -> Car:
     photo = fields.pop("photo", None)
     resolved = _resolve_car_fields(db, fields)
     car = car_repository.create_car(db, **resolved)
@@ -120,11 +143,15 @@ def create_car(db: Session, tags: list[str] | None = None, **fields: Any) -> Car
     if tags is not None:
         tag_ids = [tag_repository.get_or_create_by_name(db, name).id for name in tags]
         tag_repository.set_tags_for_car(db, car.id, tag_ids)
+    if set_ids:
+        set_car_set_links(db, car.id, set_ids)
     db.commit()
     return get_car(db, car.id)
 
 
-def update_car(db: Session, car_id: int, tags: list[str] | None = _UNSET, **fields: Any) -> Car:
+def update_car(
+    db: Session, car_id: int, tags: list[str] | None = _UNSET, set_ids: list[int] | None = _UNSET, **fields: Any
+) -> Car:
     car = get_car(db, car_id)
 
     resolved = _resolve_car_fields(db, fields, car)
@@ -133,6 +160,8 @@ def update_car(db: Session, car_id: int, tags: list[str] | None = _UNSET, **fiel
     if tags is not _UNSET and tags is not None:
         tag_ids = [tag_repository.get_or_create_by_name(db, name).id for name in tags]
         tag_repository.set_tags_for_car(db, car.id, tag_ids)
+    if set_ids is not _UNSET and set_ids is not None:
+        set_car_set_links(db, car.id, set_ids)
     db.commit()
     return get_car(db, car_id)
 
@@ -140,6 +169,7 @@ def update_car(db: Session, car_id: int, tags: list[str] | None = _UNSET, **fiel
 def delete_car(db: Session, car_id: int) -> None:
     car = get_car(db, car_id)
     photo_urls = [p.url for p in car.photos]
+    db.execute(delete(SetVehicle).where(SetVehicle.car_id == car.id))
     car_repository.delete_car(db, car)
     db.commit()
     for url in photo_urls:

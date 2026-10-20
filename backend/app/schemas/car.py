@@ -15,6 +15,27 @@ class CarPhotoResponse(CamelModel):
     sort_order: int
 
 
+class LinkedItemResponse(CamelModel):
+    """A vehicle as listed on a set, or a set as listed on a vehicle."""
+
+    id: int
+    name: str
+    manufacturer_name: str
+    year: int | None
+    photo: str | None
+
+
+def linked_car_from_orm(car: Car) -> LinkedItemResponse:
+    photos = sorted(car.photos, key=lambda p: (not p.is_primary, p.sort_order))
+    return LinkedItemResponse(
+        id=car.id,
+        name=car.name,
+        manufacturer_name=car.manufacturer.name,
+        year=car.year,
+        photo=photos[0].url if photos else None,
+    )
+
+
 class CarResponse(CamelModel):
     id: int
     name: str
@@ -43,6 +64,8 @@ class CarResponse(CamelModel):
     photo: str | None
     photos: list[CarPhotoResponse]
     tags: list[TagResponse]
+    # Sets in the collection this vehicle is linked to.
+    sets: list[LinkedItemResponse] = []
 
 
 def _catalog_url(car: Car) -> str | None:
@@ -50,7 +73,7 @@ def _catalog_url(car: Car) -> str | None:
     return source.page_url(car.catalog_title) if source and car.catalog_title else None
 
 
-def car_from_orm(car: Car, tags: list) -> CarResponse:
+def car_from_orm(car: Car, tags: list, sets: list[LinkedItemResponse] | None = None) -> CarResponse:
     photos = sorted(car.photos, key=lambda p: (not p.is_primary, p.sort_order))
     primary = next((p for p in photos if p.is_primary), photos[0] if photos else None)
 
@@ -79,6 +102,7 @@ def car_from_orm(car: Car, tags: list) -> CarResponse:
         photo=primary.url if primary else None,
         photos=[CarPhotoResponse(id=p.id, url=p.url, is_primary=p.is_primary, sort_order=p.sort_order) for p in photos],
         tags=[tag_from_orm(tag) for tag in tags],
+        sets=sets or [],
     )
 
 
@@ -103,6 +127,7 @@ class CarCreateRequest(CamelModel):
     # POST /api/cars/{id}/photos after the car is created.
     photo: str | None = None
     tags: list[str] = Field(default_factory=list)
+    set_ids: list[int] = Field(default_factory=list)
 
 
 class CarUpdateRequest(CamelModel):
@@ -122,3 +147,4 @@ class CarUpdateRequest(CamelModel):
     catalog_source: Literal["hotwheels", "matchbox"] | None = None
     catalog_title: str | None = Field(default=None, max_length=255)
     tags: list[str] | None = None
+    set_ids: list[int] | None = None

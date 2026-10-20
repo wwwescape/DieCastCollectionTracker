@@ -69,7 +69,8 @@
     "overview": "Aperçu",
     "about": "À propos",
     "vehicles": "Véhicules",
-    "insights": "Statistiques"
+    "insights": "Statistiques",
+    "series": "Séries"
   },
   "appShell": {
     "skipToMainContent": "Passer au contenu principal",
@@ -126,7 +127,8 @@
     "uploadError": "Erreur lors de l'import de la photo. Veuillez réessayer.",
     "deleteError": "Erreur lors de la suppression de la photo. Veuillez réessayer.",
     "primaryError": "Erreur lors du changement de photo principale. Veuillez réessayer.",
-    "vehiclePhoto": "Photo du véhicule"
+    "vehiclePhoto": "Photo du véhicule",
+    "setPhoto": "Photo du coffret"
   },
   "catalog": {
     "searchLabel": "Rechercher par nom ou numéro de jouet",
@@ -191,7 +193,9 @@
     "deleteError": "Erreur lors de la suppression du coffret. Veuillez réessayer.",
     "deleteConfirmTitle": "Supprimer ce coffret ?",
     "deleteConfirmDescription": "« {{name}} » sera retiré de votre collection. Cette action est irréversible.",
-    "vehiclesIncluded": "Véhicules inclus"
+    "vehiclesIncluded": "Véhicules inclus",
+    "linkedVehicles": "Véhicules liés",
+    "linkedVehiclesHelper": "Véhicules de votre collection fournis avec ce coffret"
   },
   "manufacturers": {
     "title": "Fabricants",
@@ -371,6 +375,24 @@
     "deleteConfirmTitle": "Supprimer ce véhicule ?",
     "deleteConfirmDescription": "« {{name}} » sera retiré de votre collection, photos comprises. Cette action est irréversible.",
     "addVehicle": "Ajouter un véhicule",
-    "editVehicle": "Modifier le véhicule"
+    "editVehicle": "Modifier le véhicule",
+    "linkedSets": "Coffrets liés",
+    "linkedSetsHelper": "Coffrets de votre collection avec lesquels ce véhicule est venu"
+  },
+  "form": {
+    "details": "Détails",
+    "identification": "Identification",
+    "ownership": "Possession",
+    "links": "Liens",
+    "tagsAndNotes": "Étiquettes et notes",
+    "photo": "Photo"
+  },
+  "seriesPage": {
+    "title": "Séries",
+    "none": "Aucune série pour l'instant. Ajoutez une série à un véhicule ou un coffret pour la voir ici.",
+    "all": "Toutes les séries",
+    "notFound": "Série introuvable.",
+    "noVehicles": "Aucun véhicule dans cette série.",
+    "noSets": "Aucun coffret dans cette série."
   }
 }

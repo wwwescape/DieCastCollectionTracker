@@ -69,7 +69,8 @@
     "overview": "Overview",
     "about": "About",
     "vehicles": "Vehicles",
-    "insights": "Insights"
+    "insights": "Insights",
+    "series": "Series"
   },
   "appShell": {
     "skipToMainContent": "Skip to main content",
@@ -126,7 +127,8 @@
     "uploadError": "Error uploading photo. Please try again.",
     "deleteError": "Error deleting photo. Please try again.",
     "primaryError": "Error updating primary photo. Please try again.",
-    "vehiclePhoto": "Vehicle photo"
+    "vehiclePhoto": "Vehicle photo",
+    "setPhoto": "Set photo"
   },
   "catalog": {
     "searchLabel": "Search by name or toy number",
@@ -191,7 +193,9 @@
     "deleteError": "Error deleting set. Please try again.",
     "deleteConfirmTitle": "Delete this set?",
     "deleteConfirmDescription": "\"{{name}}\" will be removed from your collection. This can't be undone.",
-    "vehiclesIncluded": "Vehicles included"
+    "vehiclesIncluded": "Vehicles included",
+    "linkedVehicles": "Linked vehicles",
+    "linkedVehiclesHelper": "Vehicles in your collection that came with this set"
   },
   "manufacturers": {
     "title": "Manufacturers",
@@ -371,6 +375,24 @@
     "deleteConfirmTitle": "Delete this vehicle?",
     "deleteConfirmDescription": "\"{{name}}\" will be removed from your collection, photos included. This can't be undone.",
     "addVehicle": "Add Vehicle",
-    "editVehicle": "Edit Vehicle"
+    "editVehicle": "Edit Vehicle",
+    "linkedSets": "Linked sets",
+    "linkedSetsHelper": "Sets in your collection that this vehicle came with"
+  },
+  "form": {
+    "details": "Details",
+    "identification": "Identification",
+    "ownership": "Ownership",
+    "links": "Links",
+    "tagsAndNotes": "Tags & notes",
+    "photo": "Photo"
+  },
+  "seriesPage": {
+    "title": "Series",
+    "none": "No series yet. Add a series to a vehicle or set and it shows up here.",
+    "all": "All series",
+    "notFound": "Series not found.",
+    "noVehicles": "No vehicles in this series.",
+    "noSets": "No sets in this series."
   }
 }

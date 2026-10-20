@@ -18,6 +18,8 @@ import LookupsPage from "./pages/LookupsPage";
 import ManufacturerPage from "./pages/ManufacturerPage";
 import ManufacturersPage from "./pages/ManufacturersPage";
 import PublicCollectionPage from "./pages/PublicCollectionPage";
+import SeriesListPage from "./pages/SeriesListPage";
+import SeriesPage from "./pages/SeriesPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProtectedLayout from "./routes/ProtectedLayout";
 
@@ -71,6 +73,8 @@ const router = createBrowserRouter([
           { path: "/collection/sets/:id/edit", element: <EditSetPage /> },
           { path: "/collection/manufacturers", element: <ManufacturersPage /> },
           { path: "/collection/manufacturers/:id", element: <ManufacturerPage /> },
+          { path: "/collection/series", element: <SeriesListPage /> },
+          { path: "/collection/series/:id", element: <SeriesPage /> },
           { path: "/insights", element: <InsightsPage /> },
           { path: "/settings", element: <SettingsPage /> },
           { path: "/settings/lookups", element: <LookupsPage /> },

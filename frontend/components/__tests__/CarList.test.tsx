@@ -57,6 +57,7 @@ const SAMPLE_CAR: Car = {
   photo: null,
   photos: [],
   tags: [],
+  sets: [],
 };
 
 function renderCarList() {

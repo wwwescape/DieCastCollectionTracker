@@ -2,6 +2,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from app.models.car import CarTag
+from app.models.car_set import SetTag
 from app.models.lookups import Tag
 
 
@@ -30,6 +31,7 @@ def get_or_create_by_name(db: Session, name: str, color: str | None = None) -> T
 
 def delete_tag(db: Session, tag: Tag) -> None:
     db.execute(delete(CarTag).where(CarTag.tag_id == tag.id))
+    db.execute(delete(SetTag).where(SetTag.tag_id == tag.id))
     db.delete(tag)
     db.flush()
 

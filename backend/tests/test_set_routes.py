@@ -1,4 +1,5 @@
 import io
+import json
 
 from PIL import Image
 
@@ -81,17 +82,113 @@ def _upload_photo(auth_client) -> str:
     return response.json()["url"]
 
 
-def test_replacing_or_deleting_a_set_photo_removes_the_old_file(auth_client):
+def _photo_file(url: str):
+    return UPLOADS_DIR / url.removeprefix("/uploads/")
+
+
+def _png(color: str = "blue") -> bytes:
+    buf = io.BytesIO()
+    Image.new("RGB", (40, 30), color=color).save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def test_set_photo_gallery(auth_client):
     first = _upload_photo(auth_client)
-    second = _upload_photo(auth_client)
     set_id = auth_client.post("/api/sets", json={**FIRE_STATION, "photo": first}).json()["id"]
 
-    auth_client.patch(f"/api/sets/{set_id}", json={"photo": second})
-    assert not (UPLOADS_DIR / first.removeprefix("/uploads/")).exists()
-    assert (UPLOADS_DIR / second.removeprefix("/uploads/")).exists()
+    added = auth_client.post(f"/api/sets/{set_id}/photos", files={"file": ("b.png", _png(), "image/png")}).json()
+    assert added["isPrimary"] is False
+
+    primary = auth_client.patch(f"/api/sets/{set_id}/photos/{added['id']}/primary").json()
+    body = auth_client.get(f"/api/sets/{set_id}").json()
+    assert primary["isPrimary"] is True
+    assert body["photo"] == added["url"]
+    assert [p["url"] for p in body["photos"]] == [added["url"], first]
+
+    # Deleting the primary promotes the next one and removes the file.
+    auth_client.delete(f"/api/sets/{set_id}/photos/{added['id']}")
+    body = auth_client.get(f"/api/sets/{set_id}").json()
+    assert body["photo"] == first
+    assert not _photo_file(added["url"]).exists()
 
     auth_client.delete(f"/api/sets/{set_id}")
-    assert not (UPLOADS_DIR / second.removeprefix("/uploads/")).exists()
+    assert not _photo_file(first).exists()
+
+
+def test_set_photo_routes_404_for_unknown_set(auth_client):
+    response = auth_client.post("/api/sets/999/photos", files={"file": ("b.png", _png(), "image/png")})
+    assert response.status_code == 404
+
+
+def test_sets_have_series_condition_and_tags(auth_client):
+    body = auth_client.post(
+        "/api/sets",
+        json={**FIRE_STATION, "series": "Hot Wheels City", "condition": "near_mint", "tags": ["Kids", "Loop"]},
+    ).json()
+
+    assert body["seriesName"] == "Hot Wheels City"
+    assert body["condition"] == "near_mint"
+    assert [t["name"] for t in body["tags"]] == ["Kids", "Loop"]
+
+    updated = auth_client.patch(f"/api/sets/{body['id']}", json={"tags": ["Kids"], "series": None}).json()
+    assert [t["name"] for t in updated["tags"]] == ["Kids"]
+    assert updated["seriesName"] is None
+
+
+def test_series_and_tags_used_by_sets(auth_client):
+    set_id = auth_client.post("/api/sets", json={**FIRE_STATION, "series": "Hot Wheels City", "tags": ["Kids"]}).json()[
+        "id"
+    ]
+    series_id = auth_client.get("/api/series").json()[0]["id"]
+    assert auth_client.delete(f"/api/series/{series_id}").status_code == 409
+
+    tag_id = auth_client.get("/api/tags").json()[0]["id"]
+    assert auth_client.delete(f"/api/tags/{tag_id}").status_code == 204
+    assert auth_client.get(f"/api/sets/{set_id}").json()["tags"] == []
+
+
+def test_vehicles_and_sets_link_from_either_side(auth_client):
+    backdrafter = auth_client.post("/api/cars", json={"name": "Backdrafter", "manufacturer": "Hot Wheels"}).json()
+    pursuit = auth_client.post("/api/cars", json={"name": "HW Pursuit", "manufacturer": "Hot Wheels"}).json()
+    station = auth_client.post(
+        "/api/sets", json={**FIRE_STATION, "vehicleIds": [pursuit["id"], backdrafter["id"], 999]}
+    ).json()
+    garage = auth_client.post("/api/sets", json={"name": "Action Garage", "manufacturer": "Matchbox"}).json()
+
+    # From the set side: unknown ids are ignored, names come back sorted.
+    assert [v["name"] for v in station["vehicles"]] == ["Backdrafter", "HW Pursuit"]
+    assert [s["name"] for s in auth_client.get(f"/api/cars/{backdrafter['id']}").json()["sets"]] == [
+        "Downtown Fire Station Spinout"
+    ]
+
+    # From the vehicle side: replaces that vehicle's links only.
+    auth_client.patch(f"/api/cars/{backdrafter['id']}", json={"setIds": [garage["id"]]})
+    assert [v["name"] for v in auth_client.get(f"/api/sets/{station['id']}").json()["vehicles"]] == ["HW Pursuit"]
+    assert [v["name"] for v in auth_client.get(f"/api/sets/{garage['id']}").json()["vehicles"]] == ["Backdrafter"]
+
+    # A vehicle created with sets, and links cleaned up when either side is deleted.
+    new_car = auth_client.post(
+        "/api/cars", json={"name": "Fire Truck", "manufacturer": "Hot Wheels", "setIds": [station["id"]]}
+    ).json()
+    assert [s["name"] for s in new_car["sets"]] == ["Downtown Fire Station Spinout"]
+    auth_client.delete(f"/api/cars/{pursuit['id']}")
+    assert [v["name"] for v in auth_client.get(f"/api/sets/{station['id']}").json()["vehicles"]] == ["Fire Truck"]
+    auth_client.delete(f"/api/sets/{station['id']}")
+    assert auth_client.get(f"/api/cars/{new_car['id']}").json()["sets"] == []
+
+
+def test_series_overview_counts_vehicles_and_sets_and_filters_sets(auth_client):
+    auth_client.post("/api/cars", json={"name": "Backdrafter", "manufacturer": "Hot Wheels", "series": "HW City"})
+    auth_client.post("/api/sets", json={**FIRE_STATION, "series": "HW City"})
+    auth_client.post("/api/sets", json={"name": "Action Garage", "manufacturer": "Hot Wheels"})
+    auth_client.post("/api/series", json={"name": "Empty", "manufacturer": "Hot Wheels"})
+
+    overview = auth_client.get("/api/series/overview").json()
+    assert [(s["name"], s["carCount"], s["setCount"]) for s in overview] == [("HW City", 1, 1), ("Empty", 0, 0)]
+    assert overview[0]["manufacturerName"] == "Hot Wheels"
+
+    sets = auth_client.get("/api/sets", params={"seriesId": overview[0]["id"]}).json()
+    assert [s["name"] for s in sets] == ["Downtown Fire Station Spinout"]
 
 
 def test_manufacturer_used_by_a_set_cannot_be_deleted(auth_client):
@@ -130,6 +227,72 @@ def test_backup_round_trip_includes_sets(auth_client):
     assert [s["name"] for s in sets] == ["Downtown Fire Station Spinout"]
     assert sets[0]["contents"] == ["Fire Truck (Red)", "Rescue Duty (Yellow)"]
     assert sets[0]["catalogTitle"] == "Downtown Fire Station Spinout"
+
+
+def test_backup_round_trip_keeps_set_gallery_tags_and_links(auth_client):
+    car = auth_client.post("/api/cars", json={"name": "Backdrafter", "manufacturer": "Hot Wheels"}).json()
+    photo = _upload_photo(auth_client)
+    auth_client.post(
+        "/api/sets",
+        json={
+            **FIRE_STATION,
+            "photo": photo,
+            "series": "Hot Wheels City",
+            "condition": "good",
+            "tags": ["Kids"],
+            "vehicleIds": [car["id"]],
+        },
+    )
+    backup = auth_client.get("/api/export/backup")
+    assert backup.json()["sets"][0]["vehicleIds"] == [car["id"]]
+
+    auth_client.post(
+        "/api/import/backup", files={"file": ("backup.json", io.BytesIO(backup.content), "application/json")}
+    )
+
+    restored = auth_client.get("/api/sets").json()[0]
+    assert restored["photo"] == photo
+    assert restored["seriesName"] == "Hot Wheels City"
+    assert restored["condition"] == "good"
+    assert [t["name"] for t in restored["tags"]] == ["Kids"]
+    assert [v["name"] for v in restored["vehicles"]] == ["Backdrafter"]
+
+
+def test_v4_backup_set_photo_restores_as_primary(auth_client):
+    payload = {
+        "version": 4,
+        "exportedAt": "2026-10-20T00:00:00+00:00",
+        "manufacturers": [{"id": 1, "name": "Hot Wheels"}],
+        "series": [],
+        "vehicleTypes": [],
+        "colors": [],
+        "tags": [],
+        "cars": [],
+        "sets": [
+            {
+                "id": 1,
+                "name": "Fire Station",
+                "manufacturerId": 1,
+                "setType": "playset",
+                "toyNumber": None,
+                "year": None,
+                "status": "owned",
+                "sealed": False,
+                "quantity": 1,
+                "purchasePrice": None,
+                "notes": None,
+                "photo": "/uploads/car-images/old.jpg",
+            }
+        ],
+    }
+    auth_client.post(
+        "/api/import/backup",
+        files={"file": ("backup.json", io.BytesIO(json.dumps(payload).encode()), "application/json")},
+    )
+
+    restored = auth_client.get("/api/sets").json()[0]
+    assert restored["photo"] == "/uploads/car-images/old.jpg"
+    assert restored["photos"][0]["isPrimary"] is True
 
 
 def test_dashboard_collection_value_counts_owned_cars_and_sets_with_quantity(auth_client):

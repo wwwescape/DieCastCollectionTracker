@@ -1,8 +1,25 @@
-from sqlalchemy import delete, or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy import delete, func, or_, select
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.car import Car
+from app.models.car_set import CarSet
 from app.models.lookups import Series
+
+
+def list_with_counts(db: Session) -> list[tuple[Series, int, int]]:
+    """Every series with how many vehicles and sets it has, most items first."""
+    car_counts = select(Car.series_id, func.count(Car.id).label("n")).group_by(Car.series_id).subquery()
+    set_counts = select(CarSet.series_id, func.count(CarSet.id).label("n")).group_by(CarSet.series_id).subquery()
+    cars = func.coalesce(car_counts.c.n, 0)
+    sets = func.coalesce(set_counts.c.n, 0)
+    rows = db.execute(
+        select(Series, cars, sets)
+        .options(joinedload(Series.manufacturer))
+        .outerjoin(car_counts, car_counts.c.series_id == Series.id)
+        .outerjoin(set_counts, set_counts.c.series_id == Series.id)
+        .order_by((cars + sets).desc(), Series.name)
+    ).all()
+    return [(row[0], row[1], row[2]) for row in rows]
 
 
 def list_series(db: Session, manufacturer_id: int | None = None) -> list[Series]:
@@ -35,7 +52,10 @@ def get_or_create_by_name(db: Session, name: str, manufacturer_id: int | None) -
 
 
 def is_in_use(db: Session, series_id: int) -> bool:
-    return db.scalars(select(Car.id).where(Car.series_id == series_id).limit(1)).first() is not None
+    for model in (Car, CarSet):
+        if db.scalars(select(model.id).where(model.series_id == series_id).limit(1)).first() is not None:
+            return True
+    return False
 
 
 def delete_series(db: Session, series: Series) -> None:

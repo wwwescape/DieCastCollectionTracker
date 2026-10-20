@@ -69,7 +69,8 @@
     "overview": "Resumen",
     "about": "Acerca de",
     "vehicles": "Vehículos",
-    "insights": "Estadísticas"
+    "insights": "Estadísticas",
+    "series": "Series"
   },
   "appShell": {
     "skipToMainContent": "Saltar al contenido principal",
@@ -126,7 +127,8 @@
     "uploadError": "Error al subir la foto. Inténtalo de nuevo.",
     "deleteError": "Error al eliminar la foto. Inténtalo de nuevo.",
     "primaryError": "Error al cambiar la foto principal. Inténtalo de nuevo.",
-    "vehiclePhoto": "Foto del vehículo"
+    "vehiclePhoto": "Foto del vehículo",
+    "setPhoto": "Foto del set"
   },
   "catalog": {
     "searchLabel": "Buscar por nombre o número de juguete",
@@ -191,7 +193,9 @@
     "deleteError": "Error al eliminar el set. Inténtalo de nuevo.",
     "deleteConfirmTitle": "¿Eliminar este set?",
     "deleteConfirmDescription": "\"{{name}}\" se quitará de tu colección. No se puede deshacer.",
-    "vehiclesIncluded": "Vehículos incluidos"
+    "vehiclesIncluded": "Vehículos incluidos",
+    "linkedVehicles": "Vehículos vinculados",
+    "linkedVehiclesHelper": "Vehículos de tu colección que vinieron con este set"
   },
   "manufacturers": {
     "title": "Fabricantes",
@@ -371,6 +375,24 @@
     "deleteConfirmTitle": "¿Eliminar este vehículo?",
     "deleteConfirmDescription": "\"{{name}}\" se quitará de tu colección, fotos incluidas. No se puede deshacer.",
     "addVehicle": "Añadir vehículo",
-    "editVehicle": "Editar vehículo"
+    "editVehicle": "Editar vehículo",
+    "linkedSets": "Sets vinculados",
+    "linkedSetsHelper": "Sets de tu colección con los que vino este vehículo"
+  },
+  "form": {
+    "details": "Detalles",
+    "identification": "Identificación",
+    "ownership": "Posesión",
+    "links": "Vínculos",
+    "tagsAndNotes": "Etiquetas y notas",
+    "photo": "Foto"
+  },
+  "seriesPage": {
+    "title": "Series",
+    "none": "Aún no hay series. Añade una serie a un vehículo o set y aparecerá aquí.",
+    "all": "Todas las series",
+    "notFound": "Serie no encontrada.",
+    "noVehicles": "No hay vehículos en esta serie.",
+    "noSets": "No hay sets en esta serie."
   }
 }

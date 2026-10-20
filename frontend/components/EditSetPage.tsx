@@ -9,10 +9,18 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useTranslation } from "react-i18next";
 import type { SetInput } from "../api/types";
-import { useDeleteSet, useSet, useUpdateSet } from "../hooks/useSets";
+import {
+  useAddSetPhoto,
+  useDeleteSet,
+  useDeleteSetPhoto,
+  useSet,
+  useSetSetPhotoPrimary,
+  useUpdateSet,
+} from "../hooks/useSets";
 import { CATALOG_SOURCE_LABELS } from "../utils/catalog";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
 import ConfirmDialog from "./ConfirmDialog";
+import PhotoGallery from "./PhotoGallery";
 import SetForm, { setToFormValues } from "./SetForm";
 
 const EditSetPage = () => {
@@ -23,6 +31,9 @@ const EditSetPage = () => {
   const { data: set, isLoading } = useSet(Number.isFinite(setId) ? setId : undefined);
   const updateSet = useUpdateSet(setId);
   const deleteSet = useDeleteSet();
+  const addPhoto = useAddSetPhoto(setId);
+  const deletePhoto = useDeleteSetPhoto(setId);
+  const setPrimaryPhoto = useSetSetPhotoPrimary(setId);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
   const handleSubmit = async (input: SetInput) => {
@@ -94,11 +105,21 @@ const EditSetPage = () => {
           </Button>
         </Stack>
       </Stack>
-      <SetForm
-        initialValues={setToFormValues(set)}
-        submitLabel={t("common.saveChanges")}
-        onSubmit={handleSubmit}
-      />
+      <Stack spacing={2}>
+        <SetForm
+          initialValues={setToFormValues(set)}
+          submitLabel={t("common.saveChanges")}
+          onSubmit={handleSubmit}
+          showPhotoUpload={false}
+        />
+        <PhotoGallery
+          photos={set.photos}
+          photoAlt={t("gallery.setPhoto")}
+          addPhoto={addPhoto}
+          deletePhoto={deletePhoto}
+          setPrimary={setPrimaryPhoto}
+        />
+      </Stack>
       <ConfirmDialog
         open={confirmDeleteOpen}
         title={t("sets.deleteConfirmTitle")}

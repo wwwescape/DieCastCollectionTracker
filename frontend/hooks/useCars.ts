@@ -22,6 +22,8 @@ const LOOKUP_QUERY_KEYS = [["manufacturers"], ["series"], ["vehicle-types"], ["c
 function invalidateCarQueries(queryClient: QueryClient, { lookups = false } = {}) {
   queryClient.invalidateQueries({ queryKey: ["vehicles"] });
   queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+  // A vehicle's linked sets show on those sets too.
+  queryClient.invalidateQueries({ queryKey: ["sets"] });
   if (lookups) {
     LOOKUP_QUERY_KEYS.forEach((queryKey) => queryClient.invalidateQueries({ queryKey }));
   }

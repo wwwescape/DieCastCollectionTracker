@@ -3,7 +3,9 @@ from app.schemas.base import CamelModel
 # v2 added the full per-car photo gallery (`photos`); v1 files carry only `photo`.
 # v3 added the wiki catalog link (`catalogSource`/`catalogTitle`); older files restore without one.
 # v4 added `sets`; older files restore with none.
-BACKUP_FORMAT_VERSION = 4
+# v5 gave sets a photo gallery (`photos`), `tagIds`, `seriesId`, `condition` and linked vehicles
+# (`vehicleIds`); a v4 set's single `photo` restores as its primary photo.
+BACKUP_FORMAT_VERSION = 5
 
 
 class BackupManufacturer(CamelModel):
@@ -76,10 +78,16 @@ class BackupSet(CamelModel):
     quantity: int
     purchase_price: float | None
     notes: str | None
-    photo: str | None
+    # Primary photo; the only one in v4 files.
+    photo: str | None = None
+    photos: list[BackupPhoto] = []
     contents: list[str] = []
     catalog_source: str | None = None
     catalog_title: str | None = None
+    series_id: int | None = None
+    condition: str | None = None
+    tag_ids: list[int] = []
+    vehicle_ids: list[int] = []
 
 
 class BackupPayload(CamelModel):

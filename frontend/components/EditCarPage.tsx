@@ -9,13 +9,21 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import { useTranslation } from "react-i18next";
 import type { CarInput } from "../api/types";
-import { useCar, useDeleteCar, useImportCarPhotoFromWiki, useUpdateCar } from "../hooks/useCars";
+import {
+  useAddCarPhoto,
+  useCar,
+  useDeleteCar,
+  useDeleteCarPhoto,
+  useImportCarPhotoFromWiki,
+  useSetCarPhotoPrimary,
+  useUpdateCar,
+} from "../hooks/useCars";
 import { versionToFormValues } from "../utils/catalog";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
 import CarForm, { carToFormValues, type CarFormValues } from "./CarForm";
-import CarPhotoGallery from "./CarPhotoGallery";
 import CatalogMatchDialog from "./CatalogMatchDialog";
 import ConfirmDialog from "./ConfirmDialog";
+import PhotoGallery from "./PhotoGallery";
 
 const EditCarPage = () => {
   const { t } = useTranslation();
@@ -26,6 +34,9 @@ const EditCarPage = () => {
   const updateCar = useUpdateCar(carId);
   const deleteCar = useDeleteCar();
   const importPhoto = useImportCarPhotoFromWiki(carId);
+  const addPhoto = useAddCarPhoto(carId);
+  const deletePhoto = useDeleteCarPhoto(carId);
+  const setPrimaryPhoto = useSetCarPhotoPrimary(carId);
   const [matchOpen, setMatchOpen] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   // A catalog match is applied to the form, not saved — the user reviews it and saves as
@@ -108,7 +119,13 @@ const EditCarPage = () => {
           onSubmit={handleSubmit}
           showPhotoUpload={false}
         />
-        <CarPhotoGallery carId={car.id} photos={car.photos} />
+        <PhotoGallery
+          photos={car.photos}
+          photoAlt={t("gallery.vehiclePhoto")}
+          addPhoto={addPhoto}
+          deletePhoto={deletePhoto}
+          setPrimary={setPrimaryPhoto}
+        />
       </Stack>
       <CatalogMatchDialog
         open={matchOpen}

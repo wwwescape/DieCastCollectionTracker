@@ -69,7 +69,8 @@
     "overview": "Resumo",
     "about": "Sobre",
     "vehicles": "Veículos",
-    "insights": "Estatísticas"
+    "insights": "Estatísticas",
+    "series": "Séries"
   },
   "appShell": {
     "skipToMainContent": "Saltar para o conteúdo principal",
@@ -126,7 +127,8 @@
     "uploadError": "Erro ao carregar a fotografia. Tente novamente.",
     "deleteError": "Erro ao eliminar a fotografia. Tente novamente.",
     "primaryError": "Erro ao alterar a fotografia principal. Tente novamente.",
-    "vehiclePhoto": "Fotografia do veículo"
+    "vehiclePhoto": "Fotografia do veículo",
+    "setPhoto": "Fotografia do conjunto"
   },
   "catalog": {
     "searchLabel": "Pesquisar por nome ou número do brinquedo",
@@ -191,7 +193,9 @@
     "deleteError": "Erro ao eliminar o conjunto. Tente novamente.",
     "deleteConfirmTitle": "Eliminar este conjunto?",
     "deleteConfirmDescription": "\"{{name}}\" será removido da sua coleção. Esta ação não pode ser anulada.",
-    "vehiclesIncluded": "Veículos incluídos"
+    "vehiclesIncluded": "Veículos incluídos",
+    "linkedVehicles": "Veículos vinculados",
+    "linkedVehiclesHelper": "Veículos da sua coleção que vieram com este conjunto"
   },
   "manufacturers": {
     "title": "Fabricantes",
@@ -371,6 +375,24 @@
     "deleteConfirmTitle": "Eliminar este veículo?",
     "deleteConfirmDescription": "\"{{name}}\" será removido da sua coleção, incluindo as fotografias. Esta ação não pode ser anulada.",
     "addVehicle": "Adicionar veículo",
-    "editVehicle": "Editar veículo"
+    "editVehicle": "Editar veículo",
+    "linkedSets": "Conjuntos vinculados",
+    "linkedSetsHelper": "Conjuntos da sua coleção com os quais este veículo veio"
+  },
+  "form": {
+    "details": "Detalhes",
+    "identification": "Identificação",
+    "ownership": "Posse",
+    "links": "Vínculos",
+    "tagsAndNotes": "Etiquetas e notas",
+    "photo": "Fotografia"
+  },
+  "seriesPage": {
+    "title": "Séries",
+    "none": "Ainda não há séries. Adicione uma série a um veículo ou conjunto e ela aparece aqui.",
+    "all": "Todas as séries",
+    "notFound": "Série não encontrada.",
+    "noVehicles": "Nenhum veículo nesta série.",
+    "noSets": "Nenhum conjunto nesta série."
   }
 }

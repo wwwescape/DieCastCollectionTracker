@@ -3,7 +3,7 @@ autogenerate and for the cross-module string-based relationship() references to 
 
 from app.db.base import Base
 from app.models.car import Car, CarCondition, CarPhoto, CarStatus, CarTag  # noqa: F401
-from app.models.car_set import CarSet, SetType  # noqa: F401
+from app.models.car_set import CarSet, SetPhoto, SetTag, SetType, SetVehicle  # noqa: F401
 from app.models.lookups import Color, Manufacturer, Series, Tag, VehicleType  # noqa: F401
 from app.models.system import RefreshToken, User  # noqa: F401
 

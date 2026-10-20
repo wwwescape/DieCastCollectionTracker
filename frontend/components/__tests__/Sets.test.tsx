@@ -3,14 +3,17 @@ import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as carsApi from "../../api/cars";
 import * as catalogApi from "../../api/catalog";
 import * as lookupsApi from "../../api/lookups";
 import * as setsApi from "../../api/sets";
+import * as tagsApi from "../../api/tags";
 import type { CatalogSet } from "../../api/catalog";
+import type { Car } from "../../api/types";
 import CatalogSetPage from "../../pages/CatalogSetPage";
 import { catalogSetToFormValues } from "../../utils/catalog";
 import AddSetPage, { type AddSetLocationState } from "../AddSetPage";
-import SetForm from "../SetForm";
+import SetForm, { withSetFormDefaults } from "../SetForm";
 
 const FIRE_STATION: CatalogSet = {
   source: "hotwheels",
@@ -53,7 +56,13 @@ beforeEach(() => {
   sessionStorage.clear();
   vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([]);
   vi.spyOn(setsApi, "listSets").mockResolvedValue([]);
+  vi.spyOn(carsApi, "listCars").mockResolvedValue([]);
+  vi.spyOn(lookupsApi, "listSeries").mockResolvedValue([]);
+  vi.spyOn(tagsApi, "listTags").mockResolvedValue([]);
 });
+
+const vehicle = (id: number, name: string) =>
+  ({ id, name, manufacturerName: "Hot Wheels", year: null, photo: null }) as Car;
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -97,6 +106,48 @@ describe("SetForm", () => {
     );
     // Types a fair bit of text; can pass 5s on a busy machine.
   }, 15_000);
+
+  it("links vehicles from the collection", async () => {
+    vi.mocked(carsApi.listCars).mockResolvedValue([
+      vehicle(3, "Fire Truck"),
+      vehicle(4, "Rescue Duty"),
+    ]);
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    withProviders(<SetForm submitLabel="Add Set" onSubmit={onSubmit} />, ["/"]);
+
+    await user.type(screen.getByLabelText(/^name/i), "Fire Station");
+    await user.type(screen.getByLabelText(/manufacturer/i), "Hot Wheels");
+    await user.click(screen.getByLabelText("Linked vehicles"));
+    await user.click(await screen.findByText("Rescue Duty"));
+    await user.click(screen.getByRole("button", { name: "Add Set" }));
+
+    expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ vehicleIds: [4] }));
+  }, 15_000);
+
+  it("leaves photos to the gallery when editing", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    withProviders(
+      <SetForm
+        initialValues={withSetFormDefaults({
+          name: "Fire Station",
+          manufacturer: "Hot Wheels",
+          photo: "/x.jpg",
+        })}
+        submitLabel="Save"
+        onSubmit={onSubmit}
+        showPhotoUpload={false}
+      />,
+      ["/"]
+    );
+
+    expect(
+      screen.queryByRole("button", { name: /upload photo|replace photo/i })
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save" }));
+    expect(onSubmit.mock.calls[0]?.[0]).not.toHaveProperty("photo");
+  });
 });
 
 describe("AddSetPage", () => {
@@ -165,5 +216,31 @@ describe("CatalogSetPage", () => {
     expect(importSpy.mock.calls[0]?.[0]).toBe(FIRE_STATION.imageUrl);
     await waitFor(() => expect(screen.getByLabelText(/^name/i)).toHaveValue("Fire Station"));
     expect(screen.getByAltText("Set photo preview")).toBeInTheDocument();
+  });
+
+  it("pre-links the set's cars that are already in the collection", async () => {
+    vi.mocked(carsApi.listCars).mockResolvedValue([
+      vehicle(3, "fire truck"),
+      vehicle(5, "Bone Shaker"),
+    ]);
+    vi.spyOn(catalogApi, "getCatalogSet").mockResolvedValue({ ...FIRE_STATION, imageUrl: null });
+    const user = userEvent.setup();
+    withProviders(
+      <Routes>
+        <Route path="/collection/sets/add/catalog" element={<CatalogSetPage />} />
+        <Route path="/collection/sets/add" element={<AddSetPage />} />
+      </Routes>,
+      [
+        `/collection/sets/add/catalog?${new URLSearchParams({ source: "hotwheels", title: FIRE_STATION.title })}`,
+      ]
+    );
+
+    // Wait for the collection to load (the related chip) before adding.
+    expect(await screen.findByLabelText("You have this vehicle")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Add this set" }));
+
+    // A chip for the matched vehicle sits in the Linked vehicles field; Bone Shaker isn't in the set.
+    expect(await screen.findByRole("button", { name: "fire truck" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Bone Shaker" })).not.toBeInTheDocument();
   });
 });

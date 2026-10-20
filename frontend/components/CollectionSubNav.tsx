@@ -9,9 +9,10 @@ const SUB_NAV_ITEMS = [
   { to: "/collection/vehicles", labelKey: "nav.vehicles", exact: false },
   { to: "/collection/sets", labelKey: "nav.sets", exact: false },
   { to: "/collection/manufacturers", labelKey: "nav.manufacturers", exact: false },
+  { to: "/collection/series", labelKey: "nav.series", exact: false },
 ] as const;
 
-// Mirrors VideoGameTrackarr's GamesSubNav/HardwareSubNav — keeps Cars, Sets and Manufacturers reachable at
+// Mirrors VideoGameTrackarr's GamesSubNav/HardwareSubNav — keeps Vehicles, Sets, Manufacturers and Series reachable at
 // every breakpoint, since NavDrawer's nested sub-items are desktop-only.
 const CollectionSubNav = () => {
   const { t } = useTranslation();

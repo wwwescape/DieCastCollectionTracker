@@ -31,6 +31,7 @@ const CAR = {
   photo: null,
   photos: [],
   tags: [],
+  sets: [],
 } as unknown as Car;
 
 const SET = {
@@ -46,6 +47,11 @@ const SET = {
   purchasePrice: null,
   notes: null,
   photo: null,
+  photos: [],
+  tags: [],
+  vehicles: [],
+  seriesName: null,
+  condition: null,
   contents: [],
   catalogSource: null,
   catalogTitle: null,

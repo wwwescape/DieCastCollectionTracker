@@ -47,6 +47,15 @@ export interface CarPhoto {
   sortOrder: number;
 }
 
+// A vehicle as listed on a set, or a set as listed on a vehicle.
+export interface LinkedItem {
+  id: number;
+  name: string;
+  manufacturerName: string;
+  year: number | null;
+  photo: string | null;
+}
+
 export interface Car {
   id: number;
   name: string;
@@ -72,6 +81,8 @@ export interface Car {
   photo: string | null;
   photos: CarPhoto[];
   tags: Tag[];
+  // Sets this vehicle is linked to.
+  sets: LinkedItem[];
 }
 
 export interface CarInput {
@@ -92,6 +103,7 @@ export interface CarInput {
   catalogTitle: string | null;
   photo?: string | null;
   tags: string[];
+  setIds: number[];
 }
 
 // Playsets and track sets only — multi-packs and gift packs are tracked car by car.
@@ -105,17 +117,25 @@ export interface CarSet {
   name: string;
   manufacturerId: number;
   manufacturerName: string;
+  seriesId: number | null;
+  seriesName: string | null;
   setType: SetType;
   toyNumber: string | null;
   year: number | null;
   status: CarStatus;
+  condition: CarCondition | null;
   sealed: boolean;
   quantity: number;
   purchasePrice: number | null;
   notes: string | null;
+  // Primary photo; the whole gallery is in `photos`.
   photo: string | null;
-  // One entry per car that came with it, e.g. "Backdrafter (Red)".
+  photos: CarPhoto[];
+  tags: Tag[];
+  // The wiki's list of vehicles that came with it, e.g. "Backdrafter (Red)".
   contents: string[];
+  // Vehicles in the collection linked to this set.
+  vehicles: LinkedItem[];
   catalogSource: CatalogSourceId | null;
   catalogTitle: string | null;
   catalogUrl: string | null;
@@ -124,16 +144,21 @@ export interface CarSet {
 export interface SetInput {
   name: string;
   manufacturer: string;
+  series: string | null;
   setType: SetType;
   toyNumber: string | null;
   year: number | null;
   status: CarStatus;
+  condition: CarCondition | null;
   sealed: boolean;
   quantity: number;
   purchasePrice: number | null;
   notes: string | null;
-  photo: string | null;
+  // Initial photo when creating; afterwards the gallery is managed on the edit page.
+  photo?: string | null;
+  tags: string[];
   contents: string[];
+  vehicleIds: number[];
   catalogSource: CatalogSourceId | null;
   catalogTitle: string | null;
 }

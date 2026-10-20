@@ -1,5 +1,15 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
-import { createSet, deleteSet, getSet, listSets, updateSet, type SetListParams } from "../api/sets";
+import {
+  addSetPhoto,
+  createSet,
+  deleteSet,
+  deleteSetPhoto,
+  getSet,
+  listSets,
+  setSetPhotoPrimary,
+  updateSet,
+  type SetListParams,
+} from "../api/sets";
 import type { SetInput } from "../api/types";
 
 // Set changes move the Collection overview's counts, and create/update can add a
@@ -7,7 +17,13 @@ import type { SetInput } from "../api/types";
 function invalidateSetQueries(queryClient: QueryClient, { lookups = false } = {}) {
   queryClient.invalidateQueries({ queryKey: ["sets"] });
   queryClient.invalidateQueries({ queryKey: ["dashboard"] });
-  if (lookups) queryClient.invalidateQueries({ queryKey: ["manufacturers"] });
+  // A set's linked vehicles show on those vehicles too.
+  queryClient.invalidateQueries({ queryKey: ["vehicles"] });
+  if (lookups) {
+    ["manufacturers", "series", "tags"].forEach((key) =>
+      queryClient.invalidateQueries({ queryKey: [key] })
+    );
+  }
 }
 
 export function useSetList(params: SetListParams = {}) {
@@ -42,6 +58,32 @@ export function useDeleteSet() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteSet,
+    onSuccess: () => invalidateSetQueries(queryClient),
+  });
+}
+
+// --- Photo gallery ---
+
+export function useAddSetPhoto(setId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => addSetPhoto(setId, file),
+    onSuccess: () => invalidateSetQueries(queryClient),
+  });
+}
+
+export function useDeleteSetPhoto(setId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (photoId: number) => deleteSetPhoto(setId, photoId),
+    onSuccess: () => invalidateSetQueries(queryClient),
+  });
+}
+
+export function useSetSetPhotoPrimary(setId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (photoId: number) => setSetPhotoPrimary(setId, photoId),
     onSuccess: () => invalidateSetQueries(queryClient),
   });
 }

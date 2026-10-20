@@ -11,22 +11,29 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import { resolveAssetUrl } from "../api/client";
+import type { UseMutationResult } from "@tanstack/react-query";
 import type { CarPhoto } from "../api/types";
-import { useAddCarPhoto, useDeleteCarPhoto, useSetCarPhotoPrimary } from "../hooks/useCars";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
 import { useTranslation } from "react-i18next";
 
-interface CarPhotoGalleryProps {
-  carId: number;
+// Shared by vehicles and sets: the caller passes that item's photo mutations.
+interface PhotoGalleryProps {
   photos: CarPhoto[];
+  photoAlt: string;
+  addPhoto: UseMutationResult<unknown, Error, File>;
+  deletePhoto: UseMutationResult<unknown, Error, number>;
+  setPrimary: UseMutationResult<unknown, Error, number>;
 }
 
-const CarPhotoGallery = ({ carId, photos }: CarPhotoGalleryProps) => {
+const PhotoGallery = ({
+  photos,
+  photoAlt,
+  addPhoto,
+  deletePhoto,
+  setPrimary,
+}: PhotoGalleryProps) => {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const addPhoto = useAddCarPhoto(carId);
-  const deletePhoto = useDeleteCarPhoto(carId);
-  const setPrimary = useSetCarPhotoPrimary(carId);
 
   const sorted = [...photos].sort((a, b) =>
     a.isPrimary ? -1 : b.isPrimary ? 1 : a.sortOrder - b.sortOrder
@@ -109,7 +116,7 @@ const CarPhotoGallery = ({ carId, photos }: CarPhotoGalleryProps) => {
               <Box
                 component="img"
                 src={resolveAssetUrl(photo.url) ?? undefined}
-                alt={photo.isPrimary ? t("gallery.primaryPhoto") : t("gallery.vehiclePhoto")}
+                alt={photo.isPrimary ? t("gallery.primaryPhoto") : photoAlt}
                 sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
               />
               <Box
@@ -189,4 +196,4 @@ const CarPhotoGallery = ({ carId, photos }: CarPhotoGalleryProps) => {
   );
 };
 
-export default CarPhotoGallery;
+export default PhotoGallery;

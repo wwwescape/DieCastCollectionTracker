@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import CollectionsBookmarkIcon from "@mui/icons-material/CollectionsBookmark";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import FactoryIcon from "@mui/icons-material/Factory";
@@ -36,6 +37,7 @@ export const navDestinations: NavDestination[] = [
       { to: "/collection/vehicles", labelKey: "nav.vehicles", icon: <DirectionsCarIcon /> },
       { to: "/collection/sets", labelKey: "nav.sets", icon: <RoadIcon /> },
       { to: "/collection/manufacturers", labelKey: "nav.manufacturers", icon: <FactoryIcon /> },
+      { to: "/collection/series", labelKey: "nav.series", icon: <CollectionsBookmarkIcon /> },
     ],
   },
   { to: "/insights", labelKey: "nav.insights", icon: <InsightsIcon /> },

@@ -29,12 +29,15 @@
   already have, and flag castings and series you own vehicles from. Existing vehicles can be
   matched from their edit page. No API key needed; the instance needs outbound internet access.
 - **Sets** — track playsets and track sets (like Hot Wheels City's fire stations) as single items,
-  with toy number, year, sealed or opened, and the vehicles that came with them. Find a set on the
-  Hot Wheels Wiki by name or toy number (e.g. `FMY96`) to fill it in, photo included; Matchbox
-  sets are entered by hand, since that wiki has no page per set.
+  with series, toy number, year, condition, sealed or opened, tags, and the vehicles that came
+  with them. Find a set on the Hot Wheels Wiki by name or toy number (e.g. `FMY96`) to fill it
+  in, photo included; Matchbox sets are entered by hand, since that wiki has no page per set.
+- **Linked vehicles and sets** — link a set to the vehicles in your collection that came with it,
+  from either form. Adding a set from the wiki links the vehicles you already have.
 - **Manufacturers** — every manufacturer with its logo (Hot Wheels, Matchbox, Majorette) and
   counts; open one to see all of its vehicles and sets.
-- **Photo gallery** — several photos per vehicle, with a primary photo for the card.
+- **Series** — every series with its counts; open one to see all of its vehicles and sets.
+- **Photo gallery** — several photos per vehicle and set, with a primary photo for the card.
 - **Search & filters** — filter by manufacturer, series, vehicle type, color, or status.
 - **Your own lookup lists** — manufacturers, series, vehicle types, and colors grow as you type,
   and can be managed in Settings → Lookups.
