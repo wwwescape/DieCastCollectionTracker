@@ -3,7 +3,14 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
 from app.models.system import User
-from app.schemas.auth import LoginRequest, RefreshRequest, TokenResponse, UserResponse
+from app.schemas.auth import (
+    LoginRequest,
+    RefreshRequest,
+    SetupRequest,
+    SetupStatusResponse,
+    TokenResponse,
+    UserResponse,
+)
 from app.services import auth_service
 from app.services.auth_service import AuthError
 
@@ -17,6 +24,23 @@ def login(body: LoginRequest, db: Session = Depends(get_db)) -> TokenResponse:
     except AuthError as exc:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(exc)) from exc
 
+    access_token, refresh_token = auth_service.issue_tokens(db, user)
+    return TokenResponse(access_token=access_token, refresh_token=refresh_token)
+
+
+@router.get("/setup-status", response_model=SetupStatusResponse)
+def setup_status(db: Session = Depends(get_db)) -> SetupStatusResponse:
+    return SetupStatusResponse(setup_required=db.query(User).count() == 0)
+
+
+@router.post("/setup", response_model=TokenResponse)
+def setup(body: SetupRequest, db: Session = Depends(get_db)) -> TokenResponse:
+    """Creates the very first admin account from the web UI, so a fresh instance doesn't
+    require `docker compose exec app python -m scripts.create_admin`. Deliberately not a
+    general-purpose register endpoint - create_initial_admin rejects this once any user
+    already exists (see app/services/auth_service.py), and that rejection surfaces as a 409
+    via the app-wide ConflictError handler in app/main.py."""
+    user = auth_service.create_initial_admin(db, body.username, body.password)
     access_token, refresh_token = auth_service.issue_tokens(db, user)
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)
 

@@ -62,19 +62,21 @@ volumes:
   uploads-data:
 ```
 
-Create a `.env` file next to it (see [Configuration](#configuration)), then start it and create
-your admin account:
+Create a `.env` file next to it (see [Configuration](#configuration)), then start it:
 
 ```bash
 docker compose up -d
 ```
 
+Open `http://localhost:8000`. On a fresh instance you'll see a create-admin form instead of the
+login screen: fill it in once and you're signed in. Migrations run automatically on startup, and
+your database and car photos live in the named volumes, so they survive restarts and upgrades.
+
+Locked out later? Reset the password from the CLI:
+
 ```bash
 docker compose exec app python -m scripts.create_admin --username admin
 ```
-
-Open `http://localhost:8000` and log in. Migrations run automatically on startup, and your
-database and car photos live in the named volumes, so they survive restarts and upgrades.
 
 ### Upgrading
 
@@ -110,7 +112,6 @@ python -m venv .venv
 .venv\Scripts\activate          # Windows; use `source .venv/bin/activate` on macOS/Linux
 pip install -r requirements-dev.txt
 alembic upgrade head
-python -m scripts.create_admin --username admin
 ```
 
 Create `.env` in the project root as described in [Configuration](#configuration), then run the
@@ -125,7 +126,8 @@ npm start
 ```
 
 The frontend runs on `http://localhost:3000` and talks to the backend on
-`http://localhost:8000`. The repo's own `docker-compose.yml` builds the image from source
+`http://localhost:8000`. The first visit shows the create-admin form, since the database starts
+with no users. The repo's own `docker-compose.yml` builds the image from source
 (`docker compose up -d --build`).
 
 ### Test

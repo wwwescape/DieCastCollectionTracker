@@ -1,7 +1,9 @@
 """Create (or reset the password of) the single admin account for this instance.
 
-There is deliberately no public "register" endpoint — this CLI is the only way to
-provision or reset the login used by /api/auth/login.
+First-time setup doesn't need this: if no user exists yet, the web UI shows a
+create-admin form at /login itself (POST /api/auth/setup). There is still deliberately no
+public "register" endpoint beyond that first-run case, so this CLI remains the way to reset
+a forgotten password or recreate the admin account if you're locked out.
 
 Usage:
     python -m scripts.create_admin --username admin

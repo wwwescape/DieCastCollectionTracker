@@ -11,6 +11,10 @@ export interface CurrentUser {
   username: string;
 }
 
+export interface SetupStatus {
+  setupRequired: boolean;
+}
+
 export interface NamedLookup {
   id: number;
   name: string;

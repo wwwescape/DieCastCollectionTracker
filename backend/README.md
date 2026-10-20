@@ -18,7 +18,13 @@ API docs: [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ## Auth
 
-First-run setup — creates the single admin account (run from `backend/` with the venv active):
+This is a single-admin-account instance. The first admin account is created from the web UI:
+when the `users` table is empty, `GET /api/auth/setup-status` reports `setupRequired: true` and
+the frontend shows a create-admin form at `/login`, backed by `POST /api/auth/setup` (rejected
+with 409 once a user already exists).
+
+The CLI still creates the account headlessly, or resets a forgotten password (run from
+`backend/` with the venv active):
 
 ```bash
 python -m scripts.create_admin --username admin
@@ -29,7 +35,7 @@ python -m scripts.create_admin --username admin --password "your-password"
 ```
 
 Running the script again on an existing username resets the password. There is no public
-register endpoint — this script is the only way to provision or reset the login.
+register endpoint beyond the first-run setup form.
 
 ## Testing
 

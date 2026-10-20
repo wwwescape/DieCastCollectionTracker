@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="card" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2f7ff0"/>
+      <stop offset="1" stop-color="#0f4fc0"/>
+    </linearGradient>
+    <mask id="hook">
+      <rect width="512" height="512" fill="#fff"/>
+      <!-- Peg hook slot: enters from the shoulder, curls up and back like a J -->
+      <path d="M380 112 H332 A22 22 0 0 1 332 68 H340" fill="none" stroke="#000" stroke-width="12" stroke-linecap="round"/>
+    </mask>
+  </defs>
+
+  <!-- Blister card: tall header tab, stepped-down shoulder on the right -->
+  <path mask="url(#hook)" fill="url(#card)" d="
+    M136 32
+    H340 Q368 32 368 60
+    V96 Q368 112 384 112
+    H392 Q420 112 420 140
+    V456 Q420 484 392 484
+    H120 Q92 484 92 456
+    V76 Q92 32 136 32 Z"/>
+
+  <!-- Car: fastback muscle car with a black ducktail spoiler -->
+  <g transform="translate(256 354) scale(1.14) translate(-253 -376)">
+    <!-- Body: shark nose, long flat hood, short cabin, sloping fastback, slight forward rake.
+         Wheel arches are cut out of it via the mask so the blister shows around each tyre. -->
+    <mask id="arches">
+      <rect x="100" y="300" width="300" height="140" fill="#fff"/>
+      <circle cx="188" cy="393" r="25" fill="#000"/>
+      <circle cx="320" cy="391" r="25" fill="#000"/>
+    </mask>
+    <path mask="url(#arches)" fill="#ffc21a" d="M142 361 Q172 358 230 358 L250 344 Q254 342 260 342 L288 342 Q296 342 304 346 L352 357 Q360 359 360 365 L359 385 Q358 390 352 390 L150 394 Q145 394 144 390 L139 368 Q139 362 142 361 Z"/>
+    <!-- Ducktail spoiler -->
+    <path fill="#14171f" d="M340 356 L362 350 Q367 349 366 354 L362 362 L345 361 Q339 360 340 356 Z"/>
+    <!-- Glass -->
+    <path fill="#12305f" d="M238 360 L253 349 Q256 347 260 347 L282 347 L282 360 Z M288 347 L294 347 Q299 347 301 351 L303 360 L288 360 Z"/>
+    <!-- Wheels -->
+    <g fill="#1b2130">
+      <circle cx="188" cy="393" r="21"/>
+      <circle cx="320" cy="391" r="21"/>
+    </g>
+    <g fill="#c3cad6">
+      <circle cx="188" cy="393" r="8"/>
+      <circle cx="320" cy="391" r="8"/>
+    </g>
+  </g>
+
+  <!-- Clear plastic blister -->
+  <rect x="114" y="262" width="284" height="194" rx="40" fill="#ffffff" fill-opacity="0.16" stroke="#ffffff" stroke-opacity="0.9" stroke-width="7"/>
+  <path d="M144 302 Q146 284 166 282 H226" fill="none" stroke="#ffffff" stroke-opacity="0.75" stroke-width="7" stroke-linecap="round"/>
+</svg>

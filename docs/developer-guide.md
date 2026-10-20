@@ -69,8 +69,10 @@ The API docs are at [http://localhost:8000/docs](http://localhost:8000/docs).
 
 ### Auth setup
 
-There is no public register endpoint. Create the admin account with the CLI script
-(run from `backend/` with the venv active):
+There is no public register endpoint. On a fresh database, `/login` shows a create-admin form
+instead of the sign-in form (`GET /api/auth/setup-status` → `POST /api/auth/setup`, which
+returns 409 once any user exists). You can also create the admin account, or reset its
+password, with the CLI script (run from `backend/` with the venv active):
 
 ```bash
 python -m scripts.create_admin --username admin
@@ -177,6 +179,8 @@ When serializing for backup/export use `model_dump_json(indent=2, by_alias=True)
 
 ### Auth flow
 
+0. On a fresh database, `GET /api/auth/setup-status` returns `setupRequired: true` and
+   `POST /api/auth/setup` creates the first admin, returning the same tokens as login
 1. `POST /api/auth/login` → returns `accessToken` (15 min) + `refreshToken` (30 days)
 2. Frontend stores both in `localStorage` (`frontend/api/tokenStorage.ts`)
 3. Axios interceptor attaches `Authorization: Bearer <accessToken>` on every request

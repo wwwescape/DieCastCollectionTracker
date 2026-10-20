@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico"],
+      includeAssets: ["favicon.ico", "DieCastCollectionTracker.svg"],
       manifest: {
         name: "DieCastCollectionTracker",
         short_name: "DCT",
