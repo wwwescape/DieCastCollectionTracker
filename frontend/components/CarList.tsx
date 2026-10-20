@@ -52,14 +52,14 @@ const CarList = () => {
         gap={1}
       >
         <Typography variant="h4" component="h1">
-          {t("cars.title")}
+          {t("vehicles.title")}
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
-          onClick={() => navigate("/collection/cars/add")}
+          onClick={() => navigate("/collection/vehicles/add")}
         >
-          {t("cars.addCar")}
+          {t("vehicles.addVehicle")}
         </Button>
       </Stack>
       <CollectionSubNav />
@@ -98,7 +98,7 @@ const CarList = () => {
           </Grid>
           <Grid size={{ xs: 12, sm: 6, md: 2 }}>
             <AutocompleteSelect
-              label={t("cars.vehicleType")}
+              label={t("vehicles.vehicleType")}
               fullWidth
               options={vehicleTypes ?? []}
               value={vehicleTypes?.find((v) => v.id === vehicleTypeId) ?? null}
@@ -124,13 +124,13 @@ const CarList = () => {
       {isLoading ? (
         <Paper sx={{ p: 3, textAlign: "center" }}>{t("common.loading")}</Paper>
       ) : !cars?.length ? (
-        <Paper sx={{ p: 3, textAlign: "center" }}>{t("cars.noneFound")}</Paper>
+        <Paper sx={{ p: 3, textAlign: "center" }}>{t("vehicles.noneFound")}</Paper>
       ) : (
         <VirtualCarGrid
           items={cars}
           getKey={(car) => car.id}
           renderItem={(car) => (
-            <CarCard car={car} onClick={() => navigate(`/collection/cars/${car.id}/edit`)} />
+            <CarCard car={car} onClick={() => navigate(`/collection/vehicles/${car.id}/edit`)} />
           )}
         />
       )}

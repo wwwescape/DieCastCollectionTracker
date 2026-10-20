@@ -137,3 +137,10 @@ export interface SetInput {
   catalogSource: CatalogSourceId | null;
   catalogTitle: string | null;
 }
+
+export interface VersionInfo {
+  currentVersion: string;
+  latestVersion: string | null;
+  updateAvailable: boolean;
+  releaseUrl: string | null;
+}

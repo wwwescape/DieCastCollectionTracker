@@ -31,15 +31,15 @@
     "backToSearch": "Voltar à pesquisa",
     "viewOnWiki": "Ver na {{wiki}}",
     "matchedTo": "Associado a {{title}} · {{wiki}}",
-    "carCount_one": "{{count}} carro",
-    "carCount_other": "{{count}} carros",
     "setCount_one": "{{count}} conjunto",
     "setCount_other": "{{count}} conjuntos",
     "minSearchLength": "Escreva pelo menos {{count}} caracteres para pesquisar.",
     "searching": "A pesquisar",
     "searchFailed": "A pesquisa falhou. Tente novamente.",
     "copyingPhoto": "A copiar fotografia",
-    "wikiPhotoCopyError": "Não foi possível copiar a fotografia da wiki. Pode carregar uma você mesmo."
+    "wikiPhotoCopyError": "Não foi possível copiar a fotografia da wiki. Pode carregar uma você mesmo.",
+    "vehicleCount_one": "{{count}} veículo",
+    "vehicleCount_other": "{{count}} veículos"
   },
   "status": {
     "owned": "Possuído",
@@ -61,16 +61,19 @@
     "primary": "Principal",
     "dashboard": "Painel",
     "collection": "Coleção",
-    "cars": "Carros",
     "sets": "Conjuntos",
     "manufacturers": "Fabricantes",
     "settings": "Definições",
     "lookups": "Listas",
-    "overview": "Resumo"
+    "overview": "Resumo",
+    "about": "Sobre",
+    "vehicles": "Veículos",
+    "insights": "Estatísticas"
   },
   "appShell": {
     "skipToMainContent": "Saltar para o conteúdo principal",
-    "darkMode": "Modo escuro"
+    "darkMode": "Modo escuro",
+    "updateAvailable": "Nova versão disponível: {{version}}"
   },
   "offline": {
     "wentOffline": "Está offline. As alterações serão guardadas e sincronizadas automaticamente quando voltar a estar online.",
@@ -108,47 +111,8 @@
   "collection": {
     "title": "Coleção",
     "subNavLabel": "Coleção",
-    "stats": {
-      "totalCars": "Total de carros",
-      "piecesOwned": "Peças possuídas",
-      "owned": "Possuídos",
-      "wishlist": "Na lista de desejos",
-      "sets": "Conjuntos",
-      "setsOwned": "Conjuntos possuídos",
-      "collectionValue": "Valor da coleção",
-      "byManufacturer": "Por fabricante",
-      "byVehicleType": "Por tipo de veículo",
-      "recentlyAdded": "Adicionados recentemente",
-      "noData": "Ainda sem dados.",
-      "noCars": "Ainda sem carros."
-    }
-  },
-  "cars": {
-    "title": "Carros",
-    "addCar": "Adicionar carro",
-    "editCar": "Editar carro",
-    "noneFound": "Nenhum carro encontrado.",
-    "notFound": "Carro não encontrado.",
-    "series": "Série",
-    "vehicleType": "Tipo de veículo",
-    "castNumber": "Número do brinquedo / casting",
-    "collectionNumber": "Número da coleção",
-    "condition": "Estado de conservação",
-    "photoPreview": "Pré-visualização da fotografia do carro",
-    "added": "Carro adicionado!",
-    "addError": "Erro ao adicionar o carro. Tente novamente.",
-    "updated": "Carro atualizado!",
-    "updateError": "Erro ao atualizar o carro. Tente novamente.",
-    "addIntro": "Encontre o casting na wiki da Hot Wheels ou da Matchbox para preencher os dados, ou introduza-os você mesmo.",
-    "backToVersions": "Voltar às versões",
-    "matchToCatalog": "Associar ao catálogo",
-    "rematchToCatalog": "Voltar a associar ao catálogo",
-    "matchFilled": "Dados preenchidos a partir da wiki. Reveja-os e guarde.",
-    "matchPhotoError": "Não foi possível copiar a fotografia da wiki para a galeria.",
-    "deleted": "\"{{name}}\" eliminado.",
-    "deleteError": "Erro ao eliminar o carro. Tente novamente.",
-    "deleteConfirmTitle": "Eliminar este carro?",
-    "deleteConfirmDescription": "\"{{name}}\" será removido da sua coleção, incluindo as fotografias. Esta ação não pode ser anulada."
+    "addVehicleDescription": "Carros, motas, aviões, barcos e mais, a partir da wiki ou à mão.",
+    "addSetDescription": "Playsets e pistas, com os veículos incluídos."
   },
   "gallery": {
     "title": "Fotografias",
@@ -156,20 +120,20 @@
     "empty": "Ainda sem fotografias. Clique no botão + para adicionar uma.",
     "primary": "Principal",
     "primaryPhoto": "Fotografia principal",
-    "carPhoto": "Fotografia do carro",
     "setPrimary": "Definir como principal",
     "delete": "Eliminar fotografia",
     "uploadError": "Erro ao carregar a fotografia. Tente novamente.",
     "deleteError": "Erro ao eliminar a fotografia. Tente novamente.",
-    "primaryError": "Erro ao alterar a fotografia principal. Tente novamente."
+    "primaryError": "Erro ao alterar a fotografia principal. Tente novamente.",
+    "vehiclePhoto": "Fotografia do veículo"
   },
   "catalog": {
     "searchLabel": "Pesquisar por nome ou número do brinquedo",
     "searchPlaceholder": "p. ex. Skyline GT-R ou HYW18",
     "sourceLabel": "Fonte do catálogo",
     "attribution": "Os dados do catálogo vêm da comunidade da <hw>Hot Wheels Wiki</hw> e da <mb>Matchbox Wiki</mb> (CC BY-SA).",
-    "unreachable": "Não é possível aceder à wiki neste momento. Tente daqui a pouco ou adicione o carro manualmente.",
-    "noResults": "Nenhum casting encontrado. Experimente outro nome ou adicione o carro manualmente.",
+    "unreachable": "Não é possível aceder à wiki neste momento. Tente daqui a pouco ou adicione o veículo manualmente.",
+    "noResults": "Nenhum casting encontrado. Experimente outro nome ou adicione o veículo manualmente.",
     "loadingCasting": "A carregar casting",
     "castingMissing": "Essa página de casting já não existe na wiki.",
     "castingError": "Não foi possível carregar este casting da wiki. Tente novamente.",
@@ -188,8 +152,8 @@
     "addWikiPhoto": "Adicionar a fotografia da wiki à galeria",
     "viewInCollection": "Ver na coleção",
     "relatedCasting": "Tem uma versão deste casting",
-    "relatedSeries": "Tem carros desta série",
-    "relatedCar": "Tem este carro"
+    "relatedSeries": "Tem veículos desta série",
+    "relatedVehicle": "Tem este veículo"
   },
   "sets": {
     "title": "Conjuntos",
@@ -201,14 +165,13 @@
     "stillSealed": "Ainda selado",
     "sealed": "Selado",
     "opened": "Aberto",
-    "carsIncluded": "Carros incluídos",
     "onePerLine": "Um por linha",
     "photoPreview": "Pré-visualização da fotografia do conjunto",
     "added": "Conjunto adicionado!",
     "addError": "Erro ao adicionar o conjunto. Tente novamente.",
     "updated": "Conjunto atualizado!",
     "updateError": "Erro ao atualizar o conjunto. Tente novamente.",
-    "addIntro": "Encontre o playset ou a pista na wiki da Hot Wheels para preencher os dados e os carros incluídos, ou introduza-os você mesmo.",
+    "addIntro": "Encontre o playset ou a pista na wiki da Hot Wheels para preencher os dados e os veículos incluídos, ou introduza-os você mesmo.",
     "backToSet": "Voltar ao conjunto",
     "catalog": {
       "searchLabel": "Pesquisar por nome do conjunto ou número do brinquedo",
@@ -220,21 +183,22 @@
       "loading": "A carregar conjunto",
       "missing": "Essa página de conjunto já não existe na wiki.",
       "error": "Não foi possível carregar este conjunto da wiki. Tente novamente.",
-      "noCars": "A wiki não lista nenhum carro incluído neste conjunto.",
-      "addThisSet": "Adicionar este conjunto"
+      "addThisSet": "Adicionar este conjunto",
+      "noVehicles": "A wiki não lista nenhum veículo incluído neste conjunto."
     },
     "deleted": "\"{{name}}\" eliminado.",
     "deleteError": "Erro ao eliminar o conjunto. Tente novamente.",
     "deleteConfirmTitle": "Eliminar este conjunto?",
-    "deleteConfirmDescription": "\"{{name}}\" será removido da sua coleção. Esta ação não pode ser anulada."
+    "deleteConfirmDescription": "\"{{name}}\" será removido da sua coleção. Esta ação não pode ser anulada.",
+    "vehiclesIncluded": "Veículos incluídos"
   },
   "manufacturers": {
     "title": "Fabricantes",
-    "none": "Ainda sem fabricantes. Aparecem aqui à medida que adiciona carros e conjuntos.",
+    "none": "Ainda sem fabricantes. Aparecem aqui à medida que adiciona veículos e conjuntos.",
     "all": "Todos os fabricantes",
     "notFound": "Fabricante não encontrado.",
-    "noCars": "Ainda sem carros deste fabricante.",
-    "noSets": "Ainda sem conjuntos deste fabricante."
+    "noSets": "Ainda sem conjuntos deste fabricante.",
+    "noVehicles": "Ainda sem veículos deste fabricante."
   },
   "settings": {
     "title": "Definições",
@@ -283,12 +247,11 @@
       "restoreDescription": "Carregar uma cópia de segurança substitui todos os dados atuais. Antes do restauro é guardada automaticamente uma cópia de segurança.",
       "restoreButton": "Restaurar a partir de cópia de segurança",
       "restoreError": "Não foi possível restaurar a cópia de segurança. Verifique o ficheiro e tente novamente.",
-      "restored": "Foram restaurados {{cars}} carro(s) e {{sets}} conjunto(s) a partir da cópia de segurança."
+      "restored": "Foram restaurados {{cars}} veículo(s) e {{sets}} conjunto(s) a partir da cópia de segurança."
     },
     "share": {
       "heading": "Partilhar",
-      "description": "Qualquer pessoa com estas ligações pode ver os seus carros e conjuntos sem iniciar sessão. Não vê preços de compra, notas nem etiquetas, e não pode alterar nada.",
-      "carsLink": "Ligação dos carros",
+      "description": "Qualquer pessoa com estas ligações pode ver os seus veículos e conjuntos sem iniciar sessão. Não vê preços de compra, notas nem etiquetas, e não pode alterar nada.",
       "setsLink": "Ligação dos conjuntos",
       "copy": "Copiar ligação",
       "copyNamed": "Copiar {{name}}",
@@ -298,7 +261,8 @@
       "regenerated": "Foram criadas novas ligações. As anteriores já não funcionam.",
       "regenerateError": "Não foi possível criar novas ligações. Tente novamente.",
       "regenerateConfirmTitle": "Regenerar as ligações de partilha?",
-      "regenerateConfirmDescription": "As ligações atuais deixam de funcionar de imediato. Quem as tiver vai precisar das novas."
+      "regenerateConfirmDescription": "As ligações atuais deixam de funcionar de imediato. Quem as tiver vai precisar das novas.",
+      "vehiclesLink": "Ligação dos veículos"
     }
   },
   "lookups": {
@@ -312,7 +276,7 @@
     },
     "noneYet": "Ainda nenhum.",
     "deleted": "Eliminado.",
-    "inUse": "Ainda é usado por um carro ou conjunto, por isso não pode ser eliminado.",
+    "inUse": "Ainda é usado por um veículo ou conjunto, por isso não pode ser eliminado.",
     "deleteError": "Erro ao eliminar. Tente novamente.",
     "manufacturerName": "Nome do fabricante",
     "seriesName": "Nome da série",
@@ -339,9 +303,73 @@
   },
   "public": {
     "subNavLabel": "Coleção partilhada",
-    "searchCars": "Pesquisar carros",
     "searchSets": "Pesquisar conjuntos",
     "linkGone": "Esta ligação de partilha já não funciona. Peça uma nova ao proprietário.",
-    "loadError": "Não foi possível carregar esta coleção. Tente novamente."
+    "loadError": "Não foi possível carregar esta coleção. Tente novamente.",
+    "searchVehicles": "Pesquisar veículos"
+  },
+  "about": {
+    "title": "Sobre",
+    "appName": "DieCastCollectionTracker",
+    "version": "Versão {{version}}",
+    "checkForUpdates": "Procurar atualizações",
+    "upToDate": "Está na versão mais recente",
+    "checkFailed": "Não foi possível procurar atualizações. Tente mais tarde.",
+    "updateAvailable": "Está disponível uma nova versão: {{version}}",
+    "description": "Uma aplicação web autoalojada para gerir a sua coleção de miniaturas: os veículos, playsets e pistas que possui ou deseja, com os dados preenchidos a partir das wikis da comunidade.",
+    "sourceCode": "Código-fonte",
+    "reportIssue": "Reportar um problema ou pedir uma funcionalidade",
+    "licenseLabel": "Licença:",
+    "licenseName": "GPL-3.0",
+    "authorLabel": "Autor:",
+    "authorName": "Eric P Pereira",
+    "creditsHeading": "Créditos",
+    "wikiCredits": "Os dados do catálogo e as fotografias vêm da comunidade da <1>Hot Wheels Wiki</1> e da <2>Matchbox Wiki</2>, sob CC BY-SA.",
+    "trademarks": "Hot Wheels, Matchbox e Majorette são marcas comerciais dos respetivos proprietários. Esta aplicação não é afiliada a eles nem tem o seu apoio.",
+    "buyMeACoffeeAlt": "Buy Me A Coffee"
+  },
+  "insights": {
+    "stats": {
+      "piecesOwned": "Peças possuídas",
+      "owned": "Possuídos",
+      "wishlist": "Na lista de desejos",
+      "sets": "Conjuntos",
+      "setsOwned": "Conjuntos possuídos",
+      "collectionValue": "Valor da coleção",
+      "byManufacturer": "Por fabricante",
+      "byVehicleType": "Por tipo de veículo",
+      "recentlyAdded": "Adicionados recentemente",
+      "noData": "Ainda sem dados.",
+      "totalVehicles": "Total de veículos",
+      "noVehicles": "Ainda sem veículos."
+    },
+    "title": "Estatísticas"
+  },
+  "vehicles": {
+    "title": "Veículos",
+    "noneFound": "Nenhum veículo encontrado.",
+    "notFound": "Veículo não encontrado.",
+    "series": "Série",
+    "vehicleType": "Tipo de veículo",
+    "castNumber": "Número do brinquedo / casting",
+    "collectionNumber": "Número da coleção",
+    "condition": "Estado de conservação",
+    "photoPreview": "Pré-visualização da fotografia do veículo",
+    "added": "Veículo adicionado!",
+    "addError": "Erro ao adicionar o veículo. Tente novamente.",
+    "updated": "Veículo atualizado!",
+    "updateError": "Erro ao atualizar o veículo. Tente novamente.",
+    "addIntro": "Encontre o casting na wiki da Hot Wheels ou da Matchbox para preencher os dados, ou introduza-os você mesmo.",
+    "backToVersions": "Voltar às versões",
+    "matchToCatalog": "Associar ao catálogo",
+    "rematchToCatalog": "Voltar a associar ao catálogo",
+    "matchFilled": "Dados preenchidos a partir da wiki. Reveja-os e guarde.",
+    "matchPhotoError": "Não foi possível copiar a fotografia da wiki para a galeria.",
+    "deleted": "\"{{name}}\" eliminado.",
+    "deleteError": "Erro ao eliminar o veículo. Tente novamente.",
+    "deleteConfirmTitle": "Eliminar este veículo?",
+    "deleteConfirmDescription": "\"{{name}}\" será removido da sua coleção, incluindo as fotografias. Esta ação não pode ser anulada.",
+    "addVehicle": "Adicionar veículo",
+    "editVehicle": "Editar veículo"
   }
 }

@@ -6,8 +6,8 @@ import NavDrawer from "../NavDrawer";
 
 describe("destinations", () => {
   it("matches a section and everything under it, but '/' only exactly", () => {
-    expect(isPathWithin("/collection/cars/3/edit", "/collection/cars")).toBe(true);
-    expect(isPathWithin("/collection/carsx", "/collection/cars")).toBe(false);
+    expect(isPathWithin("/collection/vehicles/3/edit", "/collection/vehicles")).toBe(true);
+    expect(isPathWithin("/collection/vehiclesx", "/collection/vehicles")).toBe(false);
     expect(isPathWithin("/settings", "/")).toBe(false);
     expect(isPathWithin("/", "/")).toBe(true);
   });
@@ -33,7 +33,7 @@ describe("NavDrawer", () => {
 
     expect(screen.getByRole("link", { name: "Sets" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Collection" })).not.toHaveAttribute("aria-current");
-    expect(screen.getByRole("link", { name: "Cars" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Vehicles" })).not.toHaveAttribute("aria-current");
   });
 
   it("highlights the section itself on its overview page", () => {

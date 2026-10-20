@@ -41,13 +41,13 @@ const CatalogCastingPage = () => {
       }
     }
     const state: AddCarLocationState = { prefill };
-    navigate("/collection/cars/add", { state });
+    navigate("/collection/vehicles/add", { state });
   };
 
   return (
     <Stack spacing={2}>
       <div>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate("/collection/cars/add")}>
+        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate("/collection/vehicles/add")}>
           {t("common.backToSearch")}
         </Button>
       </div>
@@ -59,7 +59,7 @@ const CatalogCastingPage = () => {
           pickLabel={t("catalog.addThisVersion")}
           busy={importImage.isPending}
           onPick={(casting, version) => void handlePick(casting, version)}
-          onOpenExisting={(holding) => navigate(`/collection/cars/${holding.id}/edit`)}
+          onOpenExisting={(holding) => navigate(`/collection/vehicles/${holding.id}/edit`)}
         />
       ) : (
         <Paper sx={{ p: 3, textAlign: "center" }}>{t("catalog.noCasting")}</Paper>

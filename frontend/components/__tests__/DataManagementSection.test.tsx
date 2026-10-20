@@ -73,7 +73,7 @@ describe("DataManagementSection", () => {
     await userEvent.upload(fileInput, file);
 
     await waitFor(() =>
-      expect(toastSpy).toHaveBeenCalledWith(expect.stringContaining("42 car(s) and 3 set(s)"))
+      expect(toastSpy).toHaveBeenCalledWith(expect.stringContaining("42 vehicle(s) and 3 set(s)"))
     );
   });
 

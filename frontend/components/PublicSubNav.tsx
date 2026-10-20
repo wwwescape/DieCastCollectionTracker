@@ -10,7 +10,7 @@ const PublicSubNav = () => {
   const location = useLocation();
 
   const items = [
-    { to: `/public/${token}/cars`, labelKey: "nav.cars" },
+    { to: `/public/${token}/vehicles`, labelKey: "nav.vehicles" },
     { to: `/public/${token}/sets`, labelKey: "nav.sets" },
   ] as const;
 

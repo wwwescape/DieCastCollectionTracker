@@ -268,7 +268,7 @@ const SetForm = ({ initialValues = EMPTY_VALUES, submitLabel, onSubmit }: SetFor
         </Grid>
         <Grid size={12}>
           <TextField
-            label={t("sets.carsIncluded")}
+            label={t("sets.vehiclesIncluded")}
             helperText={t("sets.onePerLine")}
             fullWidth
             multiline

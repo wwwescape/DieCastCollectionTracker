@@ -65,12 +65,19 @@ const ManufacturerPage = () => {
         </Typography>
       </Stack>
 
-      <Section title={t("nav.cars")} loading={carsLoading} empty={t("manufacturers.noCars")}>
+      <Section
+        title={t("nav.vehicles")}
+        loading={carsLoading}
+        empty={t("manufacturers.noVehicles")}
+      >
         {cars?.length ? (
           <Grid container spacing={2}>
             {cars.map((car) => (
               <Grid key={car.id} size={CARD_GRID_SIZE}>
-                <CarCard car={car} onClick={() => navigate(`/collection/cars/${car.id}/edit`)} />
+                <CarCard
+                  car={car}
+                  onClick={() => navigate(`/collection/vehicles/${car.id}/edit`)}
+                />
               </Grid>
             ))}
           </Grid>

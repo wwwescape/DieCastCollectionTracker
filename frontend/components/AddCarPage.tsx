@@ -58,17 +58,17 @@ const AddCarPage = () => {
       title: prefill.catalogTitle,
       q: readSessionValue(QUERY_KEY, ""),
     });
-    navigate(`/collection/cars/add/catalog?${params}`);
+    navigate(`/collection/vehicles/add/catalog?${params}`);
   };
 
   const handleSubmit = async (input: CarInput) => {
     try {
       await createCar.mutateAsync(input);
-      toast.success(t("cars.added"), TOAST_OPTIONS);
-      navigate("/collection/cars");
+      toast.success(t("vehicles.added"), TOAST_OPTIONS);
+      navigate("/collection/vehicles");
     } catch (error) {
       console.error("Error adding car:", error);
-      toast.error(t("cars.addError"), TOAST_OPTIONS);
+      toast.error(t("vehicles.addError"), TOAST_OPTIONS);
     }
   };
 
@@ -76,10 +76,10 @@ const AddCarPage = () => {
     <>
       <Box sx={{ mb: 2 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          {t("cars.addCar")}
+          {t("vehicles.addVehicle")}
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          {t("cars.addIntro")}
+          {t("vehicles.addIntro")}
         </Typography>
       </Box>
       <RadioGroup
@@ -95,12 +95,12 @@ const AddCarPage = () => {
         <>
           <Box sx={{ mb: 1 }}>
             <Button startIcon={<ArrowBackIcon />} onClick={backToVersions}>
-              {t("cars.backToVersions")}
+              {t("vehicles.backToVersions")}
             </Button>
           </Box>
           <CarForm
             initialValues={withFormDefaults(prefill)}
-            submitLabel={t("cars.addCar")}
+            submitLabel={t("vehicles.addVehicle")}
             onSubmit={handleSubmit}
           />
         </>
@@ -114,12 +114,12 @@ const AddCarPage = () => {
           }}
           onSelect={(casting, query) =>
             navigate(
-              `/collection/cars/add/catalog?${new URLSearchParams({ source: casting.source, title: casting.title, q: query })}`
+              `/collection/vehicles/add/catalog?${new URLSearchParams({ source: casting.source, title: casting.title, q: query })}`
             )
           }
         />
       ) : (
-        <CarForm submitLabel={t("cars.addCar")} onSubmit={handleSubmit} />
+        <CarForm submitLabel={t("vehicles.addVehicle")} onSubmit={handleSubmit} />
       )}
     </>
   );

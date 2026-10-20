@@ -5,7 +5,7 @@ import CardActionArea from "@mui/material/CardActionArea";
 import Chip from "@mui/material/Chip";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
-import GarageIcon from "@mui/icons-material/Garage";
+import CollectionIcon from "../icons/CollectionIcon";
 import { useTranslation } from "react-i18next";
 import type { CarStatus } from "../api/types";
 
@@ -107,7 +107,7 @@ const ItemCard = ({
       {relatedHint ? (
         <Tooltip title={relatedHint}>
           <Chip
-            icon={<GarageIcon />}
+            icon={<CollectionIcon />}
             size="small"
             color="secondary"
             aria-label={relatedHint}

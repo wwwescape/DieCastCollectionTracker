@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: "DieCastCollectionTracker",
         short_name: "DCT",
-        description: "Track and organize your die-cast car collection.",
+        description: "Track and organize your die-cast collection.",
         theme_color: "#1F67D8",
         background_color: "#1F67D8",
         display: "standalone",

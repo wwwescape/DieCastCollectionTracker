@@ -82,7 +82,7 @@ describe("SetForm", () => {
 
     await user.type(screen.getByLabelText(/^name/i), "Action Garage");
     await user.type(screen.getByLabelText(/manufacturer/i), "Matchbox");
-    await user.type(screen.getByLabelText(/cars included/i), " Jeep {enter}{enter}Land Rover ");
+    await user.type(screen.getByLabelText(/vehicles included/i), " Jeep {enter}{enter}Land Rover ");
     await user.click(screen.getByRole("checkbox", { name: "Still sealed" }));
     await user.click(screen.getByRole("button", { name: "Add Set" }));
 

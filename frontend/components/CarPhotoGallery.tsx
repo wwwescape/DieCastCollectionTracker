@@ -109,7 +109,7 @@ const CarPhotoGallery = ({ carId, photos }: CarPhotoGalleryProps) => {
               <Box
                 component="img"
                 src={resolveAssetUrl(photo.url) ?? undefined}
-                alt={photo.isPrimary ? t("gallery.primaryPhoto") : t("gallery.carPhoto")}
+                alt={photo.isPrimary ? t("gallery.primaryPhoto") : t("gallery.vehiclePhoto")}
                 sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
               />
               <Box

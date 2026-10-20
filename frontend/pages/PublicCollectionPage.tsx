@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 const CARD_GRID_SIZE = { xs: 12, sm: 6, md: 4, lg: 3 } as const;
 
 interface PublicCollectionPageProps {
-  kind: "cars" | "sets";
+  kind: "vehicles" | "sets";
 }
 
 // The share-link view of Cars or Sets: read-only cards with a search box. A wrong or revoked
@@ -26,11 +26,11 @@ const PublicCollectionPage = ({ kind }: PublicCollectionPageProps) => {
   const { token } = useParams<{ token: string }>();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search.trim(), 500);
-  const cars = usePublicCars(kind === "cars" ? token : undefined, debouncedSearch);
+  const cars = usePublicCars(kind === "vehicles" ? token : undefined, debouncedSearch);
   const sets = usePublicSets(kind === "sets" ? token : undefined, debouncedSearch);
-  const query = kind === "cars" ? cars : sets;
+  const query = kind === "vehicles" ? cars : sets;
 
-  const title = kind === "cars" ? t("nav.cars") : t("nav.sets");
+  const title = kind === "vehicles" ? t("nav.vehicles") : t("nav.sets");
 
   let body: React.ReactNode;
   if (query.isLoading) {
@@ -43,7 +43,7 @@ const PublicCollectionPage = ({ kind }: PublicCollectionPageProps) => {
           : t("public.loadError")}
       </Paper>
     );
-  } else if (kind === "cars" && cars.data?.length) {
+  } else if (kind === "vehicles" && cars.data?.length) {
     body = (
       <Grid container spacing={2}>
         {cars.data.map((car) => (
@@ -66,7 +66,7 @@ const PublicCollectionPage = ({ kind }: PublicCollectionPageProps) => {
   } else {
     body = (
       <Paper sx={{ p: 3, textAlign: "center", color: "text.secondary" }}>
-        {kind === "cars" ? t("cars.noneFound") : t("sets.noneFound")}
+        {kind === "vehicles" ? t("vehicles.noneFound") : t("sets.noneFound")}
       </Paper>
     );
   }
@@ -77,7 +77,7 @@ const PublicCollectionPage = ({ kind }: PublicCollectionPageProps) => {
         {title}
       </Typography>
       <TextField
-        label={kind === "cars" ? t("public.searchCars") : t("public.searchSets")}
+        label={kind === "vehicles" ? t("public.searchVehicles") : t("public.searchSets")}
         value={search}
         onChange={(event) => setSearch(event.target.value)}
         fullWidth

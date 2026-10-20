@@ -25,10 +25,10 @@ function renderAddCar(state?: AddCarLocationState) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[{ pathname: "/collection/cars/add", state }]}>
+      <MemoryRouter initialEntries={[{ pathname: "/collection/vehicles/add", state }]}>
         <Routes>
-          <Route path="/collection/cars/add" element={<AddCarPage />} />
-          <Route path="/collection/cars/add/catalog" element={<CastingPage />} />
+          <Route path="/collection/vehicles/add" element={<AddCarPage />} />
+          <Route path="/collection/vehicles/add/catalog" element={<CastingPage />} />
         </Routes>
       </MemoryRouter>
     </QueryClientProvider>

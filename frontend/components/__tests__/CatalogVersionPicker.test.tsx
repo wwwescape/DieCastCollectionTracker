@@ -124,7 +124,7 @@ describe("CatalogVersionPicker", () => {
     // Not owned, but a car from its series is: only the "related" chip.
     const sameSeries = screen.getByText("2013 · Red").closest(".MuiCard-root") as HTMLElement;
     expect(within(sameSeries).queryByText("Owned")).not.toBeInTheDocument();
-    expect(within(sameSeries).getByLabelText("You have cars from this series")).toBeInTheDocument();
+    expect(within(sameSeries).getByLabelText("You have vehicles from this series")).toBeInTheDocument();
     expect(
       within(sameSeries).getByRole("button", { name: "Add this version" })
     ).toBeInTheDocument();

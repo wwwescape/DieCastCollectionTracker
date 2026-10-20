@@ -77,12 +77,12 @@ describe("ManufacturersPage", () => {
       "src",
       "/manufacturers/hot-wheels.png"
     );
-    expect(screen.getByText("1 car · 1 set")).toBeInTheDocument();
-    expect(screen.getByText("2 cars · 0 sets")).toBeInTheDocument();
+    expect(screen.getByText("1 vehicle · 1 set")).toBeInTheDocument();
+    expect(screen.getByText("2 vehicles · 0 sets")).toBeInTheDocument();
     // No bundled logo: the name stands in, on the plate and as the card title.
     expect(screen.getAllByText("Greenlight")).toHaveLength(2);
 
-    await user.click(screen.getByText("1 car · 1 set"));
+    await user.click(screen.getByText("1 vehicle · 1 set"));
 
     expect(await screen.findByText("Backdrafter")).toBeInTheDocument();
     expect(screen.getByText("Downtown Fire Station Spinout")).toBeInTheDocument();

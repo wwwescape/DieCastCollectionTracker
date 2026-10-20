@@ -101,7 +101,7 @@ const CatalogSetPage = () => {
     t(`setTypes.${set.setType}`),
     set.year,
     set.toyNumber ? t("catalog.toyNumber", { value: set.toyNumber }) : null,
-    t("common.carCount", { count: set.cars.length }),
+    t("common.vehicleCount", { count: set.cars.length }),
   ].filter(Boolean);
 
   return (
@@ -180,7 +180,7 @@ const CatalogSetPage = () => {
 
       {set.cars.length === 0 ? (
         <Paper sx={{ p: 3, textAlign: "center", color: "text.secondary" }}>
-          {t("sets.catalog.noCars")}
+          {t("sets.catalog.noVehicles")}
         </Paper>
       ) : (
         <Grid container spacing={2}>
@@ -191,7 +191,7 @@ const CatalogSetPage = () => {
                 subtitle={car.color}
                 imageUrl={wikiImageAtWidth(car.photoUrl, 400) ?? car.thumbnailUrl}
                 imageFit="contain"
-                relatedHint={hasCarNamed(collection, car.name) ? t("catalog.relatedCar") : null}
+                relatedHint={hasCarNamed(collection, car.name) ? t("catalog.relatedVehicle") : null}
               />
             </Grid>
           ))}

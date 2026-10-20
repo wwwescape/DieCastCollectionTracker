@@ -5,7 +5,7 @@
 <h1 align="center">DieCastCollectionTracker</h1>
 
 <p align="center">
-  A self-hosted web app for tracking your die-cast car collection — what you own, what you want,
+  A self-hosted web app for tracking your die-cast collection — what you own, what you want,
   and what it's worth — with photos, filters, and offline browsing.
 </p>
 
@@ -17,36 +17,39 @@
 
 ## Features
 
-- **Collection tracking** — cars you own or have wishlisted, with manufacturer, series, vehicle
-  type, color, toy/cast and collection numbers, year, condition (Mint in Box to Poor), quantity,
-  purchase price, notes, and tags. Every card shows Owned or Wishlisted and how many you have.
-- **Wiki catalog matching** — find a car on the community
-  [Hot Wheels Wiki](https://hotwheels.fandom.com) or [Matchbox Wiki](https://matchbox.fandom.com)
-  by name or by the toy number on the card (e.g. `HYW18`), pick the exact release, and the form
-  fills in name, series, color, toy and collector numbers, year, and photo. Search results show
-  what you already have, and flag castings and series you own cars from. Existing cars can be
+- **Collection tracking** — vehicles (cars, bikes, planes, boats and more) you own or have
+  wishlisted, with manufacturer, series, vehicle type, color, toy/cast and collection numbers,
+  year, condition (Mint in Box to Poor), quantity, purchase price, notes, and tags. Every card
+  shows Owned or Wishlisted and how many you have. The Collection page has quick Add Vehicle and
+  Add Set buttons.
+- **Wiki catalog matching** — find a vehicle on the community [Hot Wheels
+  Wiki](https://hotwheels.fandom.com) or [Matchbox Wiki](https://matchbox.fandom.com) by name or
+  by the toy number on the card (e.g. `HYW18`), pick the exact release, and the form fills in
+  name, series, color, toy and collector numbers, year, and photo. Search results show what you
+  already have, and flag castings and series you own vehicles from. Existing vehicles can be
   matched from their edit page. No API key needed; the instance needs outbound internet access.
-- **Sets** — track playsets and track sets (like Hot Wheels City's fire stations) as single
-  items, with toy number, year, sealed or opened, and the cars that came with them. Find a set on
-  the Hot Wheels Wiki by name or toy number (e.g. `FMY96`) to fill it in, photo included; Matchbox
+- **Sets** — track playsets and track sets (like Hot Wheels City's fire stations) as single items,
+  with toy number, year, sealed or opened, and the vehicles that came with them. Find a set on the
+  Hot Wheels Wiki by name or toy number (e.g. `FMY96`) to fill it in, photo included; Matchbox
   sets are entered by hand, since that wiki has no page per set.
 - **Manufacturers** — every manufacturer with its logo (Hot Wheels, Matchbox, Majorette) and
-  counts; open one to see all of its cars and sets.
-- **Photo gallery** — several photos per car, with a primary photo for the card.
+  counts; open one to see all of its vehicles and sets.
+- **Photo gallery** — several photos per vehicle, with a primary photo for the card.
 - **Search & filters** — filter by manufacturer, series, vehicle type, color, or status.
 - **Your own lookup lists** — manufacturers, series, vehicle types, and colors grow as you type,
   and can be managed in Settings → Lookups.
-- **Collection overview** — car and set counts, collection value, stats by manufacturer and
-  vehicle type, plus recently added cars.
-- **Share links** — read-only links to your cars and sets for people without an account, without
-  your purchase prices, notes, or tags. Regenerate them to revoke access.
+- **Insights** — vehicle and set counts, collection value, stats by manufacturer and vehicle type,
+  plus recently added vehicles.
+- **Share links** — read-only links to your vehicles and sets for people without an account,
+  without your purchase prices, notes, or tags. Regenerate them to revoke access.
 - **Languages and currency** — English, Spanish, French, and Portuguese, and a choice of currency
   for prices.
 - **Data portability** — CSV export, plus full JSON backup and restore.
-- **PWA** — installable, and works offline for anything you've already viewed (including car
-  photos).
+- **PWA** — installable, and works offline for anything you've already viewed (photos included).
 - **Material 3 design** — light and dark mode, high contrast, a choice of accent colors (the
   logo's blue by default), and responsive navigation for phone, tablet, and desktop.
+- **About and update check** — version, links and credits, plus a notice in the top bar when a
+  newer release is out on GitHub.
 - **Single admin, self-hosted** — no public registration, no multi-tenancy.
 
 ## Installation
@@ -81,7 +84,7 @@ docker compose up -d
 
 Open `http://localhost:8000`. On a fresh instance you'll see a create-admin form instead of the
 login screen: fill it in once and you're signed in. Migrations run automatically on startup, and
-your database and car photos live in the named volumes, so they survive restarts and upgrades.
+your database and photos live in the named volumes, so they survive restarts and upgrades.
 
 Locked out later? Reset the password from the CLI:
 

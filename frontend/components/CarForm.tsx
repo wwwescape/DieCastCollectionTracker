@@ -223,7 +223,7 @@ const CarForm = ({
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <FreeSoloLookupField
-            label={t("cars.series")}
+            label={t("vehicles.series")}
             options={series ?? []}
             value={values.series}
             onChange={(value) => setField("series", value)}
@@ -231,7 +231,7 @@ const CarForm = ({
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <FreeSoloLookupField
-            label={t("cars.vehicleType")}
+            label={t("vehicles.vehicleType")}
             options={vehicleTypes ?? []}
             value={values.vehicleType}
             onChange={(value) => setField("vehicleType", value)}
@@ -247,7 +247,7 @@ const CarForm = ({
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
-            label={t("cars.castNumber")}
+            label={t("vehicles.castNumber")}
             fullWidth
             value={values.castNumber}
             onChange={(event) => setField("castNumber", event.target.value)}
@@ -255,7 +255,7 @@ const CarForm = ({
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <TextField
-            label={t("cars.collectionNumber")}
+            label={t("vehicles.collectionNumber")}
             fullWidth
             value={values.collectionNumber}
             onChange={(event) => setField("collectionNumber", event.target.value)}
@@ -283,7 +283,7 @@ const CarForm = ({
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
           <AutocompleteSelect<ConditionOption>
-            label={t("cars.condition")}
+            label={t("vehicles.condition")}
             fullWidth
             options={CONDITION_OPTIONS}
             value={values.condition ?? "none"}
@@ -366,7 +366,7 @@ const CarForm = ({
                   <Box
                     component="img"
                     src={resolveAssetUrl(values.photo) ?? undefined}
-                    alt={t("cars.photoPreview")}
+                    alt={t("vehicles.photoPreview")}
                     sx={{
                       height: 56,
                       width: "auto",

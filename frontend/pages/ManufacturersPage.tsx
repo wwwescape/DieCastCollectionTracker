@@ -41,7 +41,7 @@ const ManufacturersPage = () => {
                     {manufacturer.name}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {t("common.carCount", { count: manufacturer.carCount })} ·{" "}
+                    {t("common.vehicleCount", { count: manufacturer.carCount })} ·{" "}
                     {t("common.setCount", { count: manufacturer.setCount })}
                   </Typography>
                 </CardActionArea>

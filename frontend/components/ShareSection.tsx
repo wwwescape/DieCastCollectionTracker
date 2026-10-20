@@ -25,8 +25,8 @@ const ShareSection = () => {
 
   const links = [
     {
-      label: t("settings.share.carsLink"),
-      url: token ? `${window.location.origin}/public/${token}/cars` : "",
+      label: t("settings.share.vehiclesLink"),
+      url: token ? `${window.location.origin}/public/${token}/vehicles` : "",
     },
     {
       label: t("settings.share.setsLink"),

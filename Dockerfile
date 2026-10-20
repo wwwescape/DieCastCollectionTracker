@@ -23,6 +23,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/ .
 COPY --from=frontend-builder /app/build /app/build
+# Read at runtime by app/core/config.py's get_app_version(): package.json's "version" is the
+# app's own version, shown on the About page and compared against the latest GitHub release.
+COPY package.json /app/package.json
 
 # Default DATABASE_URL (sqlite, see app/core/config.py) needs this directory to exist;
 # it's also where the named volume in docker-compose.yml mounts, for persistence. uploads/

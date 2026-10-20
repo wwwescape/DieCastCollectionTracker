@@ -20,7 +20,7 @@ import type { CarInput } from "../api/types";
 const LOOKUP_QUERY_KEYS = [["manufacturers"], ["series"], ["vehicle-types"], ["colors"], ["tags"]];
 
 function invalidateCarQueries(queryClient: QueryClient, { lookups = false } = {}) {
-  queryClient.invalidateQueries({ queryKey: ["cars"] });
+  queryClient.invalidateQueries({ queryKey: ["vehicles"] });
   queryClient.invalidateQueries({ queryKey: ["dashboard"] });
   if (lookups) {
     LOOKUP_QUERY_KEYS.forEach((queryKey) => queryClient.invalidateQueries({ queryKey }));
@@ -28,12 +28,12 @@ function invalidateCarQueries(queryClient: QueryClient, { lookups = false } = {}
 }
 
 export function useCarList(params: CarListParams = {}) {
-  return useQuery({ queryKey: ["cars", params], queryFn: () => listCars(params) });
+  return useQuery({ queryKey: ["vehicles", params], queryFn: () => listCars(params) });
 }
 
 export function useCar(id: number | undefined) {
   return useQuery({
-    queryKey: ["cars", id],
+    queryKey: ["vehicles", id],
     queryFn: () => getCar(id!),
     enabled: id !== undefined,
   });

@@ -13,6 +13,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import OfflineStatusIndicator from "./components/OfflineStatusIndicator";
+import UpdateAvailableChip from "./components/UpdateAvailableChip";
 import { useLogout } from "./hooks/useAuth";
 import BottomNavBar, { BOTTOM_NAV_HEIGHT } from "./navigation/BottomNavBar";
 import NavDrawer, { NAV_DRAWER_WIDTH } from "./navigation/NavDrawer";
@@ -80,6 +81,7 @@ const AppShell = () => {
             DieCastCollectionTracker
           </Typography>
           <OfflineStatusIndicator />
+          <UpdateAvailableChip />
           <FormControlLabel
             control={<Switch checked={mode === "dark"} onChange={toggleColorMode} />}
             label={t("appShell.darkMode")}

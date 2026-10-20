@@ -22,7 +22,7 @@ router = APIRouter(prefix="/api", tags=["lookups"], dependencies=[Depends(get_cu
 
 def _conflict_if_in_use(in_use: bool, kind: str) -> None:
     if in_use:
-        raise ConflictError(f"{kind} is still in use by a car or set")
+        raise ConflictError(f"{kind} is still in use by a vehicle or set")
 
 
 def _not_found(kind: str) -> NotFoundError:
@@ -36,7 +36,7 @@ def list_manufacturers(db: Session = Depends(get_db)) -> list[ManufacturerRespon
 
 @router.get("/manufacturers/overview", response_model=list[ManufacturerOverviewResponse])
 def manufacturers_overview(db: Session = Depends(get_db)) -> list[ManufacturerOverviewResponse]:
-    """Collection → Manufacturers: each manufacturer with its car and set counts."""
+    """Collection → Manufacturers: each manufacturer with its vehicle and set counts."""
     return [
         ManufacturerOverviewResponse(id=m.id, name=m.name, car_count=cars, set_count=sets)
         for m, cars, sets in manufacturer_repository.list_with_counts(db)

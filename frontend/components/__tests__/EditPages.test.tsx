@@ -58,9 +58,9 @@ function renderAt(path: string) {
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={[path]}>
         <Routes>
-          <Route path="/collection/cars/:id/edit" element={<EditCarPage />} />
+          <Route path="/collection/vehicles/:id/edit" element={<EditCarPage />} />
           <Route path="/collection/sets/:id/edit" element={<EditSetPage />} />
-          <Route path="/collection/cars" element={<div>Cars list</div>} />
+          <Route path="/collection/vehicles" element={<div>Cars list</div>} />
           <Route path="/collection/sets" element={<div>Sets list</div>} />
         </Routes>
       </MemoryRouter>
@@ -85,10 +85,10 @@ describe("deleting from the edit pages", () => {
     vi.spyOn(carsApi, "getCar").mockResolvedValue(CAR);
     const deleteSpy = vi.spyOn(carsApi, "deleteCar").mockResolvedValue(undefined);
     const user = userEvent.setup();
-    renderAt("/collection/cars/4/edit");
+    renderAt("/collection/vehicles/4/edit");
 
     await user.click(await screen.findByRole("button", { name: "Delete" }));
-    expect(screen.getByText("Delete this car?")).toBeInTheDocument();
+    expect(screen.getByText("Delete this vehicle?")).toBeInTheDocument();
     expect(deleteSpy).not.toHaveBeenCalled();
     await user.click(screen.getAllByRole("button", { name: "Delete" }).at(-1)!);
 

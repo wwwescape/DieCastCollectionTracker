@@ -36,11 +36,11 @@ const EditCarPage = () => {
   const handleSubmit = async (input: CarInput) => {
     try {
       await updateCar.mutateAsync(input);
-      toast.success(t("cars.updated"), TOAST_OPTIONS);
-      navigate("/collection/cars");
+      toast.success(t("vehicles.updated"), TOAST_OPTIONS);
+      navigate("/collection/vehicles");
     } catch (error) {
       console.error("Error updating car:", error);
-      toast.error(t("cars.updateError"), TOAST_OPTIONS);
+      toast.error(t("vehicles.updateError"), TOAST_OPTIONS);
     }
   };
 
@@ -48,11 +48,11 @@ const EditCarPage = () => {
     setConfirmDeleteOpen(false);
     try {
       await deleteCar.mutateAsync(carId);
-      toast.success(t("cars.deleted", { name: car?.name }), TOAST_OPTIONS);
-      navigate("/collection/cars");
+      toast.success(t("vehicles.deleted", { name: car?.name }), TOAST_OPTIONS);
+      navigate("/collection/vehicles");
     } catch (error) {
       console.error("Error deleting car:", error);
-      toast.error(t("cars.deleteError"), TOAST_OPTIONS);
+      toast.error(t("vehicles.deleteError"), TOAST_OPTIONS);
     }
   };
 
@@ -60,7 +60,7 @@ const EditCarPage = () => {
     return <Paper sx={{ p: 3, textAlign: "center" }}>{t("common.loading")}</Paper>;
   }
   if (!car) {
-    return <Paper sx={{ p: 3, textAlign: "center" }}>{t("cars.notFound")}</Paper>;
+    return <Paper sx={{ p: 3, textAlign: "center" }}>{t("vehicles.notFound")}</Paper>;
   }
 
   const formValues = matchedValues ?? carToFormValues(car);
@@ -79,7 +79,7 @@ const EditCarPage = () => {
         }}
       >
         <Typography variant="h4" component="h1">
-          {t("cars.editCar")}
+          {t("vehicles.editVehicle")}
         </Typography>
         <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", rowGap: 1 }}>
           <Button
@@ -87,7 +87,7 @@ const EditCarPage = () => {
             startIcon={<MenuBookIcon />}
             onClick={() => setMatchOpen(true)}
           >
-            {car.catalogTitle ? t("cars.rematchToCatalog") : t("cars.matchToCatalog")}
+            {car.catalogTitle ? t("vehicles.rematchToCatalog") : t("vehicles.matchToCatalog")}
           </Button>
           <Button
             variant="outlined"
@@ -119,22 +119,22 @@ const EditCarPage = () => {
           setMatchedValues({ ...formValues, ...versionToFormValues(casting, version, query) });
           setFormKey((key) => key + 1);
           setMatchOpen(false);
-          toast.info(t("cars.matchFilled"), TOAST_OPTIONS);
+          toast.info(t("vehicles.matchFilled"), TOAST_OPTIONS);
           const photoSource = version.photoUrl ?? casting.imageUrl;
           if (addPhoto && photoSource) {
             try {
               await importPhoto.mutateAsync(photoSource);
             } catch (error) {
               console.error("Error importing wiki photo:", error);
-              toast.warn(t("cars.matchPhotoError"), TOAST_OPTIONS);
+              toast.warn(t("vehicles.matchPhotoError"), TOAST_OPTIONS);
             }
           }
         }}
       />
       <ConfirmDialog
         open={confirmDeleteOpen}
-        title={t("cars.deleteConfirmTitle")}
-        description={t("cars.deleteConfirmDescription", { name: car.name })}
+        title={t("vehicles.deleteConfirmTitle")}
+        description={t("vehicles.deleteConfirmDescription", { name: car.name })}
         confirmLabel={t("common.delete")}
         confirmColor="error"
         onClose={() => setConfirmDeleteOpen(false)}

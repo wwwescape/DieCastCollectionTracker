@@ -31,15 +31,15 @@
     "backToSearch": "Back to search",
     "viewOnWiki": "View on {{wiki}}",
     "matchedTo": "Matched to {{title}} · {{wiki}}",
-    "carCount_one": "{{count}} car",
-    "carCount_other": "{{count}} cars",
     "setCount_one": "{{count}} set",
     "setCount_other": "{{count}} sets",
     "minSearchLength": "Type at least {{count}} characters to search.",
     "searching": "Searching",
     "searchFailed": "Search failed. Please try again.",
     "copyingPhoto": "Copying photo",
-    "wikiPhotoCopyError": "Couldn't copy the wiki photo. You can upload one yourself."
+    "wikiPhotoCopyError": "Couldn't copy the wiki photo. You can upload one yourself.",
+    "vehicleCount_one": "{{count}} vehicle",
+    "vehicleCount_other": "{{count}} vehicles"
   },
   "status": {
     "owned": "Owned",
@@ -61,16 +61,19 @@
     "primary": "Primary",
     "dashboard": "Dashboard",
     "collection": "Collection",
-    "cars": "Cars",
     "sets": "Sets",
     "manufacturers": "Manufacturers",
     "settings": "Settings",
     "lookups": "Lookups",
-    "overview": "Overview"
+    "overview": "Overview",
+    "about": "About",
+    "vehicles": "Vehicles",
+    "insights": "Insights"
   },
   "appShell": {
     "skipToMainContent": "Skip to main content",
-    "darkMode": "Dark Mode"
+    "darkMode": "Dark Mode",
+    "updateAvailable": "New version available: {{version}}"
   },
   "offline": {
     "wentOffline": "You're offline. Changes will be saved and synced automatically once you're back online.",
@@ -108,47 +111,8 @@
   "collection": {
     "title": "Collection",
     "subNavLabel": "Collection",
-    "stats": {
-      "totalCars": "Total Cars",
-      "piecesOwned": "Pieces Owned",
-      "owned": "Owned",
-      "wishlist": "Wishlisted",
-      "sets": "Sets",
-      "setsOwned": "Sets Owned",
-      "collectionValue": "Collection Value",
-      "byManufacturer": "By Manufacturer",
-      "byVehicleType": "By Vehicle Type",
-      "recentlyAdded": "Recently Added",
-      "noData": "No data yet.",
-      "noCars": "No cars yet."
-    }
-  },
-  "cars": {
-    "title": "Cars",
-    "addCar": "Add Car",
-    "editCar": "Edit Car",
-    "noneFound": "No cars found.",
-    "notFound": "Car not found.",
-    "series": "Series",
-    "vehicleType": "Vehicle type",
-    "castNumber": "Toy / cast number",
-    "collectionNumber": "Collection number",
-    "condition": "Condition",
-    "photoPreview": "Car photo preview",
-    "added": "Car added!",
-    "addError": "Error adding car. Please try again.",
-    "updated": "Car updated!",
-    "updateError": "Error updating car. Please try again.",
-    "addIntro": "Find the casting on the Hot Wheels or Matchbox wiki to fill in the details, or enter them yourself.",
-    "backToVersions": "Back to versions",
-    "matchToCatalog": "Match to catalog",
-    "rematchToCatalog": "Re-match to catalog",
-    "matchFilled": "Details filled in from the wiki. Review them and save.",
-    "matchPhotoError": "Couldn't copy the wiki photo into the gallery.",
-    "deleted": "\"{{name}}\" deleted.",
-    "deleteError": "Error deleting car. Please try again.",
-    "deleteConfirmTitle": "Delete this car?",
-    "deleteConfirmDescription": "\"{{name}}\" will be removed from your collection, photos included. This can't be undone."
+    "addVehicleDescription": "Cars, bikes, planes, boats and more, from the wiki or by hand.",
+    "addSetDescription": "Playsets and track sets, with the vehicles that came with them."
   },
   "gallery": {
     "title": "Photos",
@@ -156,20 +120,20 @@
     "empty": "No photos yet. Click the + button to add one.",
     "primary": "Primary",
     "primaryPhoto": "Primary photo",
-    "carPhoto": "Car photo",
     "setPrimary": "Set as primary",
     "delete": "Delete photo",
     "uploadError": "Error uploading photo. Please try again.",
     "deleteError": "Error deleting photo. Please try again.",
-    "primaryError": "Error updating primary photo. Please try again."
+    "primaryError": "Error updating primary photo. Please try again.",
+    "vehiclePhoto": "Vehicle photo"
   },
   "catalog": {
     "searchLabel": "Search by name or toy number",
     "searchPlaceholder": "e.g. Skyline GT-R or HYW18",
     "sourceLabel": "Catalog source",
     "attribution": "Catalog data comes from the community <hw>Hot Wheels Wiki</hw> and <mb>Matchbox Wiki</mb> (CC BY-SA).",
-    "unreachable": "The wiki can't be reached right now. Try again in a moment, or add the car manually.",
-    "noResults": "No castings found. Try another name or add the car manually.",
+    "unreachable": "The wiki can't be reached right now. Try again in a moment, or add the vehicle manually.",
+    "noResults": "No castings found. Try another name or add the vehicle manually.",
     "loadingCasting": "Loading casting",
     "castingMissing": "That casting page no longer exists on the wiki.",
     "castingError": "Couldn't load this casting from the wiki. Please try again.",
@@ -188,8 +152,8 @@
     "addWikiPhoto": "Add the wiki photo to the gallery",
     "viewInCollection": "View in collection",
     "relatedCasting": "You have a version of this casting",
-    "relatedSeries": "You have cars from this series",
-    "relatedCar": "You have this car"
+    "relatedSeries": "You have vehicles from this series",
+    "relatedVehicle": "You have this vehicle"
   },
   "sets": {
     "title": "Sets",
@@ -201,14 +165,13 @@
     "stillSealed": "Still sealed",
     "sealed": "Sealed",
     "opened": "Opened",
-    "carsIncluded": "Cars included",
     "onePerLine": "One per line",
     "photoPreview": "Set photo preview",
     "added": "Set added!",
     "addError": "Error adding set. Please try again.",
     "updated": "Set updated!",
     "updateError": "Error updating set. Please try again.",
-    "addIntro": "Find the playset or track set on the Hot Wheels wiki to fill in the details and the cars it came with, or enter them yourself.",
+    "addIntro": "Find the playset or track set on the Hot Wheels wiki to fill in the details and the vehicles it came with, or enter them yourself.",
     "backToSet": "Back to set",
     "catalog": {
       "searchLabel": "Search by set name or toy number",
@@ -220,21 +183,22 @@
       "loading": "Loading set",
       "missing": "That set page no longer exists on the wiki.",
       "error": "Couldn't load this set from the wiki. Please try again.",
-      "noCars": "The wiki doesn't list any cars included with this set.",
-      "addThisSet": "Add this set"
+      "addThisSet": "Add this set",
+      "noVehicles": "The wiki doesn't list any vehicles included with this set."
     },
     "deleted": "\"{{name}}\" deleted.",
     "deleteError": "Error deleting set. Please try again.",
     "deleteConfirmTitle": "Delete this set?",
-    "deleteConfirmDescription": "\"{{name}}\" will be removed from your collection. This can't be undone."
+    "deleteConfirmDescription": "\"{{name}}\" will be removed from your collection. This can't be undone.",
+    "vehiclesIncluded": "Vehicles included"
   },
   "manufacturers": {
     "title": "Manufacturers",
-    "none": "No manufacturers yet. They appear here as you add cars and sets.",
+    "none": "No manufacturers yet. They appear here as you add vehicles and sets.",
     "all": "All manufacturers",
     "notFound": "Manufacturer not found.",
-    "noCars": "No cars from this manufacturer yet.",
-    "noSets": "No sets from this manufacturer yet."
+    "noSets": "No sets from this manufacturer yet.",
+    "noVehicles": "No vehicles from this manufacturer yet."
   },
   "settings": {
     "title": "Settings",
@@ -283,12 +247,11 @@
       "restoreDescription": "Uploading a backup will replace all current data. A safety snapshot is saved automatically before the restore.",
       "restoreButton": "Restore from Backup",
       "restoreError": "Failed to restore backup. Check the file and try again.",
-      "restored": "Restored {{cars}} car(s) and {{sets}} set(s) from backup."
+      "restored": "Restored {{cars}} vehicle(s) and {{sets}} set(s) from backup."
     },
     "share": {
       "heading": "Share",
-      "description": "Anyone with these links can see your cars and sets, without signing in. They can't see purchase prices, notes or tags, and can't change anything.",
-      "carsLink": "Cars link",
+      "description": "Anyone with these links can see your vehicles and sets, without signing in. They can't see purchase prices, notes or tags, and can't change anything.",
       "setsLink": "Sets link",
       "copy": "Copy link",
       "copyNamed": "Copy {{name}}",
@@ -298,7 +261,8 @@
       "regenerated": "New share links created. The old ones no longer work.",
       "regenerateError": "Couldn't create new share links. Please try again.",
       "regenerateConfirmTitle": "Regenerate share links?",
-      "regenerateConfirmDescription": "The current links stop working straight away. Anyone you shared them with will need the new ones."
+      "regenerateConfirmDescription": "The current links stop working straight away. Anyone you shared them with will need the new ones.",
+      "vehiclesLink": "Vehicles link"
     }
   },
   "lookups": {
@@ -312,7 +276,7 @@
     },
     "noneYet": "None yet.",
     "deleted": "Deleted.",
-    "inUse": "It's still used by a car or set, so it can't be deleted.",
+    "inUse": "It's still used by a vehicle or set, so it can't be deleted.",
     "deleteError": "Error deleting item. Please try again.",
     "manufacturerName": "Manufacturer name",
     "seriesName": "Series name",
@@ -339,9 +303,73 @@
   },
   "public": {
     "subNavLabel": "Shared collection",
-    "searchCars": "Search cars",
     "searchSets": "Search sets",
     "linkGone": "This share link no longer works. Ask the owner for a new one.",
-    "loadError": "Couldn't load this collection. Please try again."
+    "loadError": "Couldn't load this collection. Please try again.",
+    "searchVehicles": "Search vehicles"
+  },
+  "about": {
+    "title": "About",
+    "appName": "DieCastCollectionTracker",
+    "version": "Version {{version}}",
+    "checkForUpdates": "Check for updates",
+    "upToDate": "You're on the latest version",
+    "checkFailed": "Couldn't check for updates. Try again later.",
+    "updateAvailable": "A new version is available: {{version}}",
+    "description": "A self-hosted web app for tracking your die-cast collection: the vehicles, playsets and track sets you own or want, with details filled in from the community wikis.",
+    "sourceCode": "Source code",
+    "reportIssue": "Report an issue or request a feature",
+    "licenseLabel": "License:",
+    "licenseName": "GPL-3.0",
+    "authorLabel": "Author:",
+    "authorName": "Eric P Pereira",
+    "creditsHeading": "Credits",
+    "wikiCredits": "Catalog data and photos come from the community <1>Hot Wheels Wiki</1> and <2>Matchbox Wiki</2>, under CC BY-SA.",
+    "trademarks": "Hot Wheels, Matchbox and Majorette are trademarks of their respective owners. This app isn't affiliated with or endorsed by them.",
+    "buyMeACoffeeAlt": "Buy Me A Coffee"
+  },
+  "insights": {
+    "stats": {
+      "piecesOwned": "Pieces Owned",
+      "owned": "Owned",
+      "wishlist": "Wishlisted",
+      "sets": "Sets",
+      "setsOwned": "Sets Owned",
+      "collectionValue": "Collection Value",
+      "byManufacturer": "By Manufacturer",
+      "byVehicleType": "By Vehicle Type",
+      "recentlyAdded": "Recently Added",
+      "noData": "No data yet.",
+      "totalVehicles": "Total Vehicles",
+      "noVehicles": "No vehicles yet."
+    },
+    "title": "Insights"
+  },
+  "vehicles": {
+    "title": "Vehicles",
+    "noneFound": "No vehicles found.",
+    "notFound": "Vehicle not found.",
+    "series": "Series",
+    "vehicleType": "Vehicle type",
+    "castNumber": "Toy / cast number",
+    "collectionNumber": "Collection number",
+    "condition": "Condition",
+    "photoPreview": "Vehicle photo preview",
+    "added": "Vehicle added!",
+    "addError": "Error adding vehicle. Please try again.",
+    "updated": "Vehicle updated!",
+    "updateError": "Error updating vehicle. Please try again.",
+    "addIntro": "Find the casting on the Hot Wheels or Matchbox wiki to fill in the details, or enter them yourself.",
+    "backToVersions": "Back to versions",
+    "matchToCatalog": "Match to catalog",
+    "rematchToCatalog": "Re-match to catalog",
+    "matchFilled": "Details filled in from the wiki. Review them and save.",
+    "matchPhotoError": "Couldn't copy the wiki photo into the gallery.",
+    "deleted": "\"{{name}}\" deleted.",
+    "deleteError": "Error deleting vehicle. Please try again.",
+    "deleteConfirmTitle": "Delete this vehicle?",
+    "deleteConfirmDescription": "\"{{name}}\" will be removed from your collection, photos included. This can't be undone.",
+    "addVehicle": "Add Vehicle",
+    "editVehicle": "Edit Vehicle"
   }
 }

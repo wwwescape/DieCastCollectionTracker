@@ -63,10 +63,10 @@ function renderCarList() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={["/collection/cars"]}>
+      <MemoryRouter initialEntries={["/collection/vehicles"]}>
         <Routes>
-          <Route path="/collection/cars" element={<CarList />} />
-          <Route path="/collection/cars/:id/edit" element={<div>Car page</div>} />
+          <Route path="/collection/vehicles" element={<CarList />} />
+          <Route path="/collection/vehicles/:id/edit" element={<div>Car page</div>} />
         </Routes>
         <ToastContainer />
       </MemoryRouter>
@@ -96,7 +96,7 @@ describe("CarList", () => {
     vi.spyOn(lookupsApi, "listColors").mockResolvedValue([]);
     renderCarList();
 
-    expect(await screen.findByText("No cars found.")).toBeInTheDocument();
+    expect(await screen.findByText("No vehicles found.")).toBeInTheDocument();
   });
 
   it("shows status and quantity chips, no delete button, and opens the car on click", async () => {

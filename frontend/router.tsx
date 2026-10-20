@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, useParams } from "react-router-dom";
+import { createBrowserRouter, Navigate, useLocation, useParams } from "react-router-dom";
 import AppShell from "./AppShell";
 import PublicShell from "./PublicShell";
 import AddCarPage from "./components/AddCarPage";
@@ -7,10 +7,12 @@ import CarList from "./components/CarList";
 import EditCarPage from "./components/EditCarPage";
 import EditSetPage from "./components/EditSetPage";
 import SetList from "./components/SetList";
+import AboutPage from "./pages/AboutPage";
 import CatalogCastingPage from "./pages/CatalogCastingPage";
 import CatalogSetPage from "./pages/CatalogSetPage";
 import CollectionPage from "./pages/CollectionPage";
 import DashboardPage from "./pages/DashboardPage";
+import InsightsPage from "./pages/InsightsPage";
 import Login from "./pages/Login";
 import LookupsPage from "./pages/LookupsPage";
 import ManufacturerPage from "./pages/ManufacturerPage";
@@ -19,10 +21,23 @@ import PublicCollectionPage from "./pages/PublicCollectionPage";
 import SettingsPage from "./pages/SettingsPage";
 import ProtectedLayout from "./routes/ProtectedLayout";
 
-// Pre-1.3 car edit links (/cars/:id/edit) now live under /collection.
+// Pre-1.3 car edit links (/cars/:id/edit) now live under /collection/vehicles.
 const LegacyCarEditRedirect = () => {
   const { id } = useParams<{ id: string }>();
-  return <Navigate to={`/collection/cars/${id}/edit`} replace />;
+  return <Navigate to={`/collection/vehicles/${id}/edit`} replace />;
+};
+
+// /collection/cars/... (v1.3.0) → the same page under /collection/vehicles/...
+export const LegacyCollectionCarsRedirect = () => {
+  const { pathname, search } = useLocation();
+  return (
+    <Navigate to={pathname.replace("/collection/cars", "/collection/vehicles") + search} replace />
+  );
+};
+
+export const LegacyPublicCarsRedirect = () => {
+  const { token } = useParams<{ token: string }>();
+  return <Navigate to={`/public/${token}/vehicles`} replace />;
 };
 
 const router = createBrowserRouter([
@@ -32,7 +47,9 @@ const router = createBrowserRouter([
     // token in the path instead (see backend app/api/routes/public.py).
     element: <PublicShell />,
     children: [
-      { path: "/public/:token/cars", element: <PublicCollectionPage kind="cars" /> },
+      { path: "/public/:token/vehicles", element: <PublicCollectionPage kind="vehicles" /> },
+      // v1.3.0 share links pointed at /cars.
+      { path: "/public/:token/cars", element: <LegacyPublicCarsRedirect /> },
       { path: "/public/:token/sets", element: <PublicCollectionPage kind="sets" /> },
     ],
   },
@@ -44,22 +61,26 @@ const router = createBrowserRouter([
         children: [
           { path: "/", element: <DashboardPage /> },
           { path: "/collection", element: <CollectionPage /> },
-          { path: "/collection/cars", element: <CarList /> },
-          { path: "/collection/cars/add", element: <AddCarPage /> },
-          { path: "/collection/cars/add/catalog", element: <CatalogCastingPage /> },
-          { path: "/collection/cars/:id/edit", element: <EditCarPage /> },
+          { path: "/collection/vehicles", element: <CarList /> },
+          { path: "/collection/vehicles/add", element: <AddCarPage /> },
+          { path: "/collection/vehicles/add/catalog", element: <CatalogCastingPage /> },
+          { path: "/collection/vehicles/:id/edit", element: <EditCarPage /> },
           { path: "/collection/sets", element: <SetList /> },
           { path: "/collection/sets/add", element: <AddSetPage /> },
           { path: "/collection/sets/add/catalog", element: <CatalogSetPage /> },
           { path: "/collection/sets/:id/edit", element: <EditSetPage /> },
           { path: "/collection/manufacturers", element: <ManufacturersPage /> },
           { path: "/collection/manufacturers/:id", element: <ManufacturerPage /> },
+          { path: "/insights", element: <InsightsPage /> },
           { path: "/settings", element: <SettingsPage /> },
           { path: "/settings/lookups", element: <LookupsPage /> },
+          { path: "/about", element: <AboutPage /> },
           { path: "/dashboard", element: <Navigate to="/" replace /> },
           { path: "/manage", element: <Navigate to="/settings/lookups" replace /> },
           { path: "/cars/:id/edit", element: <LegacyCarEditRedirect /> },
-          { path: "/cars/*", element: <Navigate to="/collection/cars" replace /> },
+          { path: "/cars/*", element: <Navigate to="/collection/vehicles" replace /> },
+          // v1.3.0 kept cars at /collection/cars.
+          { path: "/collection/cars/*", element: <LegacyCollectionCarsRedirect /> },
         ],
       },
     ],

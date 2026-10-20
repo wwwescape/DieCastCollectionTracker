@@ -2,9 +2,11 @@ import type { ReactNode } from "react";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
 import FactoryIcon from "@mui/icons-material/Factory";
-import GarageIcon from "@mui/icons-material/Garage";
+import InfoIcon from "@mui/icons-material/Info";
+import InsightsIcon from "@mui/icons-material/Insights";
 import ListAltIcon from "@mui/icons-material/ListAlt";
 import SettingsIcon from "@mui/icons-material/Settings";
+import CollectionIcon from "../icons/CollectionIcon";
 import RoadIcon from "../icons/RoadIcon";
 
 export interface NavSubDestination {
@@ -30,19 +32,21 @@ export const navDestinations: NavDestination[] = [
   {
     to: "/collection",
     labelKey: "nav.collection",
-    icon: <GarageIcon />,
+    icon: <CollectionIcon />,
     subItems: [
-      { to: "/collection/cars", labelKey: "nav.cars", icon: <DirectionsCarIcon /> },
+      { to: "/collection/vehicles", labelKey: "nav.vehicles", icon: <DirectionsCarIcon /> },
       { to: "/collection/sets", labelKey: "nav.sets", icon: <RoadIcon /> },
       { to: "/collection/manufacturers", labelKey: "nav.manufacturers", icon: <FactoryIcon /> },
     ],
   },
+  { to: "/insights", labelKey: "nav.insights", icon: <InsightsIcon /> },
   {
     to: "/settings",
     labelKey: "nav.settings",
     icon: <SettingsIcon />,
     subItems: [{ to: "/settings/lookups", labelKey: "nav.lookups", icon: <ListAltIcon /> }],
   },
+  { to: "/about", labelKey: "nav.about", icon: <InfoIcon /> },
 ];
 
 // Prefix match, so a page nested under a destination (an edit page, an add flow) still

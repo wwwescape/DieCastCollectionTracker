@@ -37,7 +37,7 @@ const SetCard = ({ set, onClick }: SetCardProps) => {
         <>
           <Chip label={t(`setTypes.${set.setType}`)} size="small" variant="outlined" color="info" />
           {set.contents.length ? (
-            <Chip label={t("common.carCount", { count: set.contents.length })} size="small" />
+            <Chip label={t("common.vehicleCount", { count: set.contents.length })} size="small" />
           ) : null}
           {set.status === "owned" ? (
             <Chip

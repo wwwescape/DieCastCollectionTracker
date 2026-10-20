@@ -112,7 +112,7 @@ describe("LookupsPage", () => {
 
     await waitFor(() =>
       expect(toastError).toHaveBeenCalledWith(
-        "It's still used by a car or set, so it can't be deleted.",
+        "It's still used by a vehicle or set, so it can't be deleted.",
         expect.anything()
       )
     );

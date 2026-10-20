@@ -3,7 +3,7 @@ import { listPublicCars, listPublicSets } from "../api/public";
 
 export function usePublicCars(token: string | undefined, search: string) {
   return useQuery({
-    queryKey: ["public", token, "cars", search],
+    queryKey: ["public", token, "vehicles", search],
     queryFn: () => listPublicCars(token!, search || undefined),
     enabled: Boolean(token),
     retry: false,

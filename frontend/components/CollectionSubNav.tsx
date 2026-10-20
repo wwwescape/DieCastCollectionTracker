@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 
 const SUB_NAV_ITEMS = [
   { to: "/collection", labelKey: "nav.overview", exact: true },
-  { to: "/collection/cars", labelKey: "nav.cars", exact: false },
+  { to: "/collection/vehicles", labelKey: "nav.vehicles", exact: false },
   { to: "/collection/sets", labelKey: "nav.sets", exact: false },
   { to: "/collection/manufacturers", labelKey: "nav.manufacturers", exact: false },
 ] as const;
