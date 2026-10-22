@@ -17,3 +17,13 @@ def tag_from_orm(tag: Tag) -> TagResponse:
 class TagCreateRequest(CamelModel):
     name: str = Field(min_length=1, max_length=100)
     color: str | None = None
+
+
+class TagCoverageRequest(CamelModel):
+    vehicle_ids: list[int] = Field(default_factory=list, max_length=2000)
+    set_ids: list[int] = Field(default_factory=list, max_length=2000)
+
+
+class TagCoverageResponse(TagResponse):
+    # How many of the given vehicles and sets carry this tag.
+    count: int

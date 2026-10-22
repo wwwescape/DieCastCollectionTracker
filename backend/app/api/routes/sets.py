@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, File, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
+from app.api.routes.list_params import SetFilterParams
 from app.api.routes.uploads import image_upload_error_to_http
-from app.models.car import CarStatus
-from app.models.car_set import SetType
+from app.schemas.bulk import BulkDeleteRequest, BulkEditRequest, BulkResultResponse
 from app.schemas.car import CarPhotoResponse
 from app.schemas.car_set import SetCreateRequest, SetResponse, SetUpdateRequest, set_from_orm
 from app.schemas.upload import ImageImportRequest
@@ -14,27 +14,20 @@ router = APIRouter(prefix="/api/sets", tags=["sets"], dependencies=[Depends(get_
 
 
 @router.get("", response_model=list[SetResponse])
-def list_sets(
-    search: str | None = Query(default=None),
-    manufacturer_id: int | None = Query(default=None, alias="manufacturerId"),
-    series_id: int | None = Query(default=None, alias="seriesId"),
-    set_type: SetType | None = Query(default=None, alias="setType"),
-    status_filter: CarStatus | None = Query(default=None, alias="status"),
-    sort: str = Query(default="name"),
-    order: str = Query(default="asc"),
-    db: Session = Depends(get_db),
-) -> list[SetResponse]:
-    sets = set_service.list_sets(
-        db,
-        search=search,
-        manufacturer_id=manufacturer_id,
-        series_id=series_id,
-        set_type=set_type,
-        status=status_filter,
-        sort=sort,
-        order=order,
-    )
-    return [set_from_orm(car_set) for car_set in sets]
+def list_sets(filters: SetFilterParams = Depends(), db: Session = Depends(get_db)) -> list[SetResponse]:
+    return [set_from_orm(car_set) for car_set in set_service.list_sets(db, **vars(filters))]
+
+
+@router.post("/bulk-edit", response_model=BulkResultResponse)
+def bulk_edit_sets(body: BulkEditRequest, db: Session = Depends(get_db)) -> BulkResultResponse:
+    """The Sets list's selection mode; see POST /api/cars/bulk-edit."""
+    count = set_service.bulk_edit_sets(db, body.ids, body.changes(), body.add_tags, body.remove_tag_ids)
+    return BulkResultResponse(count=count)
+
+
+@router.post("/bulk-delete", response_model=BulkResultResponse)
+def bulk_delete_sets(body: BulkDeleteRequest, db: Session = Depends(get_db)) -> BulkResultResponse:
+    return BulkResultResponse(count=set_service.bulk_delete_sets(db, body.ids))
 
 
 @router.get("/{set_id}", response_model=SetResponse)

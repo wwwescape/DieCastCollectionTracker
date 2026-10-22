@@ -1,3 +1,5 @@
+import { clearSessionViewState } from "../utils/sessionViewState";
+
 const ACCESS_TOKEN_KEY = "dct.accessToken";
 const REFRESH_TOKEN_KEY = "dct.refreshToken";
 
@@ -18,5 +20,7 @@ export const tokenStorage = {
   clear(): void {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
+    // Remembered filters belong to the signed-in session, not the browser tab.
+    clearSessionViewState();
   },
 };

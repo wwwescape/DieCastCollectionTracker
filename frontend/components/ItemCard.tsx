@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
 import CardActionArea from "@mui/material/CardActionArea";
+import Checkbox from "@mui/material/Checkbox";
 import Chip from "@mui/material/Chip";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
@@ -34,6 +35,11 @@ interface ItemCardProps {
   action?: ReactNode;
   highlighted?: boolean;
   onClick?: () => void;
+  // Selection mode on the Vehicles and Sets lists: a checkbox top-left, and clicking the card
+  // toggles it instead of opening the item.
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 const LINE_SX = { whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" } as const;
@@ -55,8 +61,12 @@ const ItemCard = ({
   action,
   highlighted = false,
   onClick,
+  selectable = false,
+  selected = false,
+  onToggleSelect,
 }: ItemCardProps) => {
   const { t } = useTranslation();
+  const handleClick = selectable ? onToggleSelect : onClick;
 
   const media = (
     <Box
@@ -91,14 +101,38 @@ const ItemCard = ({
           {t("common.noPhoto")}
         </Typography>
       )}
+      {selectable ? (
+        <Checkbox
+          checked={selected}
+          tabIndex={-1}
+          size="small"
+          slotProps={{ input: { "aria-label": title } }}
+          sx={{
+            position: "absolute",
+            top: 4,
+            left: 4,
+            zIndex: 1,
+            p: 0.5,
+            bgcolor: "background.paper",
+            borderRadius: 1,
+            "&:hover": { bgcolor: "background.paper" },
+          }}
+        />
+      ) : null}
       {holding ? (
         <>
           <Chip
             label={t(`status.${holding.status}`)}
             size="small"
             color={holding.status === "owned" ? "primary" : "default"}
-            // Leaves room for the quantity chip; long translations ellipsize.
-            sx={{ position: "absolute", top: 8, left: 8, maxWidth: "calc(100% - 64px)" }}
+            // Leaves room for the quantity chip (and the selection checkbox); long
+            // translations ellipsize.
+            sx={{
+              position: "absolute",
+              top: 8,
+              left: selectable ? 44 : 8,
+              maxWidth: selectable ? "calc(100% - 100px)" : "calc(100% - 64px)",
+            }}
           />
           <Chip
             label={holding.quantity}
@@ -181,12 +215,16 @@ const ItemCard = ({
         display: "flex",
         flexDirection: "column",
         borderRadius: 2,
-        border: highlighted ? 2 : 1,
-        borderColor: highlighted ? "primary.main" : "divider",
+        border: highlighted || selected ? 2 : 1,
+        borderColor: highlighted || selected ? "primary.main" : "divider",
       }}
     >
-      {onClick ? (
-        <CardActionArea onClick={onClick} sx={{ flexGrow: 1, display: "block" }}>
+      {handleClick ? (
+        <CardActionArea
+          onClick={handleClick}
+          aria-pressed={selectable ? selected : undefined}
+          sx={{ flexGrow: 1, display: "block" }}
+        >
           {media}
           {body}
         </CardActionArea>

@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import {
   addCarPhoto,
+  bulkDeleteCars,
+  bulkEditCars,
   createCar,
   createCarsBulk,
   deleteCar,
@@ -39,6 +41,25 @@ export function useCar(id: number | undefined) {
     queryKey: ["vehicles", id],
     queryFn: () => getCar(id!),
     enabled: id !== undefined,
+  });
+}
+
+export function useBulkEditCars() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: bulkEditCars,
+    onSuccess: () => {
+      invalidateCarQueries(queryClient, { lookups: true });
+      queryClient.invalidateQueries({ queryKey: ["tagCoverage"] });
+    },
+  });
+}
+
+export function useBulkDeleteCars() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: bulkDeleteCars,
+    onSuccess: () => invalidateCarQueries(queryClient),
   });
 }
 

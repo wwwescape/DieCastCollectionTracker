@@ -1,20 +1,40 @@
 import { apiClient } from "./client";
-import type { Car, CarInput, CarPhoto, CarStatus } from "./types";
+import {
+  LIST_PARAMS_SERIALIZER,
+  type BulkEditInput,
+  type BulkResult,
+  type ItemSource,
+} from "./listFilters";
+import type { Car, CarCondition, CarInput, CarPhoto, CarStatus } from "./types";
 
 export interface CarListParams {
   search?: string;
-  manufacturerId?: number;
-  seriesId?: number;
-  vehicleTypeId?: number;
-  colorId?: number;
-  status?: CarStatus;
-  tagId?: number;
+  // A single value or several; see api/listFilters.ts.
+  status?: CarStatus | CarStatus[];
+  statusExclude?: boolean;
+  manufacturerId?: number | number[];
+  manufacturerExclude?: boolean;
+  seriesId?: number | number[];
+  seriesExclude?: boolean;
+  vehicleTypeId?: number | number[];
+  vehicleTypeExclude?: boolean;
+  colorId?: number | number[];
+  colorExclude?: boolean;
+  condition?: CarCondition[];
+  conditionExclude?: boolean;
+  tagId?: number | number[];
+  tagExclude?: boolean;
+  tagMatchAll?: boolean;
+  source?: ItemSource[];
+  sourceExclude?: boolean;
   sort?: string;
   order?: "asc" | "desc";
 }
 
 export async function listCars(params: CarListParams = {}): Promise<Car[]> {
-  return (await apiClient.get<Car[]>("/api/cars", { params })).data;
+  return (
+    await apiClient.get<Car[]>("/api/cars", { params, paramsSerializer: LIST_PARAMS_SERIALIZER })
+  ).data;
 }
 
 export async function getCar(id: number): Promise<Car> {
@@ -61,4 +81,14 @@ export async function deleteCarPhoto(carId: number, photoId: number): Promise<vo
 
 export async function setCarPhotoPrimary(carId: number, photoId: number): Promise<CarPhoto> {
   return (await apiClient.patch<CarPhoto>(`/api/cars/${carId}/photos/${photoId}/primary`)).data;
+}
+
+// --- Bulk actions (Vehicles list selection mode) ---
+
+export async function bulkEditCars(input: BulkEditInput): Promise<BulkResult> {
+  return (await apiClient.post<BulkResult>("/api/cars/bulk-edit", input)).data;
+}
+
+export async function bulkDeleteCars(ids: number[]): Promise<BulkResult> {
+  return (await apiClient.post<BulkResult>("/api/cars/bulk-delete", { ids })).data;
 }

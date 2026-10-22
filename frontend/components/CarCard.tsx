@@ -21,9 +21,12 @@ interface CarCardProps {
   car: CarCardData;
   // Leave out for a read-only card.
   onClick?: () => void;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }
 
-const CarCard = ({ car, onClick }: CarCardProps) => {
+const CarCard = ({ car, onClick, selectable, selected, onToggleSelect }: CarCardProps) => {
   const { t } = useTranslation();
   return (
     <ItemCard
@@ -43,6 +46,9 @@ const CarCard = ({ car, onClick }: CarCardProps) => {
         ) : null
       }
       onClick={onClick}
+      selectable={selectable}
+      selected={selected}
+      onToggleSelect={onToggleSelect}
     />
   );
 };

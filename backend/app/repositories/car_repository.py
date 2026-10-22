@@ -1,9 +1,13 @@
+from collections.abc import Sequence
 from typing import Any
 
 from sqlalchemy import delete, or_, select
 from sqlalchemy.orm import Session, joinedload
 
-from app.models.car import Car, CarPhoto, CarStatus, CarTag
+from app.models.car import Car, CarCondition, CarPhoto, CarStatus, CarTag
+from app.models.lookups import Color, Manufacturer, Series
+from app.services.list_filters import link_filter, source_filter, value_filter
+from app.services.list_filters import order_by as list_order_by
 
 # Repositories only add/flush/delete — they never commit. The service that calls them owns
 # the transaction boundary.
@@ -22,15 +26,27 @@ def _options() -> tuple[Any, ...]:
 def list_cars(
     db: Session,
     search: str | None = None,
-    manufacturer_id: int | None = None,
-    series_id: int | None = None,
-    vehicle_type_id: int | None = None,
-    color_id: int | None = None,
-    status: CarStatus | None = None,
-    tag_id: int | None = None,
+    statuses: Sequence[CarStatus] | None = None,
+    status_exclude: bool = False,
+    manufacturer_ids: Sequence[int] | None = None,
+    manufacturer_exclude: bool = False,
+    series_ids: Sequence[int] | None = None,
+    series_exclude: bool = False,
+    vehicle_type_ids: Sequence[int] | None = None,
+    vehicle_type_exclude: bool = False,
+    color_ids: Sequence[int] | None = None,
+    color_exclude: bool = False,
+    conditions: Sequence[CarCondition] | None = None,
+    condition_exclude: bool = False,
+    tag_ids: Sequence[int] | None = None,
+    tag_exclude: bool = False,
+    tag_match_all: bool = False,
+    sources: Sequence[str] | None = None,
+    source_exclude: bool = False,
     sort: str = "name",
     order: str = "asc",
 ) -> list[Car]:
+    """The Vehicles list: search plus the filters described in app/services/list_filters.py."""
     stmt = select(Car).options(*_options())
 
     if search:
@@ -40,30 +56,39 @@ def list_cars(
                 Car.name.ilike(like),
                 Car.cast_number.ilike(like),
                 Car.collection_number.ilike(like),
+                Car.notes.ilike(like),
+                Car.manufacturer.has(Manufacturer.name.ilike(like)),
+                Car.series.has(Series.name.ilike(like)),
+                Car.color.has(Color.name.ilike(like)),
             )
         )
-    if manufacturer_id is not None:
-        stmt = stmt.where(Car.manufacturer_id == manufacturer_id)
-    if series_id is not None:
-        stmt = stmt.where(Car.series_id == series_id)
-    if vehicle_type_id is not None:
-        stmt = stmt.where(Car.vehicle_type_id == vehicle_type_id)
-    if color_id is not None:
-        stmt = stmt.where(Car.color_id == color_id)
-    if status is not None:
-        stmt = stmt.where(Car.status == status)
-    if tag_id is not None:
-        stmt = stmt.join(CarTag, CarTag.car_id == Car.id).where(CarTag.tag_id == tag_id)
+    stmt = stmt.where(
+        value_filter(Car.status, statuses, status_exclude),
+        value_filter(Car.manufacturer_id, manufacturer_ids, manufacturer_exclude),
+        value_filter(Car.series_id, series_ids, series_exclude),
+        value_filter(Car.vehicle_type_id, vehicle_type_ids, vehicle_type_exclude),
+        value_filter(Car.color_id, color_ids, color_exclude),
+        value_filter(Car.condition, conditions, condition_exclude),
+        link_filter(CarTag, CarTag.car_id, Car.id, CarTag.tag_id, tag_ids, tag_exclude, tag_match_all),
+        source_filter(Car.catalog_title, sources, source_exclude),
+    )
 
     sort_column = {
         "name": Car.name,
         "year": Car.year,
         "quantity": Car.quantity,
+        "purchasePrice": Car.purchase_price,
         "createdAt": Car.created_at,
     }.get(sort, Car.name)
-    stmt = stmt.order_by(sort_column.desc() if order == "desc" else sort_column.asc())
+    stmt = stmt.order_by(*list_order_by(sort_column, order == "desc"), Car.name.asc(), Car.id.asc())
 
     return list(db.scalars(stmt).unique())
+
+
+def get_cars(db: Session, car_ids: Sequence[int]) -> list[Car]:
+    if not car_ids:
+        return []
+    return list(db.scalars(select(Car).options(*_options()).where(Car.id.in_(list(car_ids)))).unique())
 
 
 def get_car(db: Session, car_id: int) -> Car | None:

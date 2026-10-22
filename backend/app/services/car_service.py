@@ -3,7 +3,7 @@ from typing import Any
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session, joinedload
 
-from app.models.car import Car, CarPhoto, CarStatus
+from app.models.car import Car, CarPhoto
 from app.models.car_set import CarSet, SetVehicle
 from app.repositories import (
     car_repository,
@@ -75,30 +75,9 @@ def _resolve_car_fields(db: Session, fields: dict[str, Any], car: Car | None = N
     return resolved
 
 
-def list_cars(
-    db: Session,
-    search: str | None = None,
-    manufacturer_id: int | None = None,
-    series_id: int | None = None,
-    vehicle_type_id: int | None = None,
-    color_id: int | None = None,
-    status: CarStatus | None = None,
-    tag_id: int | None = None,
-    sort: str = "name",
-    order: str = "asc",
-) -> list[Car]:
-    return car_repository.list_cars(
-        db,
-        search=search,
-        manufacturer_id=manufacturer_id,
-        series_id=series_id,
-        vehicle_type_id=vehicle_type_id,
-        color_id=color_id,
-        status=status,
-        tag_id=tag_id,
-        sort=sort,
-        order=order,
-    )
+def list_cars(db: Session, **filters: Any) -> list[Car]:
+    """See car_repository.list_cars for the filters (VehicleFilterParams' fields)."""
+    return car_repository.list_cars(db, **filters)
 
 
 def get_car(db: Session, car_id: int) -> Car:
@@ -234,3 +213,55 @@ def set_primary_car_photo(db: Session, car_id: int, photo_id: int) -> CarPhoto:
     result = car_repository.set_primary_photo(db, car_id, photo_id)
     db.commit()
     return result
+
+
+# --- Bulk actions (the Vehicles list's selection mode) ---
+
+_BULK_FIELDS = ("status", "condition", "series")
+
+
+def bulk_edit_cars(
+    db: Session,
+    car_ids: list[int],
+    changes: dict[str, Any],
+    add_tags: list[str] | None = None,
+    remove_tag_ids: list[int] | None = None,
+) -> int:
+    """Applies the same change to several vehicles in one transaction. `changes` holds only the
+    fields the user picked: status, condition (None clears it) and series by name (None or ""
+    clears it). A series is looked up or created under each vehicle's own manufacturer, like
+    the edit form does. Tags are added by name (created if new) and removed by id. Unknown ids
+    are skipped; returns how many vehicles were updated."""
+    cars = car_repository.get_cars(db, car_ids)
+    series_by_manufacturer: dict[int, int | None] = {}
+    for car in cars:
+        if "status" in changes and changes["status"] is not None:
+            car.status = changes["status"]
+        if "condition" in changes:
+            car.condition = changes["condition"]
+        if "series" in changes:
+            name = (changes["series"] or "").strip()
+            if car.manufacturer_id not in series_by_manufacturer:
+                series_by_manufacturer[car.manufacturer_id] = (
+                    series_repository.get_or_create_by_name(db, name, car.manufacturer_id).id if name else None
+                )
+            car.series_id = series_by_manufacturer[car.manufacturer_id]
+    found_ids = [car.id for car in cars]
+    tag_repository.add_tags_to_cars(
+        db,
+        found_ids,
+        [tag_repository.get_or_create_by_name(db, name.strip()).id for name in add_tags or [] if name.strip()],
+    )
+    tag_repository.remove_tags_from_cars(db, found_ids, remove_tag_ids or [])
+    db.commit()
+    db.expire_all()
+    return len(cars)
+
+
+def bulk_delete_cars(db: Session, car_ids: list[int]) -> int:
+    """Deletes several vehicles (and their photos); unknown ids are skipped."""
+    found = [car.id for car in car_repository.get_cars(db, car_ids)]
+    for car_id in found:
+        delete_car(db, car_id)
+    return len(found)
+

@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import {
   addSetPhoto,
+  bulkDeleteSets,
+  bulkEditSets,
   createSet,
   deleteSet,
   deleteSetPhoto,
@@ -24,6 +26,25 @@ function invalidateSetQueries(queryClient: QueryClient, { lookups = false } = {}
       queryClient.invalidateQueries({ queryKey: [key] })
     );
   }
+}
+
+export function useBulkEditSets() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: bulkEditSets,
+    onSuccess: () => {
+      invalidateSetQueries(queryClient, { lookups: true });
+      queryClient.invalidateQueries({ queryKey: ["tagCoverage"] });
+    },
+  });
+}
+
+export function useBulkDeleteSets() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: bulkDeleteSets,
+    onSuccess: () => invalidateSetQueries(queryClient),
+  });
 }
 
 export function useSetList(params: SetListParams = {}) {

@@ -44,7 +44,12 @@
 - **Series** — every series by year with its counts (a yearly pack like Batman 5-Pack gets
   a card per year); open one to see that year's vehicles and sets.
 - **Photo gallery** — several photos per vehicle and set, with a primary photo for the card.
-- **Search & filters** — filter by manufacturer, series, vehicle type, color, or status.
+- **Search, filters & bulk actions** — search vehicles and sets by name, toy number, series,
+  manufacturer or notes. Filter by status, manufacturer, series, vehicle type, color, condition,
+  tags, type, sealed state or source (wiki or custom), each with Exclude, plus Match any/all for
+  tags; sort by name, year, date added, quantity or price. Filters are remembered for the session.
+  Select several items to remove them, add or remove tags, or set their status, condition or
+  series in one go.
 - **Your own lookup lists** — manufacturers, series, vehicle types, and colors grow as you type,
   and can be managed in Settings → Lookups.
 - **Insights** — vehicle and set counts, collection value, stats by manufacturer and vehicle type,

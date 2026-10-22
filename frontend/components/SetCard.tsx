@@ -23,10 +23,13 @@ interface SetCardProps {
   set: SetCardData;
   // Leave out for a read-only card.
   onClick?: () => void;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 // Same layout as CarCard, so cars and sets look alike across the Collection.
-const SetCard = ({ set, onClick }: SetCardProps) => {
+const SetCard = ({ set, onClick, selectable, selected, onToggleSelect }: SetCardProps) => {
   const { t } = useTranslation();
   return (
     <ItemCard
@@ -51,6 +54,9 @@ const SetCard = ({ set, onClick }: SetCardProps) => {
         </>
       }
       onClick={onClick}
+      selectable={selectable}
+      selected={selected}
+      onToggleSelect={onToggleSelect}
     />
   );
 };

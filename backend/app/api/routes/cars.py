@@ -1,11 +1,12 @@
 from concurrent.futures import ThreadPoolExecutor
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
+from app.api.routes.list_params import VehicleFilterParams
 from app.api.routes.uploads import image_upload_error_to_http
-from app.models.car import CarStatus
+from app.schemas.bulk import BulkDeleteRequest, BulkEditRequest, BulkResultResponse
 from app.schemas.car import (
     CarBulkCreateRequest,
     CarBulkCreateResponse,
@@ -31,31 +32,21 @@ def _car_response(db: Session, car) -> CarResponse:
 
 
 @router.get("", response_model=list[CarResponse])
-def list_cars(
-    search: str | None = Query(default=None),
-    manufacturer_id: int | None = Query(default=None, alias="manufacturerId"),
-    series_id: int | None = Query(default=None, alias="seriesId"),
-    vehicle_type_id: int | None = Query(default=None, alias="vehicleTypeId"),
-    color_id: int | None = Query(default=None, alias="colorId"),
-    status_filter: CarStatus | None = Query(default=None, alias="status"),
-    tag_id: int | None = Query(default=None, alias="tagId"),
-    sort: str = Query(default="name"),
-    order: str = Query(default="asc"),
-    db: Session = Depends(get_db),
-) -> list[CarResponse]:
-    cars = car_service.list_cars(
-        db,
-        search=search,
-        manufacturer_id=manufacturer_id,
-        series_id=series_id,
-        vehicle_type_id=vehicle_type_id,
-        color_id=color_id,
-        status=status_filter,
-        tag_id=tag_id,
-        sort=sort,
-        order=order,
-    )
-    return [_car_response(db, car) for car in cars]
+def list_cars(filters: VehicleFilterParams = Depends(), db: Session = Depends(get_db)) -> list[CarResponse]:
+    return [_car_response(db, car) for car in car_service.list_cars(db, **vars(filters))]
+
+
+@router.post("/bulk-edit", response_model=BulkResultResponse)
+def bulk_edit_cars(body: BulkEditRequest, db: Session = Depends(get_db)) -> BulkResultResponse:
+    """The Vehicles list's selection mode: set status, condition or series, or add/remove
+    tags, on every selected vehicle at once."""
+    count = car_service.bulk_edit_cars(db, body.ids, body.changes(), body.add_tags, body.remove_tag_ids)
+    return BulkResultResponse(count=count)
+
+
+@router.post("/bulk-delete", response_model=BulkResultResponse)
+def bulk_delete_cars(body: BulkDeleteRequest, db: Session = Depends(get_db)) -> BulkResultResponse:
+    return BulkResultResponse(count=car_service.bulk_delete_cars(db, body.ids))
 
 
 @router.get("/{car_id}", response_model=CarResponse)

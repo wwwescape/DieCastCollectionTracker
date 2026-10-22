@@ -1,12 +1,16 @@
+from collections.abc import Sequence
 from typing import Any
 
 from sqlalchemy import delete, or_, select
 from sqlalchemy.orm import Session, joinedload
 
-from app.models.car import Car, CarStatus
+from app.models.car import Car, CarCondition, CarStatus
 from app.models.car_set import CarSet, SetPhoto, SetTag, SetType, SetVehicle
+from app.models.lookups import Manufacturer, Series
 from app.repositories import manufacturer_repository, series_repository, tag_repository
 from app.services.exceptions import NotFoundError
+from app.services.list_filters import link_filter, source_filter, value_filter
+from app.services.list_filters import order_by as list_order_by
 from app.services.upload_service import delete_if_local_car_image
 
 _NON_NULLABLE = ("name", "set_type", "status", "sealed", "quantity", "contents")
@@ -62,28 +66,59 @@ def set_vehicle_links(db: Session, set_id: int, car_ids: list[int]) -> None:
 def list_sets(
     db: Session,
     search: str | None = None,
-    manufacturer_id: int | None = None,
-    series_id: int | None = None,
-    set_type: SetType | None = None,
-    status: CarStatus | None = None,
+    statuses: Sequence[CarStatus] | None = None,
+    status_exclude: bool = False,
+    set_types: Sequence[SetType] | None = None,
+    set_type_exclude: bool = False,
+    manufacturer_ids: Sequence[int] | None = None,
+    manufacturer_exclude: bool = False,
+    series_ids: Sequence[int] | None = None,
+    series_exclude: bool = False,
+    conditions: Sequence[CarCondition] | None = None,
+    condition_exclude: bool = False,
+    sealed_states: Sequence[str] | None = None,
+    sealed_exclude: bool = False,
+    tag_ids: Sequence[int] | None = None,
+    tag_exclude: bool = False,
+    tag_match_all: bool = False,
+    sources: Sequence[str] | None = None,
+    source_exclude: bool = False,
     sort: str = "name",
     order: str = "asc",
 ) -> list[CarSet]:
+    """The Sets list: search plus the filters described in app/services/list_filters.py."""
     stmt = select(CarSet).options(*_options())
     if search:
         like = f"%{search}%"
-        stmt = stmt.where(or_(CarSet.name.ilike(like), CarSet.toy_number.ilike(like)))
-    if manufacturer_id is not None:
-        stmt = stmt.where(CarSet.manufacturer_id == manufacturer_id)
-    if series_id is not None:
-        stmt = stmt.where(CarSet.series_id == series_id)
-    if set_type is not None:
-        stmt = stmt.where(CarSet.set_type == set_type)
-    if status is not None:
-        stmt = stmt.where(CarSet.status == status)
+        stmt = stmt.where(
+            or_(
+                CarSet.name.ilike(like),
+                CarSet.toy_number.ilike(like),
+                CarSet.notes.ilike(like),
+                CarSet.manufacturer.has(Manufacturer.name.ilike(like)),
+                CarSet.series.has(Series.name.ilike(like)),
+            )
+        )
+    sealed_values = [state == "sealed" for state in sealed_states or []]
+    stmt = stmt.where(
+        value_filter(CarSet.status, statuses, status_exclude),
+        value_filter(CarSet.set_type, set_types, set_type_exclude),
+        value_filter(CarSet.manufacturer_id, manufacturer_ids, manufacturer_exclude),
+        value_filter(CarSet.series_id, series_ids, series_exclude),
+        value_filter(CarSet.condition, conditions, condition_exclude),
+        value_filter(CarSet.sealed, sealed_values, sealed_exclude),
+        link_filter(SetTag, SetTag.set_id, CarSet.id, SetTag.tag_id, tag_ids, tag_exclude, tag_match_all),
+        source_filter(CarSet.catalog_title, sources, source_exclude),
+    )
 
-    sort_column = {"name": CarSet.name, "year": CarSet.year, "createdAt": CarSet.created_at}.get(sort, CarSet.name)
-    stmt = stmt.order_by(sort_column.desc() if order == "desc" else sort_column.asc())
+    sort_column = {
+        "name": CarSet.name,
+        "year": CarSet.year,
+        "quantity": CarSet.quantity,
+        "purchasePrice": CarSet.purchase_price,
+        "createdAt": CarSet.created_at,
+    }.get(sort, CarSet.name)
+    stmt = stmt.order_by(*list_order_by(sort_column, order == "desc"), CarSet.name.asc(), CarSet.id.asc())
     return list(db.scalars(stmt).unique())
 
 
@@ -182,3 +217,54 @@ def set_primary_set_photo(db: Session, set_id: int, photo_id: int) -> SetPhoto:
         photo.is_primary = photo.id == target.id
     db.commit()
     return target
+
+
+# --- Bulk actions (the Sets list's selection mode; mirrors car_service) ---
+
+
+def _get_sets(db: Session, set_ids: list[int]) -> list[CarSet]:
+    if not set_ids:
+        return []
+    return list(db.scalars(select(CarSet).where(CarSet.id.in_(set_ids))))
+
+
+def bulk_edit_sets(
+    db: Session,
+    set_ids: list[int],
+    changes: dict[str, Any],
+    add_tags: list[str] | None = None,
+    remove_tag_ids: list[int] | None = None,
+) -> int:
+    """Same as car_service.bulk_edit_cars, for sets."""
+    sets = _get_sets(db, set_ids)
+    series_by_manufacturer: dict[int, int | None] = {}
+    for car_set in sets:
+        if "status" in changes and changes["status"] is not None:
+            car_set.status = changes["status"]
+        if "condition" in changes:
+            car_set.condition = changes["condition"]
+        if "series" in changes:
+            name = (changes["series"] or "").strip()
+            if car_set.manufacturer_id not in series_by_manufacturer:
+                series_by_manufacturer[car_set.manufacturer_id] = (
+                    series_repository.get_or_create_by_name(db, name, car_set.manufacturer_id).id if name else None
+                )
+            car_set.series_id = series_by_manufacturer[car_set.manufacturer_id]
+    found_ids = [car_set.id for car_set in sets]
+    tag_repository.add_tags_to_sets(
+        db,
+        found_ids,
+        [tag_repository.get_or_create_by_name(db, name.strip()).id for name in add_tags or [] if name.strip()],
+    )
+    tag_repository.remove_tags_from_sets(db, found_ids, remove_tag_ids or [])
+    db.commit()
+    db.expire_all()
+    return len(sets)
+
+
+def bulk_delete_sets(db: Session, set_ids: list[int]) -> int:
+    found = [car_set.id for car_set in _get_sets(db, set_ids)]
+    for set_id in found:
+        delete_set(db, set_id)
+    return len(found)
+

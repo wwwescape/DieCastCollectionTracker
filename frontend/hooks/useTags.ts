@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createTag, deleteTag, listTags } from "../api/tags";
+import { createTag, deleteTag, getTagCoverage, listTags } from "../api/tags";
 
 export function useTags() {
   return useQuery({ queryKey: ["tags"], queryFn: listTags });
@@ -22,5 +22,14 @@ export function useDeleteTag() {
       queryClient.invalidateQueries({ queryKey: ["tags"] });
       queryClient.invalidateQueries({ queryKey: ["vehicles"] });
     },
+  });
+}
+
+// The bulk Tags dialog's "3 of 5" counts for the current selection.
+export function useTagCoverage(vehicleIds: number[], setIds: number[], enabled: boolean) {
+  return useQuery({
+    queryKey: ["tagCoverage", vehicleIds, setIds],
+    queryFn: () => getTagCoverage(vehicleIds, setIds),
+    enabled: enabled && vehicleIds.length + setIds.length > 0,
   });
 }
