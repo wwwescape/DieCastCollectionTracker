@@ -93,6 +93,7 @@ describe("CatalogVersionPicker", () => {
         status: "owned",
         quantity: 3,
         name: "Skyline",
+        catalogTitle: "Nissan Skyline GT-R (BNR34)",
         seriesName: "HW Showroom",
       } as unknown as Awaited<ReturnType<typeof carsApi.listCars>>[number],
     ]);
@@ -129,6 +130,32 @@ describe("CatalogVersionPicker", () => {
     ).toBeInTheDocument();
     expect(
       within(sameSeries).getByRole("button", { name: "Add this version" })
+    ).toBeInTheDocument();
+  });
+
+  it("doesn't treat other cars from the same multi-pack as owned", async () => {
+    // A 5-pack's toy number is shared by every car in it; owning the F40 from the pack
+    // must not mark this casting's pack version as owned.
+    vi.spyOn(catalogApi, "getCatalogCasting").mockResolvedValue(CASTING);
+    vi.spyOn(carsApi, "listCars").mockResolvedValue([
+      {
+        id: 89,
+        castNumber: "JPD52",
+        status: "owned",
+        quantity: 1,
+        name: "Ferrari F40 Competizione",
+        catalogTitle: "Ferrari F40 Competizione",
+        seriesName: null,
+      } as unknown as Awaited<ReturnType<typeof carsApi.listCars>>[number],
+    ]);
+    renderPicker(vi.fn(), undefined, vi.fn());
+
+    const packVersion = (await screen.findByText("2026 · Yellow")).closest(
+      ".MuiCard-root"
+    ) as HTMLElement;
+    expect(within(packVersion).queryByText("Owned")).not.toBeInTheDocument();
+    expect(
+      within(packVersion).getByRole("button", { name: "Add this version" })
     ).toBeInTheDocument();
   });
 

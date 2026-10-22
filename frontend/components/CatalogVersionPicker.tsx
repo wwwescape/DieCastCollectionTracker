@@ -20,7 +20,7 @@ import {
   versionMatchesQuery,
   wikiImageAtWidth,
 } from "../utils/catalog";
-import { hasSeries, holdingForToyNumbers, type Holding } from "../utils/collectionIndex";
+import { hasSeries, holdingForVersion, type Holding } from "../utils/collectionIndex";
 import ItemCard from "./ItemCard";
 
 interface CatalogVersionPickerProps {
@@ -161,7 +161,7 @@ const CatalogVersionPicker = ({
         <Grid container spacing={2}>
           {versions.map((version, index) => {
             const matched = versionMatchesQuery(version, query);
-            const holding = holdingForToyNumbers(collection, version.toyNumbers);
+            const holding = holdingForVersion(collection, casting.title, version.toyNumbers);
             const series = [version.series, version.seriesNumber].filter(Boolean).join(" · ");
             return (
               <Grid key={index} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>

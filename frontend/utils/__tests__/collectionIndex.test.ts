@@ -6,7 +6,7 @@ import {
   hasCasting,
   hasSeries,
   holdingForSet,
-  holdingForToyNumbers,
+  holdingForVersion,
   vehicleIdsNamed,
 } from "../collectionIndex";
 
@@ -46,12 +46,37 @@ describe("buildCollectionIndex", () => {
   );
 
   it("prefers owned entries and sums their quantity, case-insensitively by toy number", () => {
-    expect(holdingForToyNumbers(index, ["XXX99", "hyw18"])).toEqual({
+    expect(holdingForVersion(index, "Car", ["XXX99", "hyw18"])).toEqual({
       id: 2,
       status: "owned",
       quantity: 3,
     });
-    expect(holdingForToyNumbers(index, ["NOPE1"])).toBeUndefined();
+    expect(holdingForVersion(index, "Car", ["NOPE1"])).toBeUndefined();
+  });
+
+  it("only counts a multi-pack's shared toy number for the car's own casting", () => {
+    const packIndex = buildCollectionIndex(
+      [
+        car({
+          id: 89,
+          name: "Ferrari F40 Competizione",
+          castNumber: "JKG16",
+          catalogTitle: "Ferrari F40 Competizione",
+        }),
+        car({ id: 90, name: "Mazda MX-5 Miata", castNumber: "HYW18" }),
+      ],
+      []
+    );
+
+    // Same 5-pack toy number, different car: not owned.
+    expect(holdingForVersion(packIndex, "Ferrari 12Cilindri", ["JKG16", "JLN12"])).toBeUndefined();
+    expect(holdingForVersion(packIndex, "Ferrari F40 Competizione", ["JKG16"])).toMatchObject({
+      id: 89,
+    });
+    // A hand-entered car matches its casting by name, ignoring the wiki's year suffix.
+    expect(holdingForVersion(packIndex, "Mazda MX-5 Miata (2025)", ["HYW18"])).toMatchObject({
+      id: 90,
+    });
   });
 
   it("finds sets by their wiki page", () => {
