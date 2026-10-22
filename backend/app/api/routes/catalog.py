@@ -7,6 +7,7 @@ from app.api.deps import get_current_user
 from app.schemas.catalog import (
     CatalogCastingResponse,
     CatalogCastingSummaryResponse,
+    CatalogPackResponse,
     CatalogSetCarResponse,
     CatalogSetResponse,
     CatalogSetSummaryResponse,
@@ -71,6 +72,18 @@ def get_set(
 ) -> CatalogSetResponse:
     detail = wiki_catalog.get_set(source, title)
     return CatalogSetResponse(
+        **{key: value for key, value in asdict(detail).items() if key != "cars"},
+        cars=[CatalogSetCarResponse(**asdict(car)) for car in detail.cars],
+    )
+
+
+@router.get("/pack", response_model=CatalogPackResponse)
+def get_pack(
+    source: Literal["hotwheels", "matchbox"] = Query(),
+    title: str = Query(min_length=1, max_length=255),
+) -> CatalogPackResponse:
+    detail = wiki_catalog.get_pack(source, title)
+    return CatalogPackResponse(
         **{key: value for key, value in asdict(detail).items() if key != "cars"},
         cars=[CatalogSetCarResponse(**asdict(car)) for car in detail.cars],
     )

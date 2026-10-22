@@ -15,6 +15,10 @@ export interface CollectionIndex {
   // every car in it (e.g. all five cars in a Ferrari 5-Pack are JKG16), so a toy number on
   // its own would mark the whole pack as owned once any one car from it is added.
   carByVersion: Map<string, Holding>;
+  // A car from a multi-pack by name + toy number: several cars in one pack can share both
+  // the casting and the toy number (all ten cars in the Formula One 10-Pack are "Formula 1
+  // (2025)", JMM24), so only the name tells them apart.
+  carByNameAndToy: Map<string, Holding>;
   setByCatalogTitle: Map<string, Holding>;
   // Related items: any version of a casting, any car from a series, any car by name (the
   // first vehicle with that name, so a wiki set's cars can be linked to it).
@@ -47,6 +51,7 @@ function addName(index: CollectionIndex, name: string, id: number) {
 export function buildCollectionIndex(cars: Car[], sets: CarSet[]): CollectionIndex {
   const index: CollectionIndex = {
     carByVersion: new Map(),
+    carByNameAndToy: new Map(),
     setByCatalogTitle: new Map(),
     castingTitles: new Set(),
     seriesNames: new Set(),
@@ -57,6 +62,7 @@ export function buildCollectionIndex(cars: Car[], sets: CarSet[]): CollectionInd
     // A wiki-matched car belongs to its casting page; a hand-entered one only has its name.
     if (toyNumber)
       addHolding(index.carByVersion, versionKey(car.catalogTitle ?? car.name, toyNumber), car);
+    if (toyNumber) addHolding(index.carByNameAndToy, versionKey(car.name, toyNumber), car);
     if (car.catalogTitle) {
       index.castingTitles.add(key(car.catalogTitle));
       addName(index, castingDisplayName(car.catalogTitle), car.id);
@@ -83,6 +89,18 @@ export function holdingForVersion(
     .flatMap((casting) =>
       toyNumbers.map((toyNumber) => index.carByVersion.get(versionKey(casting, toyNumber)))
     )
+    .find(Boolean);
+}
+
+// The collection's entry for one car in a multi-pack: a car with that name carrying one of
+// the pack's toy numbers.
+export function holdingForPackCar(
+  index: CollectionIndex,
+  name: string,
+  toyNumbers: string[]
+): Holding | undefined {
+  return toyNumbers
+    .map((toyNumber) => index.carByNameAndToy.get(versionKey(name, toyNumber)))
     .find(Boolean);
 }
 

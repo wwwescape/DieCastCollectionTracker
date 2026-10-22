@@ -156,7 +156,30 @@
     "viewInCollection": "Ver na coleção",
     "relatedCasting": "Tem uma versão deste casting",
     "relatedSeries": "Tem veículos desta série",
-    "relatedVehicle": "Tem este veículo"
+    "relatedVehicle": "Tem este veículo",
+    "pack": {
+      "related": "Você tem veículos deste pack",
+      "noPack": "Nenhum pack selecionado.",
+      "loading": "Carregando pack",
+      "missing": "Essa página de pack não existe mais na wiki.",
+      "error": "Não foi possível carregar este pack da wiki. Tente novamente.",
+      "noVehicles": "A wiki ainda não lista os veículos deste pack.",
+      "selectedCount": "{{count}} de {{total}} selecionados",
+      "addAs": "Adicionar como",
+      "addSelected_one": "Adicionar {{count}} veículo",
+      "addSelected_other": "Adicionar {{count}} veículos",
+      "include": "Adicionar",
+      "editBeforeAdding": "Editar antes de adicionar",
+      "backToPack": "Voltar ao pack",
+      "adding": "Adicionando veículos",
+      "addingCount_one": "Adicionando {{count}} veículo e copiando sua foto…",
+      "addingCount_other": "Adicionando {{count}} veículos e copiando suas fotos…",
+      "added_one": "{{count}} veículo de {{pack}} adicionado.",
+      "added_other": "{{count}} veículos de {{pack}} adicionados.",
+      "photosFailed_one": "{{count}} foto da wiki não pôde ser copiada. Você pode enviá-la pela página do veículo.",
+      "photosFailed_other": "{{count}} fotos da wiki não puderam ser copiadas. Você pode enviá-las pela página de cada veículo.",
+      "addError": "Erro ao adicionar os veículos. Nada foi adicionado; tente novamente."
+    }
   },
   "sets": {
     "title": "Conjuntos",

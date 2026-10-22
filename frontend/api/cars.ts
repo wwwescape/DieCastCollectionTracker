@@ -21,6 +21,20 @@ export async function getCar(id: number): Promise<Car> {
   return (await apiClient.get<Car>(`/api/cars/${id}`)).data;
 }
 
+export interface CarBulkItem extends CarInput {
+  // A wiki image the server copies in as the primary photo (see POST /api/cars/bulk).
+  wikiPhotoUrl?: string | null;
+}
+
+export interface CarBulkResult {
+  cars: Car[];
+  photosFailed: number;
+}
+
+export async function createCarsBulk(cars: CarBulkItem[]): Promise<CarBulkResult> {
+  return (await apiClient.post<CarBulkResult>("/api/cars/bulk", { cars })).data;
+}
+
 export async function createCar(input: CarInput): Promise<Car> {
   return (await apiClient.post<Car>("/api/cars", input)).data;
 }

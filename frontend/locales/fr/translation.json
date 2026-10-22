@@ -156,7 +156,30 @@
     "viewInCollection": "Voir dans la collection",
     "relatedCasting": "Vous avez une version de ce casting",
     "relatedSeries": "Vous avez des véhicules de cette série",
-    "relatedVehicle": "Vous avez ce véhicule"
+    "relatedVehicle": "Vous avez ce véhicule",
+    "pack": {
+      "related": "Vous avez des véhicules de ce pack",
+      "noPack": "Aucun pack sélectionné.",
+      "loading": "Chargement du pack",
+      "missing": "Cette page de pack n'existe plus sur le wiki.",
+      "error": "Impossible de charger ce pack depuis le wiki. Veuillez réessayer.",
+      "noVehicles": "Le wiki n'indique pas encore les véhicules de ce pack.",
+      "selectedCount": "{{count}} sur {{total}} sélectionnés",
+      "addAs": "Ajouter comme",
+      "addSelected_one": "Ajouter {{count}} véhicule",
+      "addSelected_other": "Ajouter {{count}} véhicules",
+      "include": "Ajouter",
+      "editBeforeAdding": "Modifier avant l'ajout",
+      "backToPack": "Retour au pack",
+      "adding": "Ajout des véhicules",
+      "addingCount_one": "Ajout de {{count}} véhicule et copie de sa photo…",
+      "addingCount_other": "Ajout de {{count}} véhicules et copie de leurs photos…",
+      "added_one": "{{count}} véhicule de {{pack}} ajouté.",
+      "added_other": "{{count}} véhicules de {{pack}} ajoutés.",
+      "photosFailed_one": "{{count}} photo du wiki n'a pas pu être copiée. Vous pouvez l'ajouter depuis la page du véhicule.",
+      "photosFailed_other": "{{count}} photos du wiki n'ont pas pu être copiées. Vous pouvez les ajouter depuis la page de chaque véhicule.",
+      "addError": "Erreur lors de l'ajout des véhicules. Rien n'a été ajouté ; veuillez réessayer."
+    }
   },
   "sets": {
     "title": "Coffrets",

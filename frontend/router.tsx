@@ -9,6 +9,7 @@ import EditSetPage from "./components/EditSetPage";
 import SetList from "./components/SetList";
 import AboutPage from "./pages/AboutPage";
 import CatalogCastingPage from "./pages/CatalogCastingPage";
+import CatalogPackPage from "./pages/CatalogPackPage";
 import CatalogSetPage from "./pages/CatalogSetPage";
 import CollectionPage from "./pages/CollectionPage";
 import DashboardPage from "./pages/DashboardPage";
@@ -66,6 +67,7 @@ const router = createBrowserRouter([
           { path: "/collection/vehicles", element: <CarList /> },
           { path: "/collection/vehicles/add", element: <AddCarPage /> },
           { path: "/collection/vehicles/add/catalog", element: <CatalogCastingPage /> },
+          { path: "/collection/vehicles/add/pack", element: <CatalogPackPage /> },
           { path: "/collection/vehicles/:id/edit", element: <EditCarPage /> },
           { path: "/collection/sets", element: <SetList /> },
           { path: "/collection/sets/add", element: <AddSetPage /> },

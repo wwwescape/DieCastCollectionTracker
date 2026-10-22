@@ -1,15 +1,28 @@
+from concurrent.futures import ThreadPoolExecutor
+
 from fastapi import APIRouter, Depends, File, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
 from app.api.routes.uploads import image_upload_error_to_http
 from app.models.car import CarStatus
-from app.schemas.car import CarCreateRequest, CarPhotoResponse, CarResponse, CarUpdateRequest, car_from_orm
+from app.schemas.car import (
+    CarBulkCreateRequest,
+    CarBulkCreateResponse,
+    CarCreateRequest,
+    CarPhotoResponse,
+    CarResponse,
+    CarUpdateRequest,
+    car_from_orm,
+)
 from app.schemas.car_set import linked_set_from_orm
 from app.schemas.upload import ImageImportRequest
-from app.services import car_service, upload_service
+from app.services import car_service, upload_service, wiki_catalog
 
 router = APIRouter(prefix="/api/cars", tags=["cars"], dependencies=[Depends(get_current_user)])
+
+# Wiki photos copied at once by POST /api/cars/bulk; polite to Fandom, but ~5x faster than serial.
+WIKI_PHOTO_WORKERS = 5
 
 
 def _car_response(db: Session, car) -> CarResponse:
@@ -55,6 +68,41 @@ def get_car(car_id: int, db: Session = Depends(get_db)) -> CarResponse:
 def create_car(body: CarCreateRequest, db: Session = Depends(get_db)) -> CarResponse:
     car = car_service.create_car(db, **body.model_dump())
     return _car_response(db, car)
+
+
+@router.post("/bulk", response_model=CarBulkCreateResponse, status_code=status.HTTP_201_CREATED)
+def create_cars_bulk(body: CarBulkCreateRequest, db: Session = Depends(get_db)) -> CarBulkCreateResponse:
+    """Adds several cars at once, e.g. the cars picked from a multi-pack. Wiki photos are
+    copied first; one that can't be copied leaves its car without a photo rather than failing
+    the batch. If saving the cars fails, the copied photos are removed again.
+
+    Each wiki image request takes a couple of seconds whatever its size, so the photos are
+    fetched a few at a time rather than one after another."""
+    items = [car.model_dump(exclude={"wiki_photo_url"}) for car in body.cars]
+    to_import = {
+        index: car.wiki_photo_url
+        for index, car in enumerate(body.cars)
+        if car.wiki_photo_url and not items[index].get("photo")
+    }
+    saved_photos: list[str] = []
+    photos_failed = 0
+    with ThreadPoolExecutor(max_workers=WIKI_PHOTO_WORKERS) as pool:
+        futures = {
+            index: pool.submit(upload_service.import_car_image_from_wiki, url) for index, url in to_import.items()
+        }
+        for index, future in futures.items():
+            try:
+                items[index]["photo"] = future.result()
+                saved_photos.append(items[index]["photo"])
+            except (ValueError, wiki_catalog.CatalogUnavailableError):
+                photos_failed += 1
+    try:
+        cars = car_service.create_cars(db, items)
+    except Exception:
+        for url in saved_photos:
+            upload_service.delete_if_local_car_image(url)
+        raise
+    return CarBulkCreateResponse(cars=[_car_response(db, car) for car in cars], photos_failed=photos_failed)
 
 
 @router.patch("/{car_id}", response_model=CarResponse)

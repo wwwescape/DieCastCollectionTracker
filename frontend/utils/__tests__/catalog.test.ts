@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import type { CatalogCasting, CatalogVersion } from "../../api/catalog";
+import type { CatalogCasting, CatalogPack, CatalogVersion } from "../../api/catalog";
 import {
   castingDisplayName,
+  packCarToFormValues,
   versionMatchesQuery,
   versionToFormValues,
   wikiImageAtWidth,
@@ -61,5 +62,40 @@ describe("catalog utils", () => {
       "https://static.wikia.nocookie.net/hotwheels/images/b/b9/X.jpg/revision/latest/scale-to-width-down/400?cb=1"
     );
     expect(wikiImageAtWidth(null, 400)).toBeNull();
+  });
+
+  it("maps a multi-pack car onto the car form, with the pack as its series", () => {
+    const pack: CatalogPack = {
+      source: "hotwheels",
+      title: "Batman 5-Pack (2026)",
+      url: "https://hotwheels.fandom.com/wiki/Batman_5-Pack_(2026)",
+      manufacturer: "Hot Wheels",
+      imageUrl: null,
+      packLabel: "5-Pack",
+      toyNumbers: ["JKG08", "JGF58"],
+      year: 2026,
+      cars: [],
+    };
+    const linked = {
+      name: "Batmobile",
+      color: "Blue",
+      photoUrl: null,
+      thumbnailUrl: null,
+      castingTitle: "1989 Batmobile",
+    };
+
+    expect(packCarToFormValues(pack, linked)).toEqual({
+      name: "Batmobile",
+      manufacturer: "Hot Wheels",
+      series: "Batman 5-Pack",
+      color: "Blue",
+      castNumber: "JKG08",
+      year: "2026",
+      catalogSource: "hotwheels",
+      catalogTitle: "1989 Batmobile",
+    });
+    expect(packCarToFormValues(pack, { ...linked, color: null, castingTitle: null })).toMatchObject(
+      { color: "", catalogSource: null, catalogTitle: null }
+    );
   });
 });

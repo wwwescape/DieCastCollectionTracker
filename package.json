@@ -1,6 +1,6 @@
 {
     "name": "diecastcollectiontracker",
-    "version": "1.5.2",
+    "version": "1.6.0",
     "description": "A self-hosted web application to track your die-cast collection",
     "private": true,
     "workspaces": [

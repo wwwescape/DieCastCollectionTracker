@@ -21,6 +21,9 @@ type AddMode = "catalog" | "manual";
 
 export interface AddCarLocationState {
   prefill?: Partial<CarFormValues>;
+  // Where "Back" returns to, when not the prefill's casting page (e.g. the multi-pack page a
+  // car was picked from).
+  backTo?: string;
 }
 
 const MODE_KEY = "addCar.mode";
@@ -32,7 +35,8 @@ const AddCarPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const createCar = useCreateCar();
-  const prefill = (location.state as AddCarLocationState | null)?.prefill;
+  const locationState = location.state as AddCarLocationState | null;
+  const prefill = locationState?.prefill;
 
   // Arriving with a prefill (a version picked on the casting page) stays on the catalog tab
   // and shows the pre-filled form for review in place of the search. Switching tabs drops the
@@ -49,6 +53,10 @@ const AddCarPage = () => {
   };
 
   const backToVersions = () => {
+    if (locationState?.backTo) {
+      navigate(locationState.backTo);
+      return;
+    }
     if (!prefill?.catalogSource || !prefill.catalogTitle) {
       setShowPrefill(false);
       return;
@@ -95,7 +103,7 @@ const AddCarPage = () => {
         <>
           <Box sx={{ mb: 1 }}>
             <Button startIcon={<ArrowBackIcon />} onClick={backToVersions}>
-              {t("vehicles.backToVersions")}
+              {locationState?.backTo ? t("catalog.pack.backToPack") : t("vehicles.backToVersions")}
             </Button>
           </Box>
           <CarForm
@@ -112,11 +120,18 @@ const AddCarPage = () => {
             writeSessionValue(QUERY_KEY, query);
             writeSessionValue(SOURCE_KEY, source);
           }}
-          onSelect={(casting, query) =>
+          onSelect={(result, query) => {
+            const params = new URLSearchParams({
+              source: result.source,
+              title: result.title,
+              q: query,
+            });
             navigate(
-              `/collection/vehicles/add/catalog?${new URLSearchParams({ source: casting.source, title: casting.title, q: query })}`
-            )
-          }
+              result.kind === "pack"
+                ? `/collection/vehicles/add/pack?${params}`
+                : `/collection/vehicles/add/catalog?${params}`
+            );
+          }}
         />
       ) : (
         <CarForm submitLabel={t("vehicles.addVehicle")} onSubmit={handleSubmit} />

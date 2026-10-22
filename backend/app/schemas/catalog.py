@@ -13,6 +13,9 @@ class CatalogCastingSummaryResponse(CamelModel):
     title: str
     url: str
     thumbnail_url: str | None
+    # "casting", or "pack" for a multi-pack page (open it with GET /api/catalog/pack).
+    kind: str = "casting"
+    pack_label: str | None = None
 
 
 class CatalogVersionResponse(CamelModel):
@@ -50,6 +53,7 @@ class CatalogSetCarResponse(CamelModel):
     color: str | None
     photo_url: str | None
     thumbnail_url: str | None
+    casting_title: str | None = None
 
 
 class CatalogSetResponse(CamelModel):
@@ -60,5 +64,17 @@ class CatalogSetResponse(CamelModel):
     image_url: str | None
     set_type: str
     toy_number: str | None
+    year: int | None
+    cars: list[CatalogSetCarResponse]
+
+
+class CatalogPackResponse(CamelModel):
+    source: str
+    title: str
+    url: str
+    manufacturer: str
+    image_url: str | None
+    pack_label: str
+    toy_numbers: list[str]
     year: int | None
     cars: list[CatalogSetCarResponse]

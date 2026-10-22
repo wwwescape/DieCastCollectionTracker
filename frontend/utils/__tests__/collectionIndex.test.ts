@@ -6,6 +6,7 @@ import {
   hasCasting,
   hasSeries,
   holdingForSet,
+  holdingForPackCar,
   holdingForVersion,
   vehicleIdsNamed,
 } from "../collectionIndex";
@@ -97,5 +98,28 @@ describe("buildCollectionIndex", () => {
 
   it("finds vehicle ids by name or wiki casting, once each", () => {
     expect(vehicleIdsNamed(index, ["BONE SHAKER", "Bone Shaker", "Car", "Nope"])).toEqual([4, 1]);
+  });
+
+  it("tells apart cars in one pack that share a casting and toy number, by name", () => {
+    const packIndex = buildCollectionIndex(
+      [
+        car({
+          id: 30,
+          name: "Scuderia Ferrari HP",
+          castNumber: "jmm24",
+          catalogTitle: "Formula 1 (2025)",
+        }),
+      ],
+      []
+    );
+
+    expect(holdingForPackCar(packIndex, "Scuderia Ferrari HP", ["JMM24"])).toMatchObject({
+      id: 30,
+    });
+    expect(holdingForPackCar(packIndex, "McLaren Formula 1 Team", ["JMM24"])).toBeUndefined();
+    // An alternate pack toy number still finds it.
+    expect(holdingForPackCar(packIndex, "scuderia ferrari hp", ["JGF58", "JMM24"])).toMatchObject({
+      id: 30,
+    });
   });
 });

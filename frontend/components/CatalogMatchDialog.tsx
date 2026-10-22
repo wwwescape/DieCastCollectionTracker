@@ -68,6 +68,7 @@ const CatalogMatchDialog = ({
           />
         ) : (
           <CatalogSearch
+            includePacks={false}
             initialQuery={initialQuery}
             onSelect={(casting, query) => setSelected({ casting, query })}
           />

@@ -11,6 +11,12 @@ its own page, often with a table of the cars that came with it. Those pages don'
 template, so they're recognised by their categories instead. The Matchbox Wiki has no
 comparable page per set.
 
+Multi-packs (5-Packs, 10-Packs, themed multipacks, gift packs) also get their own page on the
+Hot Wheels Wiki, recognised by category like sets, with a "Cars" table and the pack's toy
+number in the intro. They show up in vehicle search, since a new pack is often only written
+up on its pack page before its cars' casting pages list it. The Matchbox Wiki puts its pack
+categories on the casting pages instead, so it has no pack pages to offer.
+
 Searches and parsed casting pages are cached in memory for a while: the wikis change slowly,
 and it keeps a self-hosted instance from re-hitting Fandom on every keystroke or revisit.
 """
@@ -33,6 +39,7 @@ SEARCH_LIMIT = 20
 # Set pages are a minority of search hits (castings dominate), so ask for more and filter.
 SET_SEARCH_LIMIT = 50
 SET_SOURCES = ("hotwheels",)
+PACK_SOURCES = ("hotwheels",)
 SEARCH_CACHE_TTL_SECONDS = 60 * 60
 CASTING_CACHE_TTL_SECONDS = 24 * 60 * 60
 CASTING_TEMPLATE = "Template:Casting"
@@ -71,6 +78,9 @@ class CastingSummary:
     title: str
     url: str
     thumbnail_url: str | None
+    # "casting" for a car's casting page, "pack" for a multi-pack page (see PackDetail).
+    kind: str = "casting"
+    pack_label: str | None = None
 
 
 @dataclass
@@ -102,6 +112,9 @@ class SetCar:
     color: str | None
     photo_url: str | None
     thumbnail_url: str | None
+    # The casting page the name links to ("Formula 1 (2025)" for "McLaren Formula 1 Team"),
+    # when the wiki links one.
+    casting_title: str | None = None
 
 
 @dataclass
@@ -113,6 +126,20 @@ class SetDetail:
     image_url: str | None
     set_type: str
     toy_number: str | None
+    year: int | None
+    cars: list[SetCar] = field(default_factory=list)
+
+
+@dataclass
+class PackDetail:
+    source: str
+    title: str
+    url: str
+    manufacturer: str
+    image_url: str | None
+    pack_label: str
+    # The first is the pack's own; some packs also ship under an alternate number.
+    toy_numbers: list[str]
     year: int | None
     cars: list[SetCar] = field(default_factory=list)
 
@@ -262,16 +289,40 @@ def _search(source: WikiSource, query: str) -> list[CastingSummary]:
         for page in pages
         if page.get("templates") and set_type_from_categories(page["title"], _categories(page)) not in _BOXED_SETS
     ]
-    castings.sort(key=lambda page: page.get("index", 0))
-    return [
-        CastingSummary(
-            source=source.id,
-            title=page["title"],
-            url=source.page_url(page["title"]),
-            thumbnail_url=(page.get("thumbnail") or {}).get("source"),
+    results: list[tuple[int, CastingSummary]] = [
+        (
+            page.get("index", 0),
+            CastingSummary(
+                source=source.id,
+                title=page["title"],
+                url=source.page_url(page["title"]),
+                thumbnail_url=(page.get("thumbnail") or {}).get("source"),
+            ),
         )
         for page in castings
     ]
+    if source.id in PACK_SOURCES:
+        for page in pages:
+            if page.get("templates") or _LIST_PAGE.match(page["title"]):
+                continue
+            label = pack_label_from_categories(page["title"], _categories(page))
+            if label is None:
+                continue
+            results.append(
+                (
+                    page.get("index", 0),
+                    CastingSummary(
+                        source=source.id,
+                        title=page["title"],
+                        url=source.page_url(page["title"]),
+                        thumbnail_url=(page.get("thumbnail") or {}).get("source"),
+                        kind="pack",
+                        pack_label=label,
+                    ),
+                )
+            )
+    results.sort(key=lambda item: item[0])
+    return [summary for _, summary in results]
 
 
 # --- Sets ---------------------------------------------------------------------------------
@@ -299,6 +350,41 @@ def set_type_from_categories(title: str, categories: list[str]) -> str | None:
     if names & _TRACK_SET_CATEGORIES:
         return "track_set"
     return None
+
+
+_PACK_CATEGORIES = {
+    "2-Packs",
+    "3-Packs",
+    "5-Packs",
+    "6-Packs",
+    "8-Packs",
+    "9-Packs",
+    "10-Packs",
+    "20-Pack",
+    "20-Packs",
+    "Multi-Packs",
+    "Multipack",
+    "Gift Pack",
+}
+_PACK_SIZE_IN_TITLE = re.compile(r"\b(\d{1,2})[- ](?:car )?(?:gift )?pac?k\b", re.IGNORECASE)
+_PACK_SIZE_CATEGORY = re.compile(r"^(\d{1,2})-Packs?$")
+
+
+def pack_label_from_categories(title: str, categories: list[str]) -> str | None:
+    """A short label ("5-Pack", "10-Pack", "Multipack", "Gift Pack") for a multi-pack page,
+    or None if the page isn't one. Boxed sets win, since a few playsets are also filed under
+    Gift Pack. Accepts the same category spellings as set_type_from_categories."""
+    names = {category.removeprefix("Category:").replace("_", " ") for category in categories}
+    if "Lists" in names or not names & _PACK_CATEGORIES:
+        return None
+    if set_type_from_categories(title, categories) is not None:
+        return None
+    if match := _PACK_SIZE_IN_TITLE.search(title):
+        return f"{int(match.group(1))}-Pack"
+    for name in sorted(names):
+        if match := _PACK_SIZE_CATEGORY.match(name):
+            return f"{int(match.group(1))}-Pack"
+    return "Gift Pack" if "Gift Pack" in names else "Multipack"
 
 
 def search_sets(query: str) -> list[SetSummary]:
@@ -373,29 +459,8 @@ def _get_set(source: WikiSource, title: str) -> SetDetail:
     categories = [category["category"] for category in parsed.get("categories", []) if not category.get("hidden")]
     html = parsed["text"]
     wikitext = parsed.get("wikitext") or ""
-    intro = re.sub(r"<[^>]+>", " ", html.split("<table", 1)[0])
-
-    # Most playsets carry the same {{casting}} infobox as a car, with the toy number in
-    # number= and the year in years=. Older pages print the toy number in brackets after the
-    # name instead ("The Funny Car Gift Pack (7456) ..."). Bare years aren't toy numbers.
-    toy_number = next(iter(_TOY_NUMBER.findall(_infobox_field(wikitext, "number"))), None) or next(
-        (code for code in _PAREN_CODE.findall(f"{resolved_title} {intro}") if not _YEAR.fullmatch(code)), None
-    )
-    year_match = _YEAR.search(_infobox_field(wikitext, "years"))
-    year = int(year_match.group(1)) if year_match else None
-    if year is None:
-        year = next((int(match.group(1)) for c in categories if (match := _CATEGORY_YEAR.match(c))), None)
-    if year is None and (match := _YEAR.search(resolved_title)):
-        year = int(match.group(1))
-
-    image_payload = _get_json(
-        source,
-        {"action": "query", "titles": resolved_title, "prop": "pageimages", "piprop": "original"},
-    )
-    pages = image_payload.get("query", {}).get("pages", [])
-    image_url = (pages[0].get("original") or {}).get("source") if pages else None
-    if image_url and any(marker in image_url.lower() for marker in _PLACEHOLDER_IMAGES):
-        image_url = None
+    toy_numbers, year = _toy_numbers_and_year(resolved_title, html, wikitext, categories)
+    image_url = _page_image(source, resolved_title)
 
     return SetDetail(
         source=source.id,
@@ -404,9 +469,82 @@ def _get_set(source: WikiSource, title: str) -> SetDetail:
         manufacturer=source.manufacturer,
         image_url=image_url,
         set_type=set_type_from_categories(resolved_title, categories) or "playset",
-        toy_number=toy_number,
+        toy_number=toy_numbers[0] if toy_numbers else None,
         year=year,
         cars=parse_set_cars(html) or parse_included_cars(wikitext),
+    )
+
+
+_MATTEL_CODE = re.compile(r"\b[A-Z]{3}\d{2}\b")
+
+
+def _toy_numbers_and_year(title: str, html: str, wikitext: str, categories: list[str]) -> tuple[list[str], int | None]:
+    """Toy number(s) and year of a set or pack page. Most playsets carry the same {{casting}}
+    infobox as a car, with the toy number in number= and the year in years=. Other pages print
+    the toy number in brackets after the name instead ("The Funny Car Gift Pack (7456) ...",
+    "The Batman 5-Pack (JKG08) was released in 2026 ... Some packs feature the toy number
+    JGF58 instead"), so the intro is scanned too: bracketed codes first, then any other modern
+    Mattel code it mentions. Bare years aren't toy numbers."""
+    intro = re.sub(r"<[^>]+>", " ", html.split("<table", 1)[0])
+    candidates = [
+        *_TOY_NUMBER.findall(_infobox_field(wikitext, "number")),
+        *(code for code in _PAREN_CODE.findall(f"{title} {intro}") if not _YEAR.fullmatch(code)),
+        *_MATTEL_CODE.findall(intro),
+    ]
+    toy_numbers = list(dict.fromkeys(candidates))
+
+    year_match = _YEAR.search(_infobox_field(wikitext, "years"))
+    year = int(year_match.group(1)) if year_match else None
+    if year is None:
+        year = next((int(match.group(1)) for c in categories if (match := _CATEGORY_YEAR.match(c))), None)
+    if year is None and (match := _YEAR.search(title)):
+        year = int(match.group(1))
+    return toy_numbers, year
+
+
+def _page_image(source: WikiSource, title: str) -> str | None:
+    image_payload = _get_json(
+        source,
+        {"action": "query", "titles": title, "prop": "pageimages", "piprop": "original"},
+    )
+    pages = image_payload.get("query", {}).get("pages", [])
+    image_url = (pages[0].get("original") or {}).get("source") if pages else None
+    if image_url and any(marker in image_url.lower() for marker in _PLACEHOLDER_IMAGES):
+        return None
+    return image_url
+
+
+# --- Multi-packs --------------------------------------------------------------------------
+
+
+def get_pack(source_id: str, title: str) -> PackDetail:
+    source = get_source(source_id)
+    if source.id not in PACK_SOURCES:
+        raise NotFoundError(f"Multi-packs aren't listed on the {source.label}")
+    return _cached(f"pack:{source.id}:{title}", CASTING_CACHE_TTL_SECONDS, lambda: _get_pack(source, title))
+
+
+def _get_pack(source: WikiSource, title: str) -> PackDetail:
+    parsed = _get_json(
+        source, {"action": "parse", "page": title, "prop": "text|categories|wikitext", "redirects": "1"}
+    )["parse"]
+    resolved_title = parsed["title"]
+    categories = [category["category"] for category in parsed.get("categories", []) if not category.get("hidden")]
+    label = pack_label_from_categories(resolved_title, categories)
+    if label is None:
+        raise NotFoundError("That page isn't a multi-pack")
+    html = parsed["text"]
+    toy_numbers, year = _toy_numbers_and_year(resolved_title, html, parsed.get("wikitext") or "", categories)
+    return PackDetail(
+        source=source.id,
+        title=resolved_title,
+        url=source.page_url(resolved_title),
+        manufacturer=source.manufacturer,
+        image_url=_page_image(source, resolved_title),
+        pack_label=label,
+        toy_numbers=toy_numbers,
+        year=year,
+        cars=parse_set_cars(html),
     )
 
 
@@ -476,6 +614,7 @@ def parse_set_cars(html: str) -> list[SetCar]:
                     color=color,
                     photo_url=photo_url,
                     thumbnail_url=photo.image_thumb if photo is not None and photo_url else None,
+                    casting_title=row["name"].link_title,
                 )
             )
     return cars
@@ -531,6 +670,8 @@ class _Cell:
     parts: list[str] = field(default_factory=list)
     image_href: str | None = None
     image_thumb: str | None = None
+    # Title of the first wiki page the cell links to (not files, not red links).
+    link_title: str | None = None
 
     @property
     def text(self) -> str:
@@ -573,8 +714,16 @@ class _TableParser(HTMLParser):
             self._cell.parts.append("\n")
         elif tag == "sup":
             self._skip_depth += 1  # footnote markers like [1]
-        elif tag == "a" and "image" in (attributes.get("class") or "") and self._cell.image_href is None:
-            self._cell.image_href = attributes.get("href")
+        elif tag == "a" and "image" in (attributes.get("class") or ""):
+            if self._cell.image_href is None:
+                self._cell.image_href = attributes.get("href")
+        elif tag == "a" and self._cell.link_title is None:
+            href = attributes.get("href") or ""
+            link_title = attributes.get("title")
+            # Red links ("new") point at pages that don't exist yet.
+            if href.startswith("/wiki/") and link_title and "new" not in (attributes.get("class") or "").split():
+                if link_title.split(":", 1)[0].lower() not in ("file", "image", "category"):
+                    self._cell.link_title = link_title
         elif tag == "img" and self._cell.image_thumb is None:
             src = attributes.get("data-src") or attributes.get("src") or ""
             if not src.startswith("data:"):

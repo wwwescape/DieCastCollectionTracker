@@ -117,7 +117,11 @@ def test_search_sets_keeps_playsets_and_track_sets_only(auth_client, fake_wiki):
 def test_car_search_leaves_out_track_sets(auth_client, fake_wiki):
     response = auth_client.get("/api/catalog/search", params={"q": "fire station", "source": "hotwheels"})
 
-    assert [r["title"] for r in response.json()] == ["Fire Truck"]
+    # Multi-packs are offered alongside castings (as kind "pack"); boxed sets never are.
+    assert sorted((r["kind"], r["title"]) for r in response.json()) == [
+        ("casting", "Fire Truck"),
+        ("pack", "City 5-Pack (2020)"),
+    ]
 
 
 def test_set_search_requires_three_characters(auth_client, fake_wiki):

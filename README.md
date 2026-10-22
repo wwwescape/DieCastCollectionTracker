@@ -28,6 +28,11 @@
   name, series, color, toy and collector numbers, year, and photo. Search results show what you
   already have, and flag castings and series you own vehicles from. Existing vehicles can be
   matched from their edit page. No API key needed; the instance needs outbound internet access.
+- **Multi-packs** — 5-Packs, 10-Packs and other multi-packs from the Hot Wheels Wiki show up in
+  vehicle search with a pack chip (search by name or the box's toy number, e.g. `JMM24`). Open
+  one to see every car in it, untick any you don't want or already have, and add the rest in
+  one go, as Owned or Wishlisted, with the pack as their series. Any car can be edited before
+  adding instead.
 - **Sets** — track playsets and track sets (like Hot Wheels City's fire stations) as single items,
   with series, toy number, year, condition, sealed or opened, tags, and the vehicles that came
   with them. Find a set on the Hot Wheels Wiki by name or toy number (e.g. `FMY96`) to fill it

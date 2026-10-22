@@ -156,7 +156,30 @@
     "viewInCollection": "View in collection",
     "relatedCasting": "You have a version of this casting",
     "relatedSeries": "You have vehicles from this series",
-    "relatedVehicle": "You have this vehicle"
+    "relatedVehicle": "You have this vehicle",
+    "pack": {
+      "related": "You have vehicles from this pack",
+      "noPack": "No pack selected.",
+      "loading": "Loading pack",
+      "missing": "That pack page no longer exists on the wiki.",
+      "error": "Couldn't load this pack from the wiki. Please try again.",
+      "noVehicles": "The wiki doesn't list the vehicles in this pack yet.",
+      "selectedCount": "{{count}} of {{total}} selected",
+      "addAs": "Add as",
+      "addSelected_one": "Add {{count}} vehicle",
+      "addSelected_other": "Add {{count}} vehicles",
+      "include": "Add",
+      "editBeforeAdding": "Edit before adding",
+      "backToPack": "Back to pack",
+      "adding": "Adding vehicles",
+      "addingCount_one": "Adding {{count}} vehicle and copying its photo…",
+      "addingCount_other": "Adding {{count}} vehicles and copying their photos…",
+      "added_one": "Added {{count}} vehicle from {{pack}}.",
+      "added_other": "Added {{count}} vehicles from {{pack}}.",
+      "photosFailed_one": "{{count}} wiki photo couldn't be copied. You can upload it from the vehicle's page.",
+      "photosFailed_other": "{{count}} wiki photos couldn't be copied. You can upload them from each vehicle's page.",
+      "addError": "Error adding vehicles. Nothing was added; please try again."
+    }
   },
   "sets": {
     "title": "Sets",

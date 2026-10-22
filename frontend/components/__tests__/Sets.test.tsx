@@ -25,8 +25,8 @@ const FIRE_STATION: CatalogSet = {
   toyNumber: "16219",
   year: 1996,
   cars: [
-    { name: "Fire Truck", color: "Red", photoUrl: null, thumbnailUrl: null },
-    { name: "Rescue Duty", color: null, photoUrl: null, thumbnailUrl: null },
+    { name: "Fire Truck", color: "Red", photoUrl: null, thumbnailUrl: null, castingTitle: null },
+    { name: "Rescue Duty", color: null, photoUrl: null, thumbnailUrl: null, castingTitle: null },
   ],
 };
 

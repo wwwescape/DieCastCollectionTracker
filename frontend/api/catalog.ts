@@ -9,6 +9,9 @@ export interface CatalogCastingSummary {
   title: string;
   url: string;
   thumbnailUrl: string | null;
+  // A multi-pack page ("pack", with a label like "10-Pack") rather than a casting.
+  kind: "casting" | "pack";
+  packLabel: string | null;
 }
 
 export interface CatalogVersion {
@@ -64,6 +67,8 @@ export interface CatalogSetCar {
   color: string | null;
   photoUrl: string | null;
   thumbnailUrl: string | null;
+  // The casting page the wiki links the car to, when it does.
+  castingTitle: string | null;
 }
 
 export interface CatalogSet {
@@ -86,6 +91,25 @@ export async function searchCatalogSets(q: string): Promise<CatalogSetSummary[]>
 
 export async function getCatalogSet(source: CatalogSourceId, title: string): Promise<CatalogSet> {
   return (await apiClient.get<CatalogSet>("/api/catalog/set", { params: { source, title } })).data;
+}
+
+// Multi-packs are only listed on the Hot Wheels Wiki (see backend app/services/wiki_catalog.py).
+export interface CatalogPack {
+  source: CatalogSourceId;
+  title: string;
+  url: string;
+  manufacturer: string;
+  imageUrl: string | null;
+  packLabel: string;
+  // The pack's own toy number first; some packs also ship under an alternate one.
+  toyNumbers: string[];
+  year: number | null;
+  cars: CatalogSetCar[];
+}
+
+export async function getCatalogPack(source: CatalogSourceId, title: string): Promise<CatalogPack> {
+  return (await apiClient.get<CatalogPack>("/api/catalog/pack", { params: { source, title } }))
+    .data;
 }
 
 export async function importWikiImage(url: string): Promise<string> {

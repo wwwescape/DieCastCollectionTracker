@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   getCatalogCasting,
+  getCatalogPack,
   getCatalogSet,
   importWikiImage,
   searchCatalog,
@@ -49,6 +50,16 @@ export function useCatalogSet(source: CatalogSourceId | undefined, title: string
   return useQuery({
     queryKey: ["catalog", "set", source, title],
     queryFn: () => getCatalogSet(source!, title!),
+    enabled: Boolean(source && title),
+    staleTime: CATALOG_STALE_TIME_MS,
+    retry: false,
+  });
+}
+
+export function useCatalogPack(source: CatalogSourceId | undefined, title: string | undefined) {
+  return useQuery({
+    queryKey: ["catalog", "pack", source, title],
+    queryFn: () => getCatalogPack(source!, title!),
     enabled: Boolean(source && title),
     staleTime: CATALOG_STALE_TIME_MS,
     retry: false,

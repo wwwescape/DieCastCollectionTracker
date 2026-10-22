@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient, type QueryClient } from "@tansta
 import {
   addCarPhoto,
   createCar,
+  createCarsBulk,
   deleteCar,
   deleteCarPhoto,
   getCar,
@@ -38,6 +39,16 @@ export function useCar(id: number | undefined) {
     queryKey: ["vehicles", id],
     queryFn: () => getCar(id!),
     enabled: id !== undefined,
+  });
+}
+
+export function useCreateCarsBulk() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createCarsBulk,
+    // Copying wiki photos makes this a long request; never queue it for later while offline.
+    networkMode: "always",
+    onSuccess: () => invalidateCarQueries(queryClient, { lookups: true }),
   });
 }
 

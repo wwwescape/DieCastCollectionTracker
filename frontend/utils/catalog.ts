@@ -1,4 +1,11 @@
-import type { CatalogCasting, CatalogSet, CatalogSourceId, CatalogVersion } from "../api/catalog";
+import type {
+  CatalogCasting,
+  CatalogPack,
+  CatalogSet,
+  CatalogSetCar,
+  CatalogSourceId,
+  CatalogVersion,
+} from "../api/catalog";
 import type { CarFormValues } from "../components/CarForm";
 import type { SetFormValues } from "../components/SetForm";
 
@@ -55,6 +62,23 @@ export function versionToFormValues(
 }
 
 // Maps a wiki set page onto the set form: one "Name (color)" line per car in the box.
+// Maps one car of a multi-pack onto the car form. The pack (without the wiki's year suffix)
+// becomes the series, so the Series page groups the pack together; the toy number is the
+// pack's, since that's what's printed on the box. The car stays linked to its own casting
+// page when the wiki links one, so "Re-match to catalog" and owned checks keep working.
+export function packCarToFormValues(pack: CatalogPack, car: CatalogSetCar): Partial<CarFormValues> {
+  return {
+    name: car.name,
+    manufacturer: pack.manufacturer,
+    series: castingDisplayName(pack.title),
+    color: car.color ?? "",
+    castNumber: pack.toyNumbers[0] ?? "",
+    year: pack.year?.toString() ?? "",
+    catalogSource: car.castingTitle ? pack.source : null,
+    catalogTitle: car.castingTitle,
+  };
+}
+
 export function catalogSetToFormValues(set: CatalogSet): Partial<SetFormValues> {
   return {
     name: castingDisplayName(set.title),

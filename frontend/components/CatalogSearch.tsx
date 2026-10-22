@@ -18,7 +18,7 @@ import { MIN_CATALOG_SEARCH_LENGTH, useCatalogSearch } from "../hooks/useCatalog
 import { useCollectionIndex } from "../hooks/useCollectionIndex";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { CATALOG_SOURCE_LABELS, castingDisplayName } from "../utils/catalog";
-import { hasCasting } from "../utils/collectionIndex";
+import { hasCasting, hasSeries } from "../utils/collectionIndex";
 import ItemCard from "./ItemCard";
 
 const SOURCES: CatalogSearchSource[] = ["all", "hotwheels", "matchbox"];
@@ -28,16 +28,21 @@ interface CatalogSearchProps {
   initialSource?: CatalogSearchSource;
   onSelect: (casting: CatalogCastingSummary, query: string) => void;
   onQueryChange?: (query: string, source: CatalogSearchSource) => void;
+  // Multi-pack pages (Hot Wheels Wiki only) are offered next to castings unless turned off,
+  // e.g. when matching one existing vehicle, where a whole pack makes no sense.
+  includePacks?: boolean;
 }
 
 // Searches the Hot Wheels and Matchbox wikis by name or by the toy number printed on the card
-// (e.g. HYW18). Results are casting pages; picking one moves on to its versions. A casting you
-// already have a version of is marked with the bottom-left "related" chip.
+// (e.g. HYW18). Results are casting pages, plus multi-packs marked with their size ("10-Pack");
+// picking one moves on to its versions or the pack's cars. A casting you already have a version
+// of, or a pack you already have cars from, is marked with the bottom-left "related" chip.
 const CatalogSearch = ({
   initialQuery = "",
   initialSource = "all",
   onSelect,
   onQueryChange,
+  includePacks = true,
 }: CatalogSearchProps) => {
   const { t } = useTranslation();
   const [query, setQuery] = useState(initialQuery);
@@ -50,6 +55,7 @@ const CatalogSearch = ({
   const { data: results, isFetching, error } = useCatalogSearch(isActive ? debounced : "", source);
   const isPendingDebounce = trimmed.length >= MIN_CATALOG_SEARCH_LENGTH && trimmed !== debounced;
   const isSearching = isPendingDebounce || (isActive && isFetching);
+  const visibleResults = (results ?? []).filter((result) => includePacks || result.kind !== "pack");
 
   const errorMessage =
     error && isAxiosError(error) && error.response?.status === 502
@@ -140,25 +146,36 @@ const CatalogSearch = ({
         <Paper sx={{ p: 3, textAlign: "center", color: "text.secondary" }}>
           {t("common.minSearchLength", { count: MIN_CATALOG_SEARCH_LENGTH })}
         </Paper>
-      ) : results && results.length === 0 && !isSearching ? (
+      ) : results && visibleResults.length === 0 && !isSearching ? (
         <Paper sx={{ p: 3, textAlign: "center" }}>{t("catalog.noResults")}</Paper>
       ) : (
         <Grid container spacing={2}>
-          {(results ?? []).map((result) => (
+          {visibleResults.map((result) => (
             <Grid key={`${result.source}:${result.title}`} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
               <ItemCard
                 title={castingDisplayName(result.title)}
                 imageUrl={result.thumbnailUrl}
                 imageFit="contain"
                 relatedHint={
-                  hasCasting(collection, result.title) ? t("catalog.relatedCasting") : null
+                  result.kind === "pack"
+                    ? hasSeries(collection, castingDisplayName(result.title))
+                      ? t("catalog.pack.related")
+                      : null
+                    : hasCasting(collection, result.title)
+                      ? t("catalog.relatedCasting")
+                      : null
                 }
                 chips={
-                  <Chip
-                    label={CATALOG_SOURCE_LABELS[result.source]}
-                    size="small"
-                    variant="outlined"
-                  />
+                  <>
+                    {result.kind === "pack" && result.packLabel ? (
+                      <Chip label={result.packLabel} size="small" color="secondary" />
+                    ) : null}
+                    <Chip
+                      label={CATALOG_SOURCE_LABELS[result.source]}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </>
                 }
                 onClick={() => onSelect(result, debounced)}
               />

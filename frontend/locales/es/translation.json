@@ -156,7 +156,30 @@
     "viewInCollection": "Ver en la colección",
     "relatedCasting": "Tienes una versión de este casting",
     "relatedSeries": "Tienes vehículos de esta serie",
-    "relatedVehicle": "Tienes este vehículo"
+    "relatedVehicle": "Tienes este vehículo",
+    "pack": {
+      "related": "Tienes vehículos de este pack",
+      "noPack": "No se ha seleccionado ningún pack.",
+      "loading": "Cargando pack",
+      "missing": "Esa página de pack ya no existe en la wiki.",
+      "error": "No se pudo cargar este pack desde la wiki. Inténtalo de nuevo.",
+      "noVehicles": "La wiki aún no indica los vehículos de este pack.",
+      "selectedCount": "{{count}} de {{total}} seleccionados",
+      "addAs": "Añadir como",
+      "addSelected_one": "Añadir {{count}} vehículo",
+      "addSelected_other": "Añadir {{count}} vehículos",
+      "include": "Añadir",
+      "editBeforeAdding": "Editar antes de añadir",
+      "backToPack": "Volver al pack",
+      "adding": "Añadiendo vehículos",
+      "addingCount_one": "Añadiendo {{count}} vehículo y copiando su foto…",
+      "addingCount_other": "Añadiendo {{count}} vehículos y copiando sus fotos…",
+      "added_one": "Se añadió {{count}} vehículo de {{pack}}.",
+      "added_other": "Se añadieron {{count}} vehículos de {{pack}}.",
+      "photosFailed_one": "No se pudo copiar {{count}} foto de la wiki. Puedes subirla desde la página del vehículo.",
+      "photosFailed_other": "No se pudieron copiar {{count}} fotos de la wiki. Puedes subirlas desde la página de cada vehículo.",
+      "addError": "Error al añadir los vehículos. No se añadió nada; inténtalo de nuevo."
+    }
   },
   "sets": {
     "title": "Sets",

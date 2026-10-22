@@ -135,6 +135,24 @@ def set_car_set_links(db: Session, car_id: int, set_ids: list[int]) -> None:
 
 
 def create_car(db: Session, tags: list[str] | None = None, set_ids: list[int] | None = None, **fields: Any) -> Car:
+    car = _add_car(db, tags=tags, set_ids=set_ids, **fields)
+    db.commit()
+    return get_car(db, car.id)
+
+
+def create_cars(db: Session, items: list[dict[str, Any]]) -> list[Car]:
+    """Adds several cars in one transaction (e.g. every car picked from a multi-pack), so a
+    failure part-way leaves none of them behind."""
+    try:
+        car_ids = [_add_car(db, **dict(item)).id for item in items]
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    return [get_car(db, car_id) for car_id in car_ids]
+
+
+def _add_car(db: Session, tags: list[str] | None = None, set_ids: list[int] | None = None, **fields: Any) -> Car:
     photo = fields.pop("photo", None)
     resolved = _resolve_car_fields(db, fields)
     car = car_repository.create_car(db, **resolved)
@@ -145,8 +163,7 @@ def create_car(db: Session, tags: list[str] | None = None, set_ids: list[int] | 
         tag_repository.set_tags_for_car(db, car.id, tag_ids)
     if set_ids:
         set_car_set_links(db, car.id, set_ids)
-    db.commit()
-    return get_car(db, car.id)
+    return car
 
 
 def update_car(

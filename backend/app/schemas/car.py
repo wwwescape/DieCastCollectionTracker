@@ -148,3 +148,20 @@ class CarUpdateRequest(CamelModel):
     catalog_title: str | None = Field(default=None, max_length=255)
     tags: list[str] | None = None
     set_ids: list[int] | None = None
+
+
+class CarBulkCreateItem(CarCreateRequest):
+    # A wiki image (see POST /api/uploads/car-images/from-wiki) to copy in as the primary
+    # photo, for adding several cars at once without a round trip per photo. Ignored when
+    # `photo` is already set.
+    wiki_photo_url: str | None = Field(default=None, max_length=2048)
+
+
+class CarBulkCreateRequest(CamelModel):
+    cars: list[CarBulkCreateItem] = Field(min_length=1, max_length=50)
+
+
+class CarBulkCreateResponse(CamelModel):
+    cars: list[CarResponse]
+    # Wiki photos that couldn't be copied; those cars were added without a photo.
+    photos_failed: int
