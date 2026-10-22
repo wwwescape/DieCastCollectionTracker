@@ -123,10 +123,10 @@ def list_series(
 
 @router.get("/series/overview", response_model=list[SeriesOverviewResponse])
 def series_overview(db: Session = Depends(get_db)) -> list[SeriesOverviewResponse]:
-    """Collection → Series: each series with its vehicle and set counts."""
+    """Collection → Series: each series and year with its vehicle and set counts."""
     return [
-        SeriesOverviewResponse(**_series_response(s).model_dump(), car_count=cars, set_count=sets)
-        for s, cars, sets in series_repository.list_with_counts(db)
+        SeriesOverviewResponse(**_series_response(s).model_dump(), year=year, car_count=cars, set_count=sets)
+        for s, year, cars, sets in series_repository.list_with_counts(db)
     ]
 
 

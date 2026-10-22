@@ -7,10 +7,11 @@ import Typography from "@mui/material/Typography";
 import Grid from "@mui/material/Grid2";
 import CollectionSubNav from "../components/CollectionSubNav";
 import { useSeriesOverview } from "../hooks/useLookups";
+import { seriesPath, seriesSubtitle } from "../utils/series";
 import { useTranslation } from "react-i18next";
 
-// Collection → Series: one card per series, most items first. Opening one shows all of its
-// vehicles and sets.
+// Collection → Series: one card per series and year, most items first. Opening one shows
+// that year's vehicles and sets.
 const SeriesListPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -29,16 +30,16 @@ const SeriesListPage = () => {
       ) : (
         <Grid container spacing={2}>
           {series.map((item) => (
-            <Grid key={item.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+            <Grid key={`${item.id}-${item.year}`} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
               <Card sx={{ height: "100%", borderRadius: 2, border: 1, borderColor: "divider" }}>
                 <CardActionArea
-                  onClick={() => navigate(`/collection/series/${item.id}`)}
+                  onClick={() => navigate(seriesPath(item))}
                   sx={{ height: "100%", p: 1.5 }}
                 >
                   <Typography variant="subtitle1">{item.name}</Typography>
-                  {item.manufacturerName ? (
+                  {item.manufacturerName || item.year ? (
                     <Typography variant="body2" color="text.secondary">
-                      {item.manufacturerName}
+                      {seriesSubtitle(item)}
                     </Typography>
                   ) : null}
                   <Typography variant="body2" color="text.secondary">

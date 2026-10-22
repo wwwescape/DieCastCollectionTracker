@@ -36,7 +36,8 @@
   from either form. Adding a set from the wiki links the vehicles you already have.
 - **Manufacturers** — every manufacturer with its logo (Hot Wheels, Matchbox, Majorette) and
   counts; open one to see all of its vehicles and sets.
-- **Series** — every series with its counts; open one to see all of its vehicles and sets.
+- **Series** — every series by year with its counts (a yearly pack like Batman 5-Pack gets
+  a card per year); open one to see that year's vehicles and sets.
 - **Photo gallery** — several photos per vehicle and set, with a primary photo for the card.
 - **Search & filters** — filter by manufacturer, series, vehicle type, color, or status.
 - **Your own lookup lists** — manufacturers, series, vehicle types, and colors grow as you type,

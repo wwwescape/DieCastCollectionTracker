@@ -45,6 +45,7 @@ class SeriesResponse(CamelModel):
 
 
 class SeriesOverviewResponse(SeriesResponse):
+    year: int | None
     car_count: int
     set_count: int
 

@@ -18,17 +18,23 @@ const CARD_GRID_SIZE = { xs: 12, sm: 6, md: 4, lg: 3 } as const;
 // scroll offset; a slice of the collection is small anyway.
 const VehiclesAndSets = ({
   filter,
+  year,
   noVehicles,
   noSets,
 }: {
   filter: CarListParams & SetListParams;
+  // Only items from this year (null: items without one); left out, every year.
+  year?: number | null;
   noVehicles: string;
   noSets: string;
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: cars, isLoading: carsLoading } = useCarList(filter);
-  const { data: sets, isLoading: setsLoading } = useSetList(filter);
+  const inYear = (item: { year: number | null }) => year === undefined || item.year === year;
+  const { data: allCars, isLoading: carsLoading } = useCarList(filter);
+  const { data: allSets, isLoading: setsLoading } = useSetList(filter);
+  const cars = allCars?.filter(inYear);
+  const sets = allSets?.filter(inYear);
 
   return (
     <>

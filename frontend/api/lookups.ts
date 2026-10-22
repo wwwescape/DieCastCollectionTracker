@@ -52,7 +52,10 @@ export async function listSeries(manufacturerId?: number): Promise<Series[]> {
   return (await apiClient.get<Series[]>("/api/series", { params: { manufacturerId } })).data;
 }
 
+// One row per series and year: the same name is reused for a different pack every year (e.g.
+// Batman 5-Pack), so each year is listed on its own. Null for items without a year.
 export interface SeriesOverview extends Series {
+  year: number | null;
   carCount: number;
   setCount: number;
 }

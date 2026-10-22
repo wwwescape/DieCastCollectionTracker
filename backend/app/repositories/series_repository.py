@@ -1,4 +1,4 @@
-from sqlalchemy import delete, func, or_, select
+from sqlalchemy import delete, func, literal, or_, select, union_all
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.car import Car
@@ -6,20 +6,33 @@ from app.models.car_set import CarSet
 from app.models.lookups import Series
 
 
-def list_with_counts(db: Session) -> list[tuple[Series, int, int]]:
-    """Every series with how many vehicles and sets it has, most items first."""
-    car_counts = select(Car.series_id, func.count(Car.id).label("n")).group_by(Car.series_id).subquery()
-    set_counts = select(CarSet.series_id, func.count(CarSet.id).label("n")).group_by(CarSet.series_id).subquery()
-    cars = func.coalesce(car_counts.c.n, 0)
-    sets = func.coalesce(set_counts.c.n, 0)
+def list_with_counts(db: Session) -> list[tuple[Series, int | None, int, int]]:
+    """Every series, split by year, with how many vehicles and sets each year has, most items
+    first. A name like "Batman 5-Pack" is reused for a different pack every year, so each
+    year is its own row; a series with no items gets one row with no year."""
+    items = union_all(
+        select(Car.series_id, Car.year, literal(1).label("car"), literal(0).label("set")),
+        select(CarSet.series_id, CarSet.year, literal(0), literal(1)),
+    ).subquery()
+    counts = (
+        select(
+            items.c.series_id,
+            items.c.year,
+            func.sum(items.c.car).label("cars"),
+            func.sum(items.c.set).label("sets"),
+        )
+        .group_by(items.c.series_id, items.c.year)
+        .subquery()
+    )
+    cars = func.coalesce(counts.c.cars, 0)
+    sets = func.coalesce(counts.c.sets, 0)
     rows = db.execute(
-        select(Series, cars, sets)
+        select(Series, counts.c.year, cars, sets)
         .options(joinedload(Series.manufacturer))
-        .outerjoin(car_counts, car_counts.c.series_id == Series.id)
-        .outerjoin(set_counts, set_counts.c.series_id == Series.id)
-        .order_by((cars + sets).desc(), Series.name)
+        .outerjoin(counts, counts.c.series_id == Series.id)
+        .order_by((cars + sets).desc(), Series.name, counts.c.year.desc().nulls_last())
     ).all()
-    return [(row[0], row[1], row[2]) for row in rows]
+    return [(row[0], row[1], row[2], row[3]) for row in rows]
 
 
 def list_series(db: Session, manufacturer_id: int | None = None) -> list[Series]:

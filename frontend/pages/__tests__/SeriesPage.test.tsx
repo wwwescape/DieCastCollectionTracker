@@ -19,6 +19,7 @@ const CAR = {
   photo: null,
   condition: null,
   seriesName: "HW City",
+  year: 2018,
 } as Car;
 const SET = {
   id: 3,
@@ -59,6 +60,7 @@ describe("SeriesListPage", () => {
         name: "HW City",
         manufacturerId: 1,
         manufacturerName: "Hot Wheels",
+        year: 2018,
         carCount: 1,
         setCount: 1,
       },
@@ -67,6 +69,7 @@ describe("SeriesListPage", () => {
         name: "Treasure Hunt",
         manufacturerId: null,
         manufacturerName: null,
+        year: null,
         carCount: 0,
         setCount: 0,
       },
@@ -81,9 +84,36 @@ describe("SeriesListPage", () => {
     await user.click(screen.getByText("HW City"));
 
     expect(await screen.findByRole("heading", { name: "HW City" })).toBeInTheDocument();
+    expect(screen.getByText("Hot Wheels · 2018", { selector: "h6" })).toBeInTheDocument();
     expect(await screen.findByText("Backdrafter")).toBeInTheDocument();
     expect(screen.getByText("Downtown Fire Station Spinout")).toBeInTheDocument();
     expect(listCars.mock.calls.at(-1)?.[0]).toEqual({ seriesId: 5 });
     expect(listSets.mock.calls.at(-1)?.[0]).toEqual({ seriesId: 5 });
+  });
+
+  it("splits a series reused every year into one card per year", async () => {
+    const pack = {
+      id: 9,
+      name: "Batman 5-Pack",
+      manufacturerId: 1,
+      manufacturerName: "Hot Wheels",
+    };
+    vi.spyOn(lookupsApi, "listSeriesOverview").mockResolvedValue([
+      { ...pack, year: 2024, carCount: 1, setCount: 0 },
+      { ...pack, year: 2027, carCount: 1, setCount: 0 },
+    ]);
+    vi.spyOn(carsApi, "listCars").mockResolvedValue([
+      { ...CAR, id: 51, name: "Batcopter", year: 2024 },
+      { ...CAR, id: 92, name: "Batman & Robin Batmobile", year: 2027 },
+    ]);
+    vi.spyOn(setsApi, "listSets").mockResolvedValue([]);
+    const user = userEvent.setup();
+    renderAt("/collection/series");
+
+    expect(await screen.findByText("Hot Wheels · 2024")).toBeInTheDocument();
+    await user.click(screen.getByText("Hot Wheels · 2027"));
+
+    expect(await screen.findByText("Batman & Robin Batmobile")).toBeInTheDocument();
+    expect(screen.queryByText("Batcopter")).not.toBeInTheDocument();
   });
 });

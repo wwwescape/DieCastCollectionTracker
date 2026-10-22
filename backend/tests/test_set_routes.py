@@ -178,17 +178,39 @@ def test_vehicles_and_sets_link_from_either_side(auth_client):
 
 
 def test_series_overview_counts_vehicles_and_sets_and_filters_sets(auth_client):
-    auth_client.post("/api/cars", json={"name": "Backdrafter", "manufacturer": "Hot Wheels", "series": "HW City"})
+    auth_client.post(
+        "/api/cars", json={"name": "Backdrafter", "manufacturer": "Hot Wheels", "series": "HW City", "year": 2020}
+    )
     auth_client.post("/api/sets", json={**FIRE_STATION, "series": "HW City"})
     auth_client.post("/api/sets", json={"name": "Action Garage", "manufacturer": "Hot Wheels"})
     auth_client.post("/api/series", json={"name": "Empty", "manufacturer": "Hot Wheels"})
 
     overview = auth_client.get("/api/series/overview").json()
-    assert [(s["name"], s["carCount"], s["setCount"]) for s in overview] == [("HW City", 1, 1), ("Empty", 0, 0)]
+    assert [(s["name"], s["year"], s["carCount"], s["setCount"]) for s in overview] == [
+        ("HW City", 2020, 1, 1),
+        ("Empty", None, 0, 0),
+    ]
     assert overview[0]["manufacturerName"] == "Hot Wheels"
 
     sets = auth_client.get("/api/sets", params={"seriesId": overview[0]["id"]}).json()
     assert [s["name"] for s in sets] == ["Downtown Fire Station Spinout"]
+
+
+def test_series_overview_splits_a_series_by_year(auth_client):
+    # Hot Wheels reuses "Batman 5-Pack" for a different pack every year.
+    for name, year in [("Batcopter", 2024), ("Boom Box", 2024), ("Batman & Robin Batmobile", 2027), ("HI-Roller", None)]:
+        auth_client.post(
+            "/api/cars", json={"name": name, "manufacturer": "Hot Wheels", "series": "Batman 5-Pack", "year": year}
+        )
+
+    overview = auth_client.get("/api/series/overview").json()
+
+    assert [(s["name"], s["year"], s["carCount"]) for s in overview] == [
+        ("Batman 5-Pack", 2024, 2),
+        ("Batman 5-Pack", 2027, 1),
+        ("Batman 5-Pack", None, 1),
+    ]
+    assert len({s["id"] for s in overview}) == 1
 
 
 def test_manufacturer_used_by_a_set_cannot_be_deleted(auth_client):
