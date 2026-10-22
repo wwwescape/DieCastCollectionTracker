@@ -198,7 +198,8 @@ def test_series_overview_counts_vehicles_and_sets_and_filters_sets(auth_client):
 
 def test_series_overview_splits_a_series_by_year(auth_client):
     # Hot Wheels reuses "Batman 5-Pack" for a different pack every year.
-    for name, year in [("Batcopter", 2024), ("Boom Box", 2024), ("Batman & Robin Batmobile", 2027), ("HI-Roller", None)]:
+    cars = [("Batcopter", 2024), ("Boom Box", 2024), ("Batman & Robin Batmobile", 2027), ("HI-Roller", None)]
+    for name, year in cars:
         auth_client.post(
             "/api/cars", json={"name": name, "manufacturer": "Hot Wheels", "series": "Batman 5-Pack", "year": year}
         )
