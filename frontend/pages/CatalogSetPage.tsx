@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { isAxiosError } from "axios";
 import { toast } from "react-toastify";
 import Backdrop from "@mui/material/Backdrop";
@@ -14,6 +14,8 @@ import Grid from "@mui/material/Grid2";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useTranslation } from "react-i18next";
+import Page from "../components/Page";
+import { openedFrom, useStepBack } from "../utils/navState";
 import type { CatalogSet, CatalogSourceId } from "../api/catalog";
 import type { AddSetLocationState } from "../components/AddSetPage";
 import ItemCard from "../components/ItemCard";
@@ -33,9 +35,11 @@ const SOURCES: CatalogSourceId[] = ["hotwheels", "matchbox"];
 // Step two of "Add Set → From wiki catalog": the set's page, with the cars that came with it.
 // "Add this set" copies its photo into uploads/ and opens the Add Set form pre-filled; a set
 // already in the collection opens the existing one instead.
-const CatalogSetPage = () => {
+const CatalogSetPageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const stepBack = useStepBack();
+  const location = useLocation();
   const [params] = useSearchParams();
   const source = SOURCES.find((candidate) => candidate === params.get("source"));
   const title = params.get("title") ?? "";
@@ -64,7 +68,7 @@ const CatalogSetPage = () => {
 
   const back = (
     <div>
-      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate("/collection/sets/add")}>
+      <Button startIcon={<ArrowBackIcon />} onClick={() => stepBack("/collection/sets/add")}>
         {t("common.backToSearch")}
       </Button>
     </div>
@@ -165,7 +169,9 @@ const CatalogSetPage = () => {
           {holding ? (
             <Button
               variant="outlined"
-              onClick={() => navigate(`/collection/sets/${holding.id}/edit`)}
+              onClick={() =>
+                navigate(`/collection/sets/${holding.id}`, { state: openedFrom(location) })
+              }
               sx={{ alignSelf: { xs: "stretch", sm: "center" }, flexShrink: 0 }}
             >
               {t("catalog.viewInCollection")}
@@ -209,6 +215,23 @@ const CatalogSetPage = () => {
         <CircularProgress color="inherit" aria-label={t("common.copyingPhoto")} />
       </Backdrop>
     </Stack>
+  );
+};
+
+// The wiki result in the page frame: breadcrumbs back to the list and the search.
+const CatalogSetPage = () => {
+  const { t } = useTranslation();
+  return (
+    <Page
+      crumbs={[
+        { label: t("nav.collection") },
+        { label: t("sets.title"), to: "/collection/sets" },
+        { label: t("sets.addSet"), to: "/collection/sets/add" },
+        { label: t("catalog.wikiResult") },
+      ]}
+    >
+      <CatalogSetPageContent />
+    </Page>
   );
 };
 

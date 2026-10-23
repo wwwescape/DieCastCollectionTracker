@@ -1,58 +1,232 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardActionArea from "@mui/material/CardActionArea";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
-import Grid from "@mui/material/Grid2";
-import CollectionSubNav from "../components/CollectionSubNav";
-import { useSeriesOverview } from "../hooks/useLookups";
-import { seriesPath, seriesSubtitle } from "../utils/series";
 import { useTranslation } from "react-i18next";
+import { resolveAssetUrl } from "../api/client";
+import type { SeriesOverview } from "../api/lookups";
+import CollectionListToolbar, {
+  CARD_SIZE_DEFAULT,
+  ListSearchField,
+  type FilterField,
+  type ListView,
+} from "../components/CollectionListToolbar";
+import ItemCard from "../components/ItemCard";
+import { CardGrid, EmptyState, ItemTable, type TableColumn } from "../components/ListViews";
+import Page from "../components/Page";
+import { useCarList } from "../hooks/useCars";
+import { byValue } from "../hooks/useIdFilter";
+import { useLocalPreference } from "../hooks/useLocalPreference";
+import { useSeriesOverview } from "../hooks/useLookups";
+import { useSessionState } from "../hooks/useSessionState";
+import {
+  browseCompare,
+  browseSortOptions,
+  CONTENTS_OPTIONS,
+  keep,
+  keepContents,
+  matchesSearch,
+  type BrowseSort,
+  type ContentsFilter,
+} from "../utils/browse";
+import { seriesPath, seriesSubtitle } from "../utils/series";
 
-// Collection → Series: one card per series and year, most items first. Opening one shows
-// that year's vehicles and sets.
+const NO_YEAR = "none";
+
+// Collection → Series: one entry per series and year. Cards (with a cover photo from one of
+// its vehicles) or a table, with search, sort and filters like the Vehicles list.
 const SeriesListPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { data: series, isLoading } = useSeriesOverview();
+  const { data: cars } = useCarList();
+
+  const [search, setSearch] = useSessionState("series.search", "");
+  const [sort, setSort] = useSessionState<BrowseSort>("series.sort", "name_asc");
+  const [manufacturers, setManufacturers] = useSessionState<string[]>("series.manufacturers", []);
+  const [manufacturerExclude, setManufacturerExclude] = useSessionState(
+    "series.manufacturerExclude",
+    false
+  );
+  const [years, setYears] = useSessionState<string[]>("series.years", []);
+  const [yearExclude, setYearExclude] = useSessionState("series.yearExclude", false);
+  const [contents, setContents] = useSessionState<ContentsFilter[]>("series.contents", []);
+  const [contentsExclude, setContentsExclude] = useSessionState("series.contentsExclude", false);
+  const [view, setView] = useLocalPreference<ListView>("series.view", "cards");
+  const [cardSize, setCardSize] = useLocalPreference("series.cardSize", CARD_SIZE_DEFAULT);
+
+  const yearKey = (item: SeriesOverview) => (item.year === null ? NO_YEAR : String(item.year));
+
+  // A cover for each series-and-year: the first of its vehicles with a photo.
+  const covers = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const car of cars ?? []) {
+      const key = `${car.seriesId}:${car.year ?? NO_YEAR}`;
+      if (car.photo && !map.has(key)) map.set(key, car.photo);
+    }
+    return map;
+  }, [cars]);
+  const coverOf = (item: SeriesOverview) =>
+    resolveAssetUrl(covers.get(`${item.id}:${yearKey(item)}`) ?? null);
+
+  const manufacturerOptions = useMemo(
+    () =>
+      [...new Set((series ?? []).map((item) => item.manufacturerName ?? ""))]
+        .filter(Boolean)
+        .sort(),
+    [series]
+  );
+  const yearOptions = useMemo(
+    () =>
+      [...new Set((series ?? []).map(yearKey))].sort((a, b) =>
+        a === NO_YEAR ? 1 : b === NO_YEAR ? -1 : Number(b) - Number(a)
+      ),
+    [series]
+  );
+
+  const visible = useMemo(
+    () =>
+      (series ?? [])
+        .filter(
+          (item) =>
+            matchesSearch(search, item.name, item.manufacturerName, item.year) &&
+            keep(item.manufacturerName ?? "", manufacturers, manufacturerExclude) &&
+            keep(yearKey(item), years, yearExclude) &&
+            keepContents(item, contents, contentsExclude)
+        )
+        .sort(browseCompare(sort)),
+    [
+      series,
+      search,
+      manufacturers,
+      manufacturerExclude,
+      years,
+      yearExclude,
+      contents,
+      contentsExclude,
+      sort,
+    ]
+  );
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const filters: FilterField<any>[] = [
+    {
+      key: "manufacturer",
+      label: t("common.manufacturer"),
+      options: manufacturerOptions,
+      selected: manufacturers,
+      onChange: setManufacturers,
+      getOptionLabel: (option: string) => option,
+      isOptionEqualToValue: byValue,
+      exclude: manufacturerExclude,
+      onExcludeChange: setManufacturerExclude,
+    },
+    {
+      key: "year",
+      label: t("common.year"),
+      options: yearOptions,
+      selected: years,
+      onChange: setYears,
+      getOptionLabel: (option: string) => (option === NO_YEAR ? t("browse.noYear") : option),
+      isOptionEqualToValue: byValue,
+      exclude: yearExclude,
+      onExcludeChange: setYearExclude,
+    },
+    {
+      key: "contents",
+      label: t("browse.contents"),
+      options: CONTENTS_OPTIONS,
+      selected: contents,
+      onChange: setContents,
+      getOptionLabel: (option: ContentsFilter) => t(`browse.has.${option}`),
+      isOptionEqualToValue: byValue,
+      exclude: contentsExclude,
+      onExcludeChange: setContentsExclude,
+    },
+  ];
+  const clearFilters = () => {
+    setManufacturers([]);
+    setManufacturerExclude(false);
+    setYears([]);
+    setYearExclude(false);
+    setContents([]);
+    setContentsExclude(false);
+  };
+  const filtering = filters.some((field) => field.selected.length > 0) || search.trim() !== "";
+
+  const counts = (item: SeriesOverview) =>
+    `${t("common.vehicleCount", { count: item.carCount })} · ${t("common.setCount", { count: item.setCount })}`;
+
+  const columns: TableColumn<SeriesOverview>[] = [
+    { key: "name", label: t("common.name"), render: (item) => item.name },
+    { key: "year", label: t("common.year"), render: (item) => item.year },
+    {
+      key: "manufacturer",
+      label: t("common.manufacturer"),
+      render: (item) => item.manufacturerName,
+      hideBelow: "sm",
+    },
+    { key: "vehicles", label: t("nav.vehicles"), render: (item) => item.carCount, align: "right" },
+    { key: "sets", label: t("nav.sets"), render: (item) => item.setCount, align: "right" },
+  ];
 
   return (
-    <Box>
-      <Typography variant="h4" component="h1" gutterBottom>
-        {t("seriesPage.title")}
-      </Typography>
-      <CollectionSubNav />
+    <Page
+      crumbs={[{ label: t("nav.collection") }, { label: t("seriesPage.title") }]}
+      meta={series ? String(visible.length) : null}
+      actions={
+        <ListSearchField
+          value={search}
+          onChange={setSearch}
+          placeholder={t("browse.searchSeries")}
+        />
+      }
+      toolbar={
+        <CollectionListToolbar
+          views={["cards", "table"]}
+          view={view}
+          onViewChange={setView}
+          cardSize={cardSize}
+          onCardSizeChange={setCardSize}
+          filters={filters}
+          onClearFilters={clearFilters}
+          sortOptions={browseSortOptions(t, true)}
+          sort={sort}
+          onSortChange={(value) => setSort(value as BrowseSort)}
+          visibleCount={visible.length}
+        />
+      }
+    >
       {isLoading ? (
-        <Paper sx={{ p: 3, textAlign: "center" }}>{t("common.loading")}</Paper>
+        <EmptyState>{t("common.loading")}</EmptyState>
       ) : !series?.length ? (
-        <Paper sx={{ p: 3, textAlign: "center" }}>{t("seriesPage.none")}</Paper>
+        <EmptyState>{t("seriesPage.none")}</EmptyState>
+      ) : !visible.length ? (
+        <EmptyState>{filtering ? t("listToolbar.noMatch") : t("seriesPage.none")}</EmptyState>
+      ) : view === "table" ? (
+        <ItemTable
+          items={visible}
+          // Ids repeat across years, so the key combines both.
+          getKey={(item) => item.id * 10000 + (item.year ?? 0)}
+          columns={columns}
+          onOpen={(item) => navigate(seriesPath(item))}
+          selectable={false}
+          isSelected={() => false}
+          onToggle={() => undefined}
+        />
       ) : (
-        <Grid container spacing={2}>
-          {series.map((item) => (
-            <Grid key={`${item.id}-${item.year}`} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-              <Card sx={{ height: "100%", borderRadius: 2, border: 1, borderColor: "divider" }}>
-                <CardActionArea
-                  onClick={() => navigate(seriesPath(item))}
-                  sx={{ height: "100%", p: 1.5 }}
-                >
-                  <Typography variant="subtitle1">{item.name}</Typography>
-                  {item.manufacturerName || item.year ? (
-                    <Typography variant="body2" color="text.secondary">
-                      {seriesSubtitle(item)}
-                    </Typography>
-                  ) : null}
-                  <Typography variant="body2" color="text.secondary">
-                    {t("common.vehicleCount", { count: item.carCount })} ·{" "}
-                    {t("common.setCount", { count: item.setCount })}
-                  </Typography>
-                </CardActionArea>
-              </Card>
-            </Grid>
+        <CardGrid size={cardSize}>
+          {visible.map((item) => (
+            <ItemCard
+              key={`${item.id}-${item.year}`}
+              title={item.name}
+              subtitle={seriesSubtitle(item) || null}
+              detail={counts(item)}
+              imageUrl={coverOf(item)}
+              onClick={() => navigate(seriesPath(item))}
+            />
           ))}
-        </Grid>
+        </CardGrid>
       )}
-    </Box>
+    </Page>
   );
 };
 

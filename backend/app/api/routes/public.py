@@ -15,7 +15,7 @@ def list_public_cars(
     token: str, search: str | None = Query(default=None), db: Session = Depends(get_db)
 ) -> list[PublicCarResponse]:
     auth_service.get_user_by_share_token(db, token)
-    return [public_car_from_orm(car) for car in car_service.list_cars(db, search=search)]
+    return [public_car_from_orm(car) for car in car_service.list_cars(db, search=search, search_notes=False)]
 
 
 @router.get("/sets", response_model=list[PublicSetResponse])
@@ -23,4 +23,4 @@ def list_public_sets(
     token: str, search: str | None = Query(default=None), db: Session = Depends(get_db)
 ) -> list[PublicSetResponse]:
     auth_service.get_user_by_share_token(db, token)
-    return [public_set_from_orm(car_set) for car_set in set_service.list_sets(db, search=search)]
+    return [public_set_from_orm(car_set) for car_set in set_service.list_sets(db, search=search, search_notes=False)]

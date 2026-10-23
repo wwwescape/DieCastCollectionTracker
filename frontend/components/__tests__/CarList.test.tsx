@@ -67,7 +67,7 @@ function renderCarList() {
       <MemoryRouter initialEntries={["/collection/vehicles"]}>
         <Routes>
           <Route path="/collection/vehicles" element={<CarList />} />
-          <Route path="/collection/vehicles/:id/edit" element={<div>Car page</div>} />
+          <Route path="/collection/vehicles/:id" element={<div>Car page</div>} />
         </Routes>
         <ToastContainer />
       </MemoryRouter>
@@ -100,7 +100,7 @@ describe("CarList", () => {
     expect(await screen.findByText("No vehicles found.")).toBeInTheDocument();
   });
 
-  it("shows status and quantity chips, no delete button, and opens the car on click", async () => {
+  it("shows the Wishlisted badge and quantity, no delete button, and opens the car on click", async () => {
     vi.spyOn(carsApi, "listCars").mockResolvedValue([
       { ...SAMPLE_CAR, status: "wishlist", quantity: 3 },
     ]);

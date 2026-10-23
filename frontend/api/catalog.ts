@@ -120,3 +120,7 @@ export async function importWikiImage(url: string): Promise<string> {
 export async function importCarPhotoFromWiki(carId: number, url: string): Promise<CarPhoto> {
   return (await apiClient.post<CarPhoto>(`/api/cars/${carId}/photos/from-wiki`, { url })).data;
 }
+
+export async function importSetPhotoFromWiki(setId: number, url: string): Promise<CarPhoto> {
+  return (await apiClient.post<CarPhoto>(`/api/sets/${setId}/photos/from-wiki`, { url })).data;
+}

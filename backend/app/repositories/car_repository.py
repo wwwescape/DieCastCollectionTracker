@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.models.car import Car, CarCondition, CarPhoto, CarStatus, CarTag
 from app.models.lookups import Color, Manufacturer, Series
-from app.services.list_filters import link_filter, source_filter, value_filter
+from app.services.list_filters import LIKE_ESCAPE, like_pattern, link_filter, source_filter, value_filter
 from app.services.list_filters import order_by as list_order_by
 
 # Repositories only add/flush/delete — they never commit. The service that calls them owns
@@ -26,6 +26,9 @@ def _options() -> tuple[Any, ...]:
 def list_cars(
     db: Session,
     search: str | None = None,
+    # Off for share-link visitors: notes are private, and matching them would let a visitor
+    # learn what they say one guessed word at a time.
+    search_notes: bool = True,
     statuses: Sequence[CarStatus] | None = None,
     status_exclude: bool = False,
     manufacturer_ids: Sequence[int] | None = None,
@@ -50,18 +53,18 @@ def list_cars(
     stmt = select(Car).options(*_options())
 
     if search:
-        like = f"%{search}%"
-        stmt = stmt.where(
-            or_(
-                Car.name.ilike(like),
-                Car.cast_number.ilike(like),
-                Car.collection_number.ilike(like),
-                Car.notes.ilike(like),
-                Car.manufacturer.has(Manufacturer.name.ilike(like)),
-                Car.series.has(Series.name.ilike(like)),
-                Car.color.has(Color.name.ilike(like)),
-            )
-        )
+        like = like_pattern(search)
+        fields = [
+            Car.name.ilike(like, escape=LIKE_ESCAPE),
+            Car.cast_number.ilike(like, escape=LIKE_ESCAPE),
+            Car.collection_number.ilike(like, escape=LIKE_ESCAPE),
+            Car.manufacturer.has(Manufacturer.name.ilike(like, escape=LIKE_ESCAPE)),
+            Car.series.has(Series.name.ilike(like, escape=LIKE_ESCAPE)),
+            Car.color.has(Color.name.ilike(like, escape=LIKE_ESCAPE)),
+        ]
+        if search_notes:
+            fields.append(Car.notes.ilike(like, escape=LIKE_ESCAPE))
+        stmt = stmt.where(or_(*fields))
     stmt = stmt.where(
         value_filter(Car.status, statuses, status_exclude),
         value_filter(Car.manufacturer_id, manufacturer_ids, manufacturer_exclude),

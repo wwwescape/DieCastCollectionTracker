@@ -47,7 +47,15 @@ def resolve_static_file(base_dir: Path, requested_path: str) -> Path | None:
 configure_logging()
 settings = get_settings()
 
-app = FastAPI(title=settings.app_name)
+# The interactive API docs (/docs, /redoc, /openapi.json) map out every endpoint; handy when
+# developing, needless to publish. The Docker image sets ENVIRONMENT=production.
+_docs = settings.environment == "development"
+app = FastAPI(
+    title=settings.app_name,
+    docs_url="/docs" if _docs else None,
+    redoc_url="/redoc" if _docs else None,
+    openapi_url="/openapi.json" if _docs else None,
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -56,6 +64,43 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Sent on every response. The CSP fits the built frontend: scripts and styles from this
+# origin only (MUI injects <style> tags, hence 'unsafe-inline' for styles; no scripts are
+# inline), images also from https: for wiki thumbnails, and no framing by other sites.
+CONTENT_SECURITY_POLICY = "; ".join(
+    [
+        "default-src 'self'",
+        "script-src 'self'",
+        "style-src 'self' 'unsafe-inline'",
+        "img-src 'self' data: blob: https:",
+        "font-src 'self' data:",
+        "connect-src 'self'",
+        "worker-src 'self'",
+        "manifest-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'none'",
+    ]
+)
+SECURITY_HEADERS = {
+    "Content-Security-Policy": CONTENT_SECURITY_POLICY,
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(self), microphone=(), geolocation=(), payment=()",
+    "Cross-Origin-Opener-Policy": "same-origin",
+}
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    for name, value in SECURITY_HEADERS.items():
+        response.headers.setdefault(name, value)
+    return response
 
 
 @app.exception_handler(NotFoundError)

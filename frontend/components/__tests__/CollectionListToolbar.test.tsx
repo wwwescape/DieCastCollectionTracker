@@ -92,7 +92,7 @@ describe("Vehicles list toolbar", SLOW_UI, () => {
     renderPage();
     await screen.findByText("Skyline");
 
-    await user.click(screen.getByRole("button", { name: "Filters & sort" }));
+    await user.click(screen.getByRole("button", { name: "Filters" }));
     const dialog = await screen.findByRole("dialog");
     await user.click(within(dialog).getByRole("combobox", { name: "Status" }));
     await user.click(await screen.findByRole("option", { name: "Wishlisted" }));
@@ -116,7 +116,7 @@ describe("Vehicles list toolbar", SLOW_UI, () => {
     await user.click(within(dialog).getByRole("button", { name: "Close" }));
     // The page stays aria-hidden until the dialog's exit transition ends.
     expect(
-      within(await screen.findByRole("button", { name: "Filters & sort" })).getByText("2")
+      within(await screen.findByRole("button", { name: "Filters" })).getByText("2")
     ).toBeInTheDocument();
   });
 
@@ -247,7 +247,7 @@ describe("Sets list toolbar", SLOW_UI, () => {
     renderPage("sets");
     await screen.findByText("Fire Station");
 
-    await user.click(screen.getByRole("button", { name: "Filters & sort" }));
+    await user.click(screen.getByRole("button", { name: "Filters" }));
     const filters = await screen.findByRole("dialog");
     await user.click(within(filters).getByRole("combobox", { name: "Type" }));
     await user.click(await screen.findByRole("option", { name: "Track set" }));

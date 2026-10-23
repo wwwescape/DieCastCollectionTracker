@@ -9,7 +9,7 @@ from app.models.car_set import CarSet, SetPhoto, SetTag, SetType, SetVehicle
 from app.models.lookups import Manufacturer, Series
 from app.repositories import manufacturer_repository, series_repository, tag_repository
 from app.services.exceptions import NotFoundError
-from app.services.list_filters import link_filter, source_filter, value_filter
+from app.services.list_filters import LIKE_ESCAPE, like_pattern, link_filter, source_filter, value_filter
 from app.services.list_filters import order_by as list_order_by
 from app.services.upload_service import delete_if_local_car_image
 
@@ -66,6 +66,8 @@ def set_vehicle_links(db: Session, set_id: int, car_ids: list[int]) -> None:
 def list_sets(
     db: Session,
     search: str | None = None,
+    # Off for share-link visitors (see car_repository.list_cars).
+    search_notes: bool = True,
     statuses: Sequence[CarStatus] | None = None,
     status_exclude: bool = False,
     set_types: Sequence[SetType] | None = None,
@@ -89,16 +91,16 @@ def list_sets(
     """The Sets list: search plus the filters described in app/services/list_filters.py."""
     stmt = select(CarSet).options(*_options())
     if search:
-        like = f"%{search}%"
-        stmt = stmt.where(
-            or_(
-                CarSet.name.ilike(like),
-                CarSet.toy_number.ilike(like),
-                CarSet.notes.ilike(like),
-                CarSet.manufacturer.has(Manufacturer.name.ilike(like)),
-                CarSet.series.has(Series.name.ilike(like)),
-            )
-        )
+        like = like_pattern(search)
+        fields = [
+            CarSet.name.ilike(like, escape=LIKE_ESCAPE),
+            CarSet.toy_number.ilike(like, escape=LIKE_ESCAPE),
+            CarSet.manufacturer.has(Manufacturer.name.ilike(like, escape=LIKE_ESCAPE)),
+            CarSet.series.has(Series.name.ilike(like, escape=LIKE_ESCAPE)),
+        ]
+        if search_notes:
+            fields.append(CarSet.notes.ilike(like, escape=LIKE_ESCAPE))
+        stmt = stmt.where(or_(*fields))
     sealed_values = [state == "sealed" for state in sealed_states or []]
     stmt = stmt.where(
         value_filter(CarSet.status, statuses, status_exclude),

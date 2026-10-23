@@ -1,15 +1,18 @@
-import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useMemo } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import AddIcon from "@mui/icons-material/Add";
+import Chip from "@mui/material/Chip";
 import { useTranslation } from "react-i18next";
+import { resolveAssetUrl } from "../api/client";
 import type { CarListParams } from "../api/cars";
 import type { ItemSource } from "../api/listFilters";
-import { CAR_CONDITIONS, type CarCondition, type CarStatus, type NamedLookup } from "../api/types";
+import {
+  CAR_CONDITIONS,
+  type Car,
+  type CarCondition,
+  type CarStatus,
+  type NamedLookup,
+} from "../api/types";
 import { useCarList } from "../hooks/useCars";
 import { useCollectionBulkActions } from "../hooks/useCollectionBulkActions";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
@@ -23,13 +26,21 @@ import {
   seriesOptionLabel,
   useIdFilter,
 } from "../hooks/useIdFilter";
+import { useLocalPreference } from "../hooks/useLocalPreference";
 import { useSessionState } from "../hooks/useSessionState";
 import { useTags } from "../hooks/useTags";
+import { ATTENTION_CHECKS, isAttentionKind, type AttentionKind } from "../utils/attention";
 import { DEFAULT_SORT, listSortOptions, splitSort } from "../utils/listSort";
+import { openedFrom } from "../utils/navState";
 import CarCard from "./CarCard";
-import CollectionListToolbar, { type FilterField } from "./CollectionListToolbar";
-import CollectionSubNav from "./CollectionSubNav";
-import VirtualCarGrid from "./VirtualCarGrid";
+import CollectionListToolbar, {
+  CARD_SIZE_DEFAULT,
+  ListSearchField,
+  type FilterField,
+  type ListView,
+} from "./CollectionListToolbar";
+import { EmptyState, ItemTable, OverviewRows, PhotoGrid, type TableColumn } from "./ListViews";
+import Page from "./Page";
 
 const STATUSES: CarStatus[] = ["owned", "wishlist"];
 const SOURCES: ItemSource[] = ["wiki", "custom"];
@@ -43,6 +54,21 @@ const CarList = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [search, setSearch] = useSessionState("vehicles.search", "");
+  const [view, setView] = useLocalPreference<ListView>("vehicles.view", "photos");
+  const [cardSize, setCardSize] = useLocalPreference("vehicles.cardSize", CARD_SIZE_DEFAULT);
+  // The header search lands here with its text in route state; apply it even when this list
+  // is already open (the session value is only read on mount).
+  const location = useLocation();
+  const routeState = location.state as {
+    search?: string;
+    attention?: string;
+    wishlist?: boolean;
+  } | null;
+  // "Needs attention" on the Overview: a one-off filter shown as a removable chip.
+  const [attention, setAttention] = useSessionState<AttentionKind | null>(
+    "vehicles.attention",
+    null
+  );
   const [statuses, setStatuses] = useSessionState<CarStatus[]>("vehicles.statuses", []);
   const [statusExclude, setStatusExclude] = useSessionState("vehicles.statusExclude", false);
   const [conditions, setConditions] = useSessionState<CarCondition[]>("vehicles.conditions", []);
@@ -113,7 +139,10 @@ const CarList = () => {
     sort,
   ]);
   const { data: cars, isLoading, isFetching } = useCarList(params);
-  const visible = useMemo(() => cars ?? [], [cars]);
+  const visible = useMemo(
+    () => (attention ? (cars ?? []).filter(ATTENTION_CHECKS[attention]) : (cars ?? [])),
+    [cars, attention]
+  );
   const selection = useListSelection(visible);
   const bulk = useCollectionBulkActions("vehicles", selection.selectedIds, selection.exit);
 
@@ -226,90 +255,185 @@ const CarList = () => {
     }
   };
 
-  const filtering = filters.some((filter) => filter.selected.length > 0);
+  // Arrivals from the header search and the Overview. "Needs attention" and "View all" on the
+  // wishlist start from a clean list, so filters remembered from earlier don't hide what the
+  // Overview just counted.
+  useEffect(() => {
+    if (!routeState) return;
+    if (typeof routeState.search === "string") setSearch(routeState.search);
+    if (isAttentionKind(routeState.attention) || routeState.wishlist) {
+      clearFilters();
+      setSearch("");
+      setAttention(isAttentionKind(routeState.attention) ? routeState.attention : null);
+      if (routeState.wishlist) setStatuses(["wishlist"]);
+    }
+    // Used once: drop it from this history entry, so Back to the list doesn't re-apply a
+    // search or filter cleared since.
+    navigate(location.pathname + location.search, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeState]);
+
+  const filtering = attention !== null || filters.some((filter) => filter.selected.length > 0);
   const searching = trimmed.length >= MIN_SEARCH_LENGTH;
 
+  const open = (car: Car) =>
+    navigate(`/collection/vehicles/${car.id}`, { state: openedFrom(location) });
+  const columns: TableColumn<Car>[] = [
+    { key: "name", label: t("common.name"), render: (car) => car.name },
+    { key: "status", label: t("common.status"), render: (car) => t(`status.${car.status}`) },
+    {
+      key: "manufacturer",
+      label: t("common.manufacturer"),
+      render: (car) => car.manufacturerName,
+      hideBelow: "md",
+    },
+    {
+      key: "series",
+      label: t("vehicles.series"),
+      render: (car) => car.seriesName,
+      hideBelow: "sm",
+    },
+    { key: "year", label: t("common.year"), render: (car) => car.year },
+    {
+      key: "toy",
+      label: t("listToolbar.toyNumberShort"),
+      render: (car) => car.castNumber,
+      hideBelow: "lg",
+    },
+    {
+      key: "col",
+      label: t("listToolbar.collectionNumberShort"),
+      render: (car) => car.collectionNumber,
+      hideBelow: "lg",
+    },
+    { key: "color", label: t("common.color"), render: (car) => car.colorName, hideBelow: "lg" },
+    {
+      key: "condition",
+      label: t("vehicles.condition"),
+      render: (car) => (car.condition ? t(`conditions.${car.condition}`) : null),
+      hideBelow: "md",
+    },
+    {
+      key: "quantity",
+      label: t("listToolbar.quantityShort"),
+      render: (car) => car.quantity,
+      align: "right",
+    },
+  ];
+  const selectionProps = {
+    selectable: selection.selectionMode,
+    isSelected: selection.isSelected,
+    onToggle: selection.toggle,
+  };
+
   return (
-    <>
-      <Box
-        sx={{
-          position: "sticky",
-          top: (theme) => theme.mixins.toolbar.minHeight,
-          zIndex: 2,
-          bgcolor: "background.default",
-          pb: 2,
-          mb: 2,
-          boxShadow: "0 4px 8px -4px rgba(0, 0, 0, 0.2)",
-        }}
-      >
-        <Stack spacing={2}>
-          <Stack
-            direction="row"
-            justifyContent="space-between"
-            alignItems="center"
-            flexWrap="wrap"
-            gap={1}
-          >
-            <Typography variant="h4" component="h1">
-              {t("vehicles.title")}
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => navigate("/collection/vehicles/add")}
-            >
-              {t("vehicles.addVehicle")}
-            </Button>
-          </Stack>
-          <CollectionSubNav />
-          <CollectionListToolbar
-            search={search}
-            onSearchChange={setSearch}
-            filters={filters}
-            onClearFilters={clearFilters}
-            sortOptions={listSortOptions(t)}
-            sort={sort}
-            onSortChange={setSort}
-            selectLabel={t("listToolbar.selectVehicles")}
-            selectionMode={selection.selectionMode}
-            selectedCount={selection.selectedIds.length}
-            visibleCount={visible.length}
-            allVisibleSelected={selection.allVisibleSelected}
-            onEnterSelectionMode={selection.enter}
-            onExitSelectionMode={selection.exit}
-            onToggleSelectAll={selection.toggleAll}
-            onBulkDelete={bulk.onBulkDelete}
-            bulkActions={bulk.bulkActions}
-          />
-        </Stack>
-      </Box>
-      {/* Its own stacking context, so floating field labels in the grid can't paint over
-          the sticky header (same fix as VideoGameTrackarr's Games page). */}
-      <Box sx={{ isolation: "isolate" }}>
-        {isLoading || (searching && trimmed !== debounced) || (isFetching && !cars) ? (
-          <Paper sx={{ p: 3, textAlign: "center" }}>{t("common.loading")}</Paper>
-        ) : visible.length === 0 ? (
-          <Paper sx={{ p: 3, textAlign: "center" }}>
-            {filtering || searching ? t("listToolbar.noMatch") : t("vehicles.noneFound")}
-          </Paper>
-        ) : (
-          <VirtualCarGrid
-            items={visible}
-            getKey={(car) => car.id}
-            renderItem={(car) => (
-              <CarCard
-                car={car}
-                onClick={() => navigate(`/collection/vehicles/${car.id}/edit`)}
-                selectable={selection.selectionMode}
-                selected={selection.isSelected(car.id)}
-                onToggleSelect={() => selection.toggle(car.id)}
-              />
-            )}
-          />
-        )}
-      </Box>
+    <Page
+      crumbs={[{ label: t("nav.collection") }, { label: t("vehicles.title") }]}
+      meta={cars ? t("common.vehicleCount", { count: visible.length }) : null}
+      actions={
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            flexWrap: "wrap",
+            width: { xs: "100%", sm: "auto" },
+          }}
+        >
+          {attention ? (
+            <Chip
+              label={t(`overview.attention.${attention}`)}
+              onDelete={() => setAttention(null)}
+              color="primary"
+              variant="outlined"
+            />
+          ) : null}
+          <ListSearchField value={search} onChange={setSearch} />
+        </Box>
+      }
+      toolbar={
+        <CollectionListToolbar
+          addLabel={t("common.add")}
+          addTo="/collection/vehicles/add"
+          view={view}
+          onViewChange={setView}
+          cardSize={cardSize}
+          onCardSizeChange={setCardSize}
+          filters={filters}
+          onClearFilters={clearFilters}
+          sortOptions={listSortOptions(t)}
+          sort={sort}
+          onSortChange={setSort}
+          selectLabel={t("listToolbar.selectVehicles")}
+          selectionMode={selection.selectionMode}
+          selectedCount={selection.selectedIds.length}
+          visibleCount={visible.length}
+          allVisibleSelected={selection.allVisibleSelected}
+          onEnterSelectionMode={selection.enter}
+          onExitSelectionMode={selection.exit}
+          onToggleSelectAll={selection.toggleAll}
+          onBulkDelete={bulk.onBulkDelete}
+          bulkActions={bulk.bulkActions}
+        />
+      }
+    >
+      {isLoading || (searching && trimmed !== debounced) || (isFetching && !cars) ? (
+        <EmptyState>{t("common.loading")}</EmptyState>
+      ) : visible.length === 0 ? (
+        <EmptyState>
+          {filtering || searching ? t("listToolbar.noMatch") : t("vehicles.noneFound")}
+        </EmptyState>
+      ) : view === "table" ? (
+        <ItemTable
+          items={visible}
+          getKey={(car) => car.id}
+          columns={columns}
+          getPhoto={(car) => resolveAssetUrl(car.photo)}
+          onOpen={open}
+          {...selectionProps}
+        />
+      ) : view === "overview" ? (
+        <OverviewRows
+          items={visible}
+          getKey={(car) => car.id}
+          getPhoto={(car) => resolveAssetUrl(car.photo)}
+          getRow={(car) => ({
+            title: car.name,
+            subtitle: [car.manufacturerName, car.seriesName, car.year].filter(Boolean).join(" · "),
+            chips: [
+              car.castNumber,
+              car.collectionNumber ? `#${car.collectionNumber}` : null,
+              car.colorName,
+              car.vehicleTypeName,
+              car.condition ? t(`conditions.${car.condition}`) : null,
+              ...car.tags.map((tag) => tag.name),
+            ].filter((chip): chip is string => Boolean(chip)),
+            status: car.status,
+            quantity: car.quantity,
+          })}
+          onOpen={open}
+          {...selectionProps}
+        />
+      ) : (
+        <PhotoGrid
+          items={visible}
+          getKey={(car) => car.id}
+          getName={(car) => car.name}
+          cardSize={cardSize}
+          showRail={sort === "name_asc"}
+          renderItem={(car) => (
+            <CarCard
+              car={car}
+              onClick={() => open(car)}
+              selectable={selection.selectionMode}
+              selected={selection.isSelected(car.id)}
+              onToggleSelect={() => selection.toggle(car.id)}
+            />
+          )}
+        />
+      )}
       {bulk.dialogs}
-    </>
+    </Page>
   );
 };
 

@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ColorModeProvider } from "../../theme/ColorModeProvider";
-import { buildM3Scheme } from "../../theme/m3Colors";
+import { createDctTheme } from "../../theme/createDctTheme";
 import AccentColorSetting from "../AccentColorSetting";
 
 const STORAGE_KEY = "dct.accentColor";
@@ -106,14 +106,21 @@ describe("AccentColorSetting", () => {
   });
 });
 
-describe("buildM3Scheme", () => {
-  it("uses the logo blue as light-mode primary with the default accent", () => {
-    expect(buildM3Scheme("light", "normal").primary).toBe("#1F67D8");
+describe("createDctTheme", () => {
+  it("uses the accent as-is for primary, in both modes and contrasts", () => {
+    for (const mode of ["light", "dark"] as const) {
+      for (const contrast of ["normal", "high"] as const) {
+        expect(createDctTheme(mode, contrast, "#1f67d8").palette.primary.main).toBe("#1f67d8");
+      }
+    }
   });
 
-  it("keeps generated tones for dark mode, high contrast and other accents", () => {
-    expect(buildM3Scheme("dark", "normal").primary).not.toBe("#1F67D8");
-    expect(buildM3Scheme("light", "high").primary).not.toBe("#1F67D8");
-    expect(buildM3Scheme("light", "normal", "#00897b").primary).not.toBe("#00897b");
+  it("picks readable text on the accent", () => {
+    expect(createDctTheme("dark", "normal", "#1f67d8").palette.primary.contrastText).toBe(
+      "#ffffff"
+    );
+    expect(createDctTheme("dark", "normal", "#f5d90a").palette.primary.contrastText).toBe(
+      "#111418"
+    );
   });
 });

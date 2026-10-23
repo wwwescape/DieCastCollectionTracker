@@ -7,7 +7,6 @@ import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
 import { useRegenerateShareLink, useShareLink } from "../hooks/useShareLink";
@@ -58,9 +57,6 @@ const ShareSection = () => {
 
   return (
     <Stack spacing={2}>
-      <Typography variant="body2" color="text.secondary">
-        {t("settings.share.description")}
-      </Typography>
       {links.map((link) => (
         <Box key={link.label} sx={{ display: "flex", alignItems: "center", gap: 1 }}>
           <TextField

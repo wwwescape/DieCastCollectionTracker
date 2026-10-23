@@ -1,9 +1,6 @@
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import Button from "@mui/material/Button";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useParams, useSearchParams } from "react-router-dom";
+import { EmptyState } from "../components/ListViews";
+import Page from "../components/Page";
 import VehiclesAndSets from "../components/VehiclesAndSets";
 import { useSeriesOverview } from "../hooks/useLookups";
 import { useTranslation } from "react-i18next";
@@ -13,7 +10,6 @@ import { seriesSubtitle } from "../utils/series";
 // before series were split by year) it shows every year.
 const SeriesPage = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const seriesId = Number(id);
@@ -23,48 +19,33 @@ const SeriesPage = () => {
   const series = allSeries?.find(
     (s) => s.id === seriesId && (year === undefined || s.year === year)
   );
+  const crumbs = [
+    { label: t("nav.collection") },
+    { label: t("seriesPage.title"), to: "/collection/series" },
+  ];
 
-  const back = (
-    <div>
-      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate("/collection/series")}>
-        {t("seriesPage.all")}
-      </Button>
-    </div>
-  );
-
-  if (isLoading) {
-    return <Paper sx={{ p: 3, textAlign: "center" }}>{t("common.loading")}</Paper>;
-  }
-  if (!series) {
+  if (isLoading || !series) {
     return (
-      <Stack spacing={2}>
-        {back}
-        <Paper sx={{ p: 3, textAlign: "center" }}>{t("seriesPage.notFound")}</Paper>
-      </Stack>
+      <Page crumbs={crumbs}>
+        <EmptyState>{isLoading ? t("common.loading") : t("seriesPage.notFound")}</EmptyState>
+      </Page>
     );
   }
 
   return (
-    <Stack spacing={3}>
-      {back}
-      <div>
-        <Typography variant="h4" component="h1">
-          {series.name}
-        </Typography>
-        {series.manufacturerName || year ? (
-          <Typography variant="subtitle1" color="text.secondary">
-            {seriesSubtitle({ manufacturerName: series.manufacturerName, year: year ?? null })}
-          </Typography>
-        ) : null}
-      </div>
-
+    <Page
+      crumbs={[...crumbs, { label: series.name }]}
+      meta={
+        seriesSubtitle({ manufacturerName: series.manufacturerName, year: year ?? null }) || null
+      }
+    >
       <VehiclesAndSets
         filter={{ seriesId }}
         year={year}
         noVehicles={t("seriesPage.noVehicles")}
         noSets={t("seriesPage.noSets")}
       />
-    </Stack>
+    </Page>
   );
 };
 

@@ -1,9 +1,9 @@
-import { Link, useLocation, useParams } from "react-router-dom";
+import { useLocation, useParams } from "react-router-dom";
 import Box from "@mui/material/Box";
-import Chip from "@mui/material/Chip";
 import { useTranslation } from "react-i18next";
+import { ToolbarButton } from "./Page";
 
-// Mirrors CollectionSubNav's chip row — just Cars and Sets on the share-link pages.
+// Vehicles and Sets on the share-link pages, as header tabs.
 const PublicSubNav = () => {
   const { t } = useTranslation();
   const { token } = useParams<{ token: string }>();
@@ -15,23 +15,18 @@ const PublicSubNav = () => {
   ] as const;
 
   return (
-    <Box
-      component="nav"
-      aria-label={t("public.subNavLabel")}
-      sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 3 }}
-    >
+    <Box component="nav" aria-label={t("public.subNavLabel")} sx={{ display: "flex", gap: 0.5 }}>
       {items.map((item) => {
         const isSelected = location.pathname === item.to;
         return (
-          <Chip
+          <ToolbarButton
             key={item.to}
-            component={Link}
-            to={item.to}
+            icon={null}
             label={t(item.labelKey)}
-            clickable
+            to={item.to}
+            active={isSelected}
             aria-current={isSelected ? "page" : undefined}
-            color={isSelected ? "primary" : "default"}
-            variant={isSelected ? "filled" : "outlined"}
+            sx={{ height: 34, flexDirection: "row", fontSize: 13 }}
           />
         );
       })}

@@ -37,6 +37,16 @@ export async function logout(): Promise<void> {
   }
 }
 
+// Signed in, so this goes through apiClient. Every other session is signed out by the server;
+// this one carries on with the fresh tokens it returns.
+export async function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  const response = await apiClient.post<AuthTokens>("/api/auth/change-password", {
+    currentPassword,
+    newPassword,
+  });
+  tokenStorage.setTokens(response.data.accessToken, response.data.refreshToken);
+}
+
 export async function fetchCurrentUser(): Promise<CurrentUser> {
   const response = await apiClient.get<CurrentUser>("/api/auth/me");
   return response.data;

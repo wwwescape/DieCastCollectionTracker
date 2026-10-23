@@ -41,24 +41,79 @@ def create_initial_admin(db: Session, username: str, password: str) -> User:
     return user
 
 
+class WrongPasswordError(Exception):
+    """The current password given to change_password didn't match — surfaced as a 400, not a
+    401, since the user is signed in; a 401 would read as an expired session."""
+
+
+def change_password(db: Session, user: User, current_password: str, new_password: str) -> None:
+    """Sets a new password and revokes every refresh token the user has, so other browsers
+    and devices are signed out once their short-lived access token runs out. The caller
+    issues fresh tokens for the session that made the change."""
+    if not verify_password(current_password, user.password_hash):
+        raise WrongPasswordError("The current password is incorrect.")
+
+    user.password_hash = hash_password(new_password)
+    _revoke_all(db, user.id)
+
+
+# Two tabs can refresh with the same token at nearly the same moment; only a rotated token
+# presented again after this long is treated as stolen.
+REUSE_GRACE_SECONDS = 30
+
+
 def issue_tokens(db: Session, user: User) -> tuple[str, str]:
+    access_token, refresh_token, _ = _issue_tokens(db, user)
+    return access_token, refresh_token
+
+
+def _issue_tokens(db: Session, user: User) -> tuple[str, str, str]:
     access_token = create_access_token(user.id)
     refresh_token, jti, expires_at = create_refresh_token(user.id)
     db.add(RefreshToken(user_id=user.id, jti=jti, expires_at=expires_at))
     db.commit()
-    return access_token, refresh_token
+    return access_token, refresh_token, jti
+
+
+def _revoke_all(db: Session, user_id: int) -> None:
+    db.query(RefreshToken).filter(RefreshToken.user_id == user_id, RefreshToken.revoked_at.is_(None)).update(
+        {RefreshToken.revoked_at: datetime.now(UTC)}, synchronize_session=False
+    )
+    db.commit()
 
 
 def rotate_refresh_token(db: Session, refresh_token: str) -> tuple[str, str]:
     """Validates a refresh token, revokes it, and issues a fresh access+refresh pair.
     Rotation means a stolen refresh token can be replayed at most once before the
     legitimate client's next refresh fails loudly (the record is already revoked)."""
+    _detect_reuse(db, refresh_token)
     record, user = _load_active_refresh_token(db, refresh_token)
 
     record.revoked_at = datetime.now(UTC)
     db.flush()
 
-    return issue_tokens(db, user)
+    access_token, new_refresh_token, new_jti = _issue_tokens(db, user)
+    record.replaced_by_jti = new_jti
+    db.commit()
+    return access_token, new_refresh_token
+
+
+def _detect_reuse(db: Session, refresh_token: str) -> None:
+    """A rotated refresh token presented again means someone else has a copy: sign every
+    session out (the thief's and the owner's), so the owner signs back in and the copy is
+    useless. Tokens revoked by logout or a password change aren't "reuse" and are just
+    refused as before."""
+    try:
+        payload = decode_token(refresh_token, TokenType.REFRESH)
+    except TokenError:
+        return
+    record = db.query(RefreshToken).filter(RefreshToken.jti == payload.get("jti")).first()
+    if record is None or record.replaced_by_jti is None or record.revoked_at is None:
+        return
+    revoked_at = record.revoked_at if record.revoked_at.tzinfo else record.revoked_at.replace(tzinfo=UTC)
+    if (datetime.now(UTC) - revoked_at).total_seconds() > REUSE_GRACE_SECONDS:
+        _revoke_all(db, record.user_id)
+        raise AuthError("Refresh token reuse detected; all sessions have been signed out")
 
 
 def revoke_refresh_token(db: Session, refresh_token: str) -> None:

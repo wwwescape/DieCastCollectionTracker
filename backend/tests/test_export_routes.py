@@ -210,3 +210,21 @@ def test_restore_backup_wrong_structure(auth_client):
     )
 
     assert response.status_code == 400
+
+
+def test_restore_reports_only_the_snapshot_file_name(auth_client):
+    backup = auth_client.get("/api/export/backup").content
+    result = auth_client.post("/api/import/backup", files={"file": ("b.json", backup, "application/json")}).json()
+
+    assert result["safetySnapshotPath"].startswith("pre-restore-")
+    assert "/" not in result["safetySnapshotPath"] and "\\" not in result["safetySnapshotPath"]
+
+
+def test_restore_rejects_an_oversized_file(auth_client, monkeypatch):
+    from app.api.routes import export
+
+    monkeypatch.setattr(export, "MAX_BACKUP_BYTES", 10)
+    oversized = b"{" + b" " * 20 + b"}"
+    response = auth_client.post("/api/import/backup", files={"file": ("b.json", oversized, "application/json")})
+
+    assert response.status_code == 413

@@ -140,3 +140,139 @@ def test_setup_rejects_short_username(client):
     response = client.post("/api/auth/setup", json={"username": "ab", "password": "a-strong-password"})
 
     assert response.status_code == 422
+
+
+def _login(client, password="correct-password"):
+    return client.post("/api/auth/login", json={"username": "admin", "password": password})
+
+
+def test_change_password_requires_auth(client, test_user):
+    response = client.post(
+        "/api/auth/change-password",
+        json={"currentPassword": "correct-password", "newPassword": "brand-new-password"},
+    )
+
+    assert response.status_code == 401
+
+
+def test_change_password_updates_login_and_returns_fresh_tokens(client, test_user):
+    tokens = _login(client).json()
+
+    response = client.post(
+        "/api/auth/change-password",
+        json={"currentPassword": "correct-password", "newPassword": "brand-new-password"},
+        headers={"Authorization": f"Bearer {tokens['accessToken']}"},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["accessToken"] and body["refreshToken"]
+    assert _login(client).status_code == 401
+    assert _login(client, "brand-new-password").status_code == 200
+    # The session that made the change keeps working with its new refresh token.
+    assert client.post("/api/auth/refresh", json={"refreshToken": body["refreshToken"]}).status_code == 200
+
+
+def test_change_password_signs_out_other_sessions(client, test_user):
+    other_session = _login(client).json()
+    this_session = _login(client).json()
+
+    client.post(
+        "/api/auth/change-password",
+        json={"currentPassword": "correct-password", "newPassword": "brand-new-password"},
+        headers={"Authorization": f"Bearer {this_session['accessToken']}"},
+    )
+
+    refreshed = client.post("/api/auth/refresh", json={"refreshToken": other_session["refreshToken"]})
+    assert refreshed.status_code == 401
+
+
+def test_change_password_rejects_wrong_current_password(client, test_user):
+    tokens = _login(client).json()
+
+    response = client.post(
+        "/api/auth/change-password",
+        json={"currentPassword": "wrong-password", "newPassword": "brand-new-password"},
+        headers={"Authorization": f"Bearer {tokens['accessToken']}"},
+    )
+
+    # 400, not 401: the user is signed in, so this mustn't look like an expired session.
+    assert response.status_code == 400
+    assert _login(client).status_code == 200
+
+
+def test_change_password_rejects_short_new_password(client, test_user):
+    tokens = _login(client).json()
+
+    response = client.post(
+        "/api/auth/change-password",
+        json={"currentPassword": "correct-password", "newPassword": "short"},
+        headers={"Authorization": f"Bearer {tokens['accessToken']}"},
+    )
+
+    assert response.status_code == 422
+    assert _login(client).status_code == 200
+
+
+def test_login_is_throttled_after_repeated_failures(client, test_user):
+    for _ in range(5):
+        assert _login(client, "wrong-password").status_code == 401
+
+    blocked = _login(client, "wrong-password")
+    assert blocked.status_code == 429
+    assert int(blocked.headers["Retry-After"]) > 0
+    # Even the right password waits out the window, so guessing can't continue.
+    assert _login(client).status_code == 429
+
+
+def test_successful_login_clears_earlier_failures(client, test_user):
+    for _ in range(4):
+        _login(client, "wrong-password")
+    assert _login(client).status_code == 200
+    for _ in range(4):
+        assert _login(client, "wrong-password").status_code == 401
+    assert _login(client).status_code == 200
+
+
+def test_change_password_is_throttled_after_repeated_wrong_current_passwords(client, test_user):
+    tokens = _login(client).json()
+    headers = {"Authorization": f"Bearer {tokens['accessToken']}"}
+    body = {"currentPassword": "wrong-password", "newPassword": "brand-new-password"}
+
+    for _ in range(5):
+        assert client.post("/api/auth/change-password", json=body, headers=headers).status_code == 400
+
+    assert client.post("/api/auth/change-password", json=body, headers=headers).status_code == 429
+
+
+def test_replaying_a_rotated_refresh_token_signs_every_session_out(client, test_user, monkeypatch):
+    from app.services import auth_service
+
+    monkeypatch.setattr(auth_service, "REUSE_GRACE_SECONDS", -1)
+    original = _login(client).json()["refreshToken"]
+    rotated = client.post("/api/auth/refresh", json={"refreshToken": original}).json()["refreshToken"]
+
+    # Someone presents the old token again: refused, and the current one dies with it.
+    assert client.post("/api/auth/refresh", json={"refreshToken": original}).status_code == 401
+    assert client.post("/api/auth/refresh", json={"refreshToken": rotated}).status_code == 401
+
+
+def test_replay_within_the_grace_period_does_not_sign_out(client, test_user):
+    # Two tabs refreshing with the same token at once: the slower one is refused, nothing more.
+    original = _login(client).json()["refreshToken"]
+    rotated = client.post("/api/auth/refresh", json={"refreshToken": original}).json()["refreshToken"]
+
+    assert client.post("/api/auth/refresh", json={"refreshToken": original}).status_code == 401
+    assert client.post("/api/auth/refresh", json={"refreshToken": rotated}).status_code == 200
+
+
+def test_a_token_revoked_by_logout_is_not_treated_as_reuse(client, test_user, monkeypatch):
+    from app.services import auth_service
+
+    monkeypatch.setattr(auth_service, "REUSE_GRACE_SECONDS", -1)
+    logged_out = _login(client).json()["refreshToken"]
+    other = _login(client).json()["refreshToken"]
+    client.post("/api/auth/logout", json={"refreshToken": logged_out})
+
+    assert client.post("/api/auth/refresh", json={"refreshToken": logged_out}).status_code == 401
+    assert client.post("/api/auth/refresh", json={"refreshToken": other}).status_code == 200

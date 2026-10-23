@@ -5,10 +5,9 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import ButtonBase from "@mui/material/ButtonBase";
 import Tooltip from "@mui/material/Tooltip";
-import Typography from "@mui/material/Typography";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { useColorMode } from "../theme/ColorModeProvider";
-import { SEED_COLOR_HEX } from "../theme/m3Colors";
+import { SEED_COLOR_HEX } from "../theme/colors";
 import { useTranslation } from "react-i18next";
 
 // Ported from VideoGameTrackarr. The default logo blue first, and the racing red DCT used
@@ -62,14 +61,11 @@ const AccentColorSetting = () => {
   }, [debouncedDraft]);
 
   return (
-    <Box sx={{ mt: 1 }}>
-      <Typography variant="body1" id="accent-color-label">
-        {t("settings.display.accentColor")}
-      </Typography>
+    <Box>
       <Box
         role="group"
-        aria-labelledby="accent-color-label"
-        sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1, mb: 0.5 }}
+        aria-label={t("settings.display.accentColor")}
+        sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}
       >
         {ACCENT_PRESETS.map((preset) => {
           const selected = preset.hex === accentColor;
@@ -128,9 +124,6 @@ const AccentColorSetting = () => {
           </Box>
         </Tooltip>
       </Box>
-      <Typography variant="caption" color="text.secondary" component="div">
-        {t("settings.display.accentColorHelp")}
-      </Typography>
       {accentColor !== SEED_COLOR_HEX.toLowerCase() ? (
         <Button
           size="small"

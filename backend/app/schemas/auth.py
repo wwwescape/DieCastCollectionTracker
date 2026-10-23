@@ -27,6 +27,14 @@ class SetupStatusResponse(CamelModel):
     setup_required: bool
 
 
+class ChangePasswordRequest(CamelModel):
+    """The new password gets the same minimum as the first-run form (SetupRequest); the
+    current one is checked as stored, like login."""
+
+    current_password: str
+    new_password: str = Field(min_length=8)
+
+
 class SetupRequest(CamelModel):
     """Minimal provisioning validation that plain LoginRequest deliberately skips -
     login must accept whatever's already stored, but the first-run form is the one place

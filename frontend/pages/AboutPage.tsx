@@ -10,6 +10,7 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { Trans, useTranslation } from "react-i18next";
+import Page from "../components/Page";
 import { useVersion } from "../hooks/useVersion";
 
 const REPO_URL = "https://github.com/wwwescape/DieCastCollectionTracker";
@@ -30,10 +31,7 @@ const AboutPage = () => {
   );
 
   return (
-    <Box sx={{ mb: 3 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        {t("about.title")}
-      </Typography>
+    <Page crumbs={[{ label: t("about.title") }]}>
       <Card sx={{ maxWidth: 640 }}>
         <CardContent>
           <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", mb: 1 }}>
@@ -146,7 +144,7 @@ const AboutPage = () => {
           </Link>
         </CardContent>
       </Card>
-    </Box>
+    </Page>
   );
 };
 

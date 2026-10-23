@@ -1,17 +1,16 @@
-import { useNavigate } from "react-router-dom";
+import type { ReactNode } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
-import Paper from "@mui/material/Paper";
-import Typography from "@mui/material/Typography";
-import Grid from "@mui/material/Grid2";
 import { useTranslation } from "react-i18next";
 import type { CarListParams } from "../api/cars";
 import type { SetListParams } from "../api/sets";
 import { useCarList } from "../hooks/useCars";
 import { useSetList } from "../hooks/useSets";
+import { openedFrom } from "../utils/navState";
 import CarCard from "./CarCard";
+import { Section } from "./Detail";
+import { EmptyState } from "./ListViews";
 import SetCard from "./SetCard";
-
-const CARD_GRID_SIZE = { xs: 12, sm: 6, md: 4, lg: 3 } as const;
 
 // One manufacturer's or series' vehicles, then its sets. A plain grid rather than
 // VirtualCarGrid, since two window-scrolled virtual grids on one page would fight over the
@@ -30,6 +29,7 @@ const VehiclesAndSets = ({
 }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const inYear = (item: { year: number | null }) => year === undefined || item.year === year;
   const { data: allCars, isLoading: carsLoading } = useCarList(filter);
   const { data: allSets, isLoading: setsLoading } = useSetList(filter);
@@ -38,57 +38,60 @@ const VehiclesAndSets = ({
 
   return (
     <>
-      <Section title={t("nav.vehicles")} loading={carsLoading} empty={noVehicles}>
-        {cars?.length ? (
-          <Grid container spacing={2}>
-            {cars.map((car) => (
-              <Grid key={car.id} size={CARD_GRID_SIZE}>
-                <CarCard
-                  car={car}
-                  onClick={() => navigate(`/collection/vehicles/${car.id}/edit`)}
-                />
-              </Grid>
-            ))}
-          </Grid>
-        ) : null}
+      <Section title={`${t("nav.vehicles")}${cars?.length ? ` · ${cars.length}` : ""}`}>
+        <Grid loading={carsLoading} empty={noVehicles}>
+          {cars?.map((car) => (
+            <CarCard
+              key={car.id}
+              car={car}
+              onClick={() =>
+                navigate(`/collection/vehicles/${car.id}`, { state: openedFrom(location) })
+              }
+            />
+          ))}
+        </Grid>
       </Section>
-
-      <Section title={t("nav.sets")} loading={setsLoading} empty={noSets}>
-        {sets?.length ? (
-          <Grid container spacing={2}>
-            {sets.map((set) => (
-              <Grid key={set.id} size={CARD_GRID_SIZE}>
-                <SetCard set={set} onClick={() => navigate(`/collection/sets/${set.id}/edit`)} />
-              </Grid>
-            ))}
-          </Grid>
-        ) : null}
+      <Section title={`${t("nav.sets")}${sets?.length ? ` · ${sets.length}` : ""}`}>
+        <Grid loading={setsLoading} empty={noSets}>
+          {sets?.map((set) => (
+            <SetCard
+              key={set.id}
+              set={set}
+              onClick={() =>
+                navigate(`/collection/sets/${set.id}`, { state: openedFrom(location) })
+              }
+            />
+          ))}
+        </Grid>
       </Section>
     </>
   );
 };
 
-interface SectionProps {
-  title: string;
+function Grid({
+  loading,
+  empty,
+  children,
+}: {
   loading: boolean;
   empty: string;
-  children: React.ReactNode;
-}
-
-function Section({ title, loading, empty, children }: SectionProps) {
+  children?: ReactNode[];
+}) {
   const { t } = useTranslation();
+  if (loading) return <EmptyState>{t("common.loading")}</EmptyState>;
+  if (!children?.length) return <EmptyState>{empty}</EmptyState>;
   return (
-    <Box component="section">
-      <Typography variant="h5" component="h2" gutterBottom>
-        {title}
-      </Typography>
-      {loading ? (
-        <Paper sx={{ p: 3, textAlign: "center" }}>{t("common.loading")}</Paper>
-      ) : (
-        (children ?? (
-          <Paper sx={{ p: 3, textAlign: "center", color: "text.secondary" }}>{empty}</Paper>
-        ))
-      )}
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "repeat(2, minmax(0, 1fr))",
+          sm: "repeat(auto-fill, minmax(190px, 1fr))",
+        },
+        gap: { xs: "14px 10px", sm: "18px 16px" },
+      }}
+    >
+      {children}
     </Box>
   );
 }

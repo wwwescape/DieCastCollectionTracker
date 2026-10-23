@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -7,6 +7,11 @@ from app.repositories import color_repository, manufacturer_repository, series_r
 from app.schemas.lookups import (
     ColorCreateRequest,
     ColorResponse,
+    LookupEntryResponse,
+    LookupMergeRequest,
+    LookupRenameRequest,
+    LookupsUsageResponse,
+    LookupUsageResponse,
     ManufacturerCreateRequest,
     ManufacturerOverviewResponse,
     ManufacturerResponse,
@@ -16,6 +21,7 @@ from app.schemas.lookups import (
     VehicleTypeCreateRequest,
     VehicleTypeResponse,
 )
+from app.services import lookup_service
 from app.services.exceptions import ConflictError, NotFoundError
 
 router = APIRouter(prefix="/api", tags=["lookups"], dependencies=[Depends(get_current_user)])
@@ -148,3 +154,56 @@ def delete_series(series_id: int, db: Session = Depends(get_db)) -> None:
     _conflict_if_in_use(series_repository.is_in_use(db, series_id), "Series")
     series_repository.delete_series(db, series)
     db.commit()
+
+
+# --- Settings → Lookups: usage, rename, merge (see app/services/lookup_service.py) ---
+
+# Vehicle types, colors and tags have shorter name columns than manufacturers and series.
+_MAX_NAME = {"vehicle-types": 100, "colors": 100, "tags": 100}
+
+
+def _entry_response(entry) -> LookupEntryResponse:
+    return LookupEntryResponse(id=entry.id, name=entry.name, color=getattr(entry, "color", None))
+
+
+@router.get("/lookups/usage", response_model=LookupsUsageResponse)
+def lookups_usage(db: Session = Depends(get_db)) -> LookupsUsageResponse:
+    """Every entry of every lookup list with its vehicle and set counts and whether a
+    wiki-matched item uses it."""
+
+    def rows(kind: str) -> list[LookupUsageResponse]:
+        return [
+            LookupUsageResponse(
+                id=entry_id, car_count=use.car_count, set_count=use.set_count, wiki_backed=use.wiki_backed
+            )
+            for entry_id, use in lookup_service.usage(db, kind).items()
+        ]
+
+    return LookupsUsageResponse(
+        manufacturers=rows("manufacturers"),
+        series=rows("series"),
+        vehicle_types=rows("vehicle-types"),
+        colors=rows("colors"),
+        tags=rows("tags"),
+    )
+
+
+@router.patch("/lookups/{kind}/{entry_id}", response_model=LookupEntryResponse)
+def rename_lookup(
+    kind: str, entry_id: int, body: LookupRenameRequest, db: Session = Depends(get_db)
+) -> LookupEntryResponse:
+    """Renames an entry (tags: and sets its color). 409 if it's wiki-backed or the name is taken."""
+    if len(body.name.strip()) > _MAX_NAME.get(kind, 255) or not body.name.strip():
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Name is empty or too long")
+    entry = lookup_service.rename(
+        db, kind, entry_id, body.name, color=body.color, set_color="color" in body.model_fields_set
+    )
+    return _entry_response(entry)
+
+
+@router.post("/lookups/{kind}/{entry_id}/merge", response_model=LookupEntryResponse)
+def merge_lookup(
+    kind: str, entry_id: int, body: LookupMergeRequest, db: Session = Depends(get_db)
+) -> LookupEntryResponse:
+    """Moves everything using this entry onto ``intoId`` and deletes it. Returns the target."""
+    return _entry_response(lookup_service.merge(db, kind, entry_id, body.into_id))

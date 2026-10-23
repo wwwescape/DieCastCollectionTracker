@@ -1,49 +1,54 @@
-import { Link as RouterLink, Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import DarkModeIcon from "@mui/icons-material/DarkModeOutlined";
+import LightModeIcon from "@mui/icons-material/LightModeOutlined";
 import LogoutIcon from "@mui/icons-material/Logout";
-import AppBar from "@mui/material/AppBar";
+import MenuIcon from "@mui/icons-material/Menu";
 import Box from "@mui/material/Box";
-import FormControlLabel from "@mui/material/FormControlLabel";
+import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
 import Link from "@mui/material/Link";
-import Switch from "@mui/material/Switch";
 import { useTheme } from "@mui/material/styles";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
+import Tooltip from "@mui/material/Tooltip";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import OfflineStatusIndicator from "./components/OfflineStatusIndicator";
 import UpdateAvailableChip from "./components/UpdateAvailableChip";
 import { useLogout } from "./hooks/useAuth";
-import BottomNavBar, { BOTTOM_NAV_HEIGHT } from "./navigation/BottomNavBar";
-import NavDrawer, { NAV_DRAWER_WIDTH } from "./navigation/NavDrawer";
-import NavRail, { NAV_RAIL_WIDTH } from "./navigation/NavRail";
+import GlobalSearch from "./navigation/GlobalSearch";
+import Sidebar, { HEADER_HEIGHT, SIDEBAR_WIDTH } from "./navigation/Sidebar";
 import { useColorMode } from "./theme/ColorModeProvider";
 import { useTranslation } from "react-i18next";
 
-// M3's three responsive navigation patterns: Navigation Bar (compact/mobile, bottom),
-// Navigation Rail (medium/tablet, icons+labels side rail), Navigation Drawer
-// (expanded/desktop, icons+labels side panel) — picked by breakpoint, not a user toggle.
+// The app shell: a permanent sidebar on desktop (a drawer behind the menu button on
+// phones and small tablets) and one slim header with the global search.
 const AppShell = () => {
   const { t } = useTranslation();
   const { mode, toggleColorMode } = useColorMode();
   const theme = useTheme();
-  const isCompact = useMediaQuery(theme.breakpoints.down("sm"));
-  const isExpanded = useMediaQuery(theme.breakpoints.up("lg"));
+  const isDesktop = useMediaQuery(theme.breakpoints.up("md"));
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const { pathname } = useLocation();
   const navigate = useNavigate();
   const logoutMutation = useLogout();
+
+  // A new page starts at the top, and a drawer left open on a phone closes.
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
 
   const handleLogout = () => {
     // Clearing tokens/cache alone doesn't move the user off the current (now-stale)
     // protected page — ProtectedLayout only re-checks auth on navigation, and nothing
     // here triggers one without this explicit redirect.
-    logoutMutation.mutate(undefined, { onSuccess: () => navigate("/login") });
+    logoutMutation.mutate(undefined, { onSuccess: () => navigate("/login", { replace: true }) });
   };
 
-  const sideNavWidth = isCompact ? 0 : isExpanded ? NAV_DRAWER_WIDTH : NAV_RAIL_WIDTH;
+  const themeLabel = mode === "dark" ? t("appShell.lightMode") : t("appShell.darkMode");
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh" }}>
       <Link
         href="#main-content"
         sx={{
@@ -63,63 +68,84 @@ const AppShell = () => {
       >
         {t("appShell.skipToMainContent")}
       </Link>
-      <AppBar position="fixed" sx={{ zIndex: (t) => t.zIndex.drawer + 1 }}>
-        <Toolbar>
-          <Box
-            component="img"
-            src="/DieCastCollectionTracker.png"
-            alt=""
-            sx={{ height: 64, width: 64, mr: 1.5 }}
-          />
-          <Typography
-            variant="h6"
-            component={RouterLink}
-            to="/"
-            noWrap
-            sx={{ minWidth: 0, flexGrow: 1, color: "inherit", textDecoration: "none" }}
-          >
-            DieCastCollectionTracker
-          </Typography>
+
+      {isDesktop ? (
+        <Box
+          component="aside"
+          sx={{
+            width: SIDEBAR_WIDTH,
+            flexShrink: 0,
+            position: "sticky",
+            top: 0,
+            height: "100vh",
+            borderRight: 1,
+            borderColor: "divider",
+          }}
+        >
+          <Sidebar />
+        </Box>
+      ) : (
+        <Drawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          PaperProps={{
+            sx: { width: SIDEBAR_WIDTH + 24, border: 0, borderRight: 1, borderColor: "divider" },
+          }}
+        >
+          <Sidebar onNavigate={() => setDrawerOpen(false)} />
+        </Drawer>
+      )}
+
+      <Box sx={{ flexGrow: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
+        <Box
+          component="header"
+          sx={{
+            position: "sticky",
+            top: 0,
+            zIndex: (t) => t.zIndex.appBar,
+            height: HEADER_HEIGHT,
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            px: { xs: 1, sm: 2 },
+            bgcolor: "dct.shell",
+            borderBottom: 1,
+            borderColor: "divider",
+          }}
+        >
+          {isDesktop ? null : (
+            <IconButton
+              onClick={() => setDrawerOpen(true)}
+              aria-label={t("appShell.openMenu")}
+              title={t("appShell.openMenu")}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
+          <Box sx={{ flexGrow: 1, minWidth: 0, display: "flex" }}>
+            <GlobalSearch />
+          </Box>
           <OfflineStatusIndicator />
           <UpdateAvailableChip />
-          <FormControlLabel
-            control={<Switch checked={mode === "dark"} onChange={toggleColorMode} />}
-            label={t("appShell.darkMode")}
-            sx={{
-              mr: 1,
-              ".MuiFormControlLabel-label": { display: { xs: "none", sm: "block" } },
-            }}
-          />
-          <IconButton
-            color="inherit"
-            onClick={handleLogout}
-            title={t("common.logOut")}
-            aria-label={t("common.logOut")}
-          >
-            <LogoutIcon />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
+          <Tooltip title={themeLabel}>
+            <IconButton onClick={toggleColorMode} aria-label={themeLabel}>
+              {mode === "dark" ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
+          </Tooltip>
+          <Tooltip title={t("common.logOut")}>
+            <IconButton onClick={handleLogout} aria-label={t("common.logOut")}>
+              <LogoutIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
 
-      {isCompact ? null : isExpanded ? <NavDrawer /> : <NavRail />}
-
-      <Box
-        component="main"
-        id="main-content"
-        sx={{
-          flexGrow: 1,
-          minWidth: 0,
-          width: { sm: `calc(100% - ${sideNavWidth}px)` },
-          p: { xs: 1.5, sm: 2, md: 3 },
-          pb: isCompact ? `${BOTTOM_NAV_HEIGHT + 24}px` : undefined,
-        }}
-      >
-        <Toolbar />
-        <Outlet />
+        <Box component="main" id="main-content" sx={{ flexGrow: 1, minWidth: 0 }}>
+          <Outlet />
+        </Box>
       </Box>
 
-      {isCompact ? <BottomNavBar /> : null}
-      <ToastContainer theme="colored" />
+      <ToastContainer theme={mode === "dark" ? "dark" : "light"} position="bottom-right" />
     </Box>
   );
 };

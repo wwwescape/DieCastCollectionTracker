@@ -32,6 +32,11 @@ class RefreshToken(Base):
     jti: Mapped[str] = mapped_column(String(36), nullable=False, unique=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Set when the token was rotated. Presenting a rotated token again (after a short grace
+    # period) means it was copied, so every session is signed out — see auth_service.
+    replaced_by_jti: Mapped[str | None] = mapped_column(
+        String(36), comment="Set when the token was rotated; presenting it again afterwards means reuse"
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     user: Mapped["User"] = relationship()

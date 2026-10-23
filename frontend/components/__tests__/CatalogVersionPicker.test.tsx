@@ -110,9 +110,7 @@ describe("CatalogVersionPicker", () => {
     expect(screen.getByText("Matches your search")).toBeInTheDocument();
 
     // The owned version: status and quantity chips, and "View in collection" instead of adding.
-    const owned = (await screen.findByText("2026 · Yellow")).closest(
-      ".MuiCard-root"
-    ) as HTMLElement;
+    const owned = (await screen.findByText("2026 · Yellow")).closest(".item-card") as HTMLElement;
     expect(within(owned).getByText("Owned")).toBeInTheDocument();
     expect(within(owned).getByLabelText("Quantity")).toHaveTextContent("3");
     await user.click(within(owned).getByRole("button", { name: "View in collection" }));
@@ -123,7 +121,7 @@ describe("CatalogVersionPicker", () => {
     });
 
     // Not owned, but a car from its series is: only the "related" chip.
-    const sameSeries = screen.getByText("2013 · Red").closest(".MuiCard-root") as HTMLElement;
+    const sameSeries = screen.getByText("2013 · Red").closest(".item-card") as HTMLElement;
     expect(within(sameSeries).queryByText("Owned")).not.toBeInTheDocument();
     expect(
       within(sameSeries).getByLabelText("You have vehicles from this series")
@@ -151,7 +149,7 @@ describe("CatalogVersionPicker", () => {
     renderPicker(vi.fn(), undefined, vi.fn());
 
     const packVersion = (await screen.findByText("2026 · Yellow")).closest(
-      ".MuiCard-root"
+      ".item-card"
     ) as HTMLElement;
     expect(within(packVersion).queryByText("Owned")).not.toBeInTheDocument();
     expect(
@@ -166,7 +164,7 @@ describe("CatalogVersionPicker", () => {
     const onPick = renderPicker();
 
     const card = (await screen.findByText("2010 · Metalflake Grey")).closest(
-      ".MuiCard-root"
+      ".item-card"
     ) as HTMLElement;
     await user.click(within(card).getByRole("button", { name: "Add this version" }));
 

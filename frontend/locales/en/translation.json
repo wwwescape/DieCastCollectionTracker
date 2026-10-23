@@ -40,7 +40,8 @@
     "wikiPhotoCopyError": "Couldn't copy the wiki photo. You can upload one yourself.",
     "vehicleCount_one": "{{count}} vehicle",
     "vehicleCount_other": "{{count}} vehicles",
-    "custom": "Custom"
+    "custom": "Custom",
+    "back": "Back"
   },
   "status": {
     "owned": "Owned",
@@ -70,12 +71,21 @@
     "about": "About",
     "vehicles": "Vehicles",
     "insights": "Insights",
-    "series": "Series"
+    "series": "Series",
+    "groups": {
+      "collection": "Collection",
+      "insights": "Insights",
+      "system": "System"
+    },
+    "addVehicle": "Add vehicle",
+    "addSet": "Add set"
   },
   "appShell": {
     "skipToMainContent": "Skip to main content",
-    "darkMode": "Dark Mode",
-    "updateAvailable": "New version available: {{version}}"
+    "darkMode": "Dark mode",
+    "updateAvailable": "New version available: {{version}}",
+    "lightMode": "Light mode",
+    "openMenu": "Open menu"
   },
   "offline": {
     "wentOffline": "You're offline. Changes will be saved and synced automatically once you're back online.",
@@ -105,10 +115,8 @@
       "passwordsMismatch": "Passwords don't match.",
       "createAccount": "Create admin account",
       "creatingAccount": "Creating account..."
-    }
-  },
-  "dashboard": {
-    "welcome": "Welcome to DieCastCollectionTracker"
+    },
+    "tooManyAttempts": "Too many attempts. Wait a few minutes and try again."
   },
   "collection": {
     "title": "Collection",
@@ -179,7 +187,11 @@
       "photosFailed_one": "{{count}} wiki photo couldn't be copied. You can upload it from the vehicle's page.",
       "photosFailed_other": "{{count}} wiki photos couldn't be copied. You can upload them from each vehicle's page.",
       "addError": "Error adding vehicles. Nothing was added; please try again."
-    }
+    },
+    "wikiResult": "Wiki result",
+    "confirmSet": "Is this the set?",
+    "useThisSet": "Use this set",
+    "loadError": "Couldn't load this from the wiki. Please try again."
   },
   "sets": {
     "title": "Sets",
@@ -218,7 +230,8 @@
     "deleteConfirmDescription": "\"{{name}}\" will be removed from your collection. This can't be undone.",
     "vehiclesIncluded": "Vehicles included",
     "linkedVehicles": "Linked vehicles",
-    "linkedVehiclesHelper": "Vehicles in your collection that came with this set"
+    "linkedVehiclesHelper": "Vehicles in your collection that came with this set",
+    "matchFilled": "Details filled in from the wiki. Review them and save."
   },
   "manufacturers": {
     "title": "Manufacturers",
@@ -233,7 +246,18 @@
     "subNavLabel": "Settings",
     "account": {
       "heading": "Account",
-      "signedInAs": "Signed in as <1>{{username}}</1>"
+      "signedInAs": "Signed in as <1>{{username}}</1>",
+      "password": "Password",
+      "passwordHelp": "Change the password you sign in with. Other browsers and devices are signed out; this one stays signed in.",
+      "changePassword": "Change password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm new password",
+      "passwordsDontMatch": "The passwords don't match.",
+      "wrongPassword": "The current password is incorrect.",
+      "changePasswordError": "Couldn't change the password. Please try again.",
+      "passwordChanged": "Password changed. Other devices have been signed out.",
+      "changing": "Changing..."
     },
     "display": {
       "heading": "Display",
@@ -241,7 +265,7 @@
       "highContrast": "High contrast",
       "accentColor": "Accent color",
       "customAccentColor": "Custom color",
-      "accentColorHelp": "Buttons, highlights and the top bar are all generated from this color, in both light and dark mode. Saved in this browser.",
+      "accentColorHelp": "Buttons, highlights and the active menu item use this color, in light and dark mode. Saved in this browser.",
       "resetAccentColor": "Reset color",
       "accentColors": {
         "blue": "Blue",
@@ -255,7 +279,10 @@
         "racingRed": "Racing red",
         "pink": "Pink",
         "violet": "Violet"
-      }
+      },
+      "lead": "How DCT looks in this browser.",
+      "darkModeHelp": "Dark surfaces, easier on the eyes at night.",
+      "highContrastHelp": "Stronger borders and text for readability."
     },
     "language": {
       "heading": "Language",
@@ -275,7 +302,8 @@
       "restoreDescription": "Uploading a backup will replace all current data. A safety snapshot is saved automatically before the restore.",
       "restoreButton": "Restore from Backup",
       "restoreError": "Failed to restore backup. Check the file and try again.",
-      "restored": "Restored {{cars}} vehicle(s) and {{sets}} set(s) from backup."
+      "restored": "Restored {{cars}} vehicle(s) and {{sets}} set(s) from backup.",
+      "lead": "Export your collection or restore it from a backup."
     },
     "share": {
       "heading": "Share",
@@ -291,6 +319,11 @@
       "regenerateConfirmTitle": "Regenerate share links?",
       "regenerateConfirmDescription": "The current links stop working straight away. Anyone you shared them with will need the new ones.",
       "vehiclesLink": "Vehicles link"
+    },
+    "general": "General",
+    "regional": {
+      "heading": "Language & currency",
+      "lead": "Used for labels and prices."
     }
   },
   "lookups": {
@@ -327,7 +360,29 @@
       "vehicleType": "Error adding vehicle type. Please try again.",
       "color": "Error adding color. Please try again.",
       "tag": "Error adding tag. Please try again."
-    }
+    },
+    "unused": "Not used",
+    "fromWiki": "From the wiki",
+    "wikiBackedHelp": "Used by vehicles or sets matched to the wiki. Renaming or merging it away would drift from the wiki, and the next Re-match would bring the old name back.",
+    "rename": "Rename",
+    "renameItem": "Rename {{name}}",
+    "renameTitle": "Rename “{{name}}”",
+    "renamed": "Renamed.",
+    "renameError": "Couldn't rename it. Please try again.",
+    "cantRenameWiki": "Comes from the wiki, so it can't be renamed",
+    "merge": "Merge",
+    "mergeItem": "Merge {{name}} into another",
+    "mergeTitle": "Merge “{{name}}”",
+    "mergeInto": "Merge into",
+    "mergeHelp": "Pick the entry to keep. Everything that uses “{{name}}” moves to it, and “{{name}}” is deleted.",
+    "mergeSummary": "{{usage}} will move from “{{from}}” to “{{into}}”.",
+    "merged": "Merged “{{from}}” into “{{into}}”.",
+    "mergeError": "Couldn't merge them. Please try again.",
+    "cantMergeWiki": "Comes from the wiki, so it can't be merged away (others can be merged into it)",
+    "nothingToMergeInto": "Nothing to merge into",
+    "cantDeleteInUse": "In use ({{usage}}), so it can't be deleted. Merge it into another instead.",
+    "deleteTagTitle": "Delete the tag “{{name}}”?",
+    "deleteTagDescription": "“{{name}}” will be taken off {{usage}}. The items themselves aren't changed otherwise."
   },
   "public": {
     "subNavLabel": "Shared collection",
@@ -358,20 +413,29 @@
   },
   "insights": {
     "stats": {
-      "piecesOwned": "Pieces Owned",
+      "piecesOwned": "Pieces owned",
       "owned": "Owned",
       "wishlist": "Wishlisted",
       "sets": "Sets",
-      "setsOwned": "Sets Owned",
-      "collectionValue": "Collection Value",
-      "byManufacturer": "By Manufacturer",
-      "byVehicleType": "By Vehicle Type",
-      "recentlyAdded": "Recently Added",
+      "setsOwned": "Sets owned",
+      "collectionValue": "Collection value",
+      "byManufacturer": "By manufacturer",
+      "byVehicleType": "By vehicle type",
+      "recentlyAdded": "Recently added",
       "noData": "No data yet.",
-      "totalVehicles": "Total Vehicles",
+      "totalVehicles": "Total vehicles",
       "noVehicles": "No vehicles yet."
     },
-    "title": "Insights"
+    "title": "Insights",
+    "breakdowns": "Breakdowns",
+    "byStatus": "Vehicles by status",
+    "byCondition": "Owned vehicles by condition",
+    "bySource": "Wiki or custom",
+    "byYear": "Vehicles by year",
+    "topSeries": "Top series",
+    "setsByType": "Sets by type",
+    "notSet": "Not set",
+    "other": "Other"
   },
   "vehicles": {
     "title": "Vehicles",
@@ -445,7 +509,22 @@
     "deselectAll": "Deselect all",
     "remove": "Remove",
     "moreActions": "More bulk actions",
-    "noMatch": "Nothing matches this search and these filters."
+    "noMatch": "Nothing matches this search and these filters.",
+    "select": "Select",
+    "done": "Done",
+    "options": "Options",
+    "view": "View",
+    "filters": "Filters",
+    "cardSize": "Card size",
+    "viewPhotos": "Photos",
+    "viewTable": "Table",
+    "viewOverview": "Overview",
+    "edit": "Edit",
+    "jumpTo": "Jump to letter",
+    "toyNumberShort": "Toy #",
+    "collectionNumberShort": "Col #",
+    "quantityShort": "Qty",
+    "viewCards": "Cards"
   },
   "listSort": {
     "nameAsc": "Name (A–Z)",
@@ -494,5 +573,60 @@
     "tagsChecked_other": "{{count}} tags ticked",
     "addSubmit": "Add tags",
     "removeSubmit": "Remove tags"
+  },
+  "search": {
+    "label": "Search the collection",
+    "placeholder": "Search vehicles, sets, series…",
+    "wiki": "Search the wiki for “{{query}}”",
+    "groups": {
+      "vehicle": "Vehicles",
+      "set": "Sets",
+      "series": "Series",
+      "manufacturer": "Manufacturers",
+      "wiki": "Not in your collection?"
+    }
+  },
+  "detail": {
+    "edit": "Edit",
+    "match": "Match to wiki",
+    "rematch": "Re-match",
+    "details": "Details",
+    "conditionNotSet": "Condition not set",
+    "toyNumber": "Toy # {{value}}",
+    "collectionNumber": "Col # {{value}}",
+    "wikiCasting": "Wiki page",
+    "moreFrom": "More from {{name}}",
+    "notInSets": "Not linked to any set.",
+    "noLinkedVehicles": "No vehicles in your collection are linked to this set."
+  },
+  "overview": {
+    "addVehicle": "Add a vehicle",
+    "addSet": "Add a set",
+    "quickAdd": "Quick add",
+    "wishlist": "Wishlist",
+    "viewAll": "View all",
+    "needsAttention": "Needs attention",
+    "pieces_one": "{{count}} piece owned",
+    "pieces_other": "{{count}} pieces owned",
+    "attention": {
+      "noPhoto": "Missing photo",
+      "notMatched": "Not matched to the wiki",
+      "noCondition": "No condition",
+      "noToyNumber": "No toy number"
+    }
+  },
+  "browse": {
+    "contents": "In the collection",
+    "has": {
+      "vehicles": "Has vehicles",
+      "sets": "Has sets"
+    },
+    "noYear": "No year",
+    "searchSeries": "Series name, manufacturer, year…",
+    "searchManufacturers": "Manufacturer name…",
+    "sort": {
+      "mostVehicles": "Most vehicles",
+      "mostSets": "Most sets"
+    }
   }
 }

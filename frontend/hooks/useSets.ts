@@ -12,6 +12,7 @@ import {
   updateSet,
   type SetListParams,
 } from "../api/sets";
+import { importSetPhotoFromWiki } from "../api/catalog";
 import type { SetInput } from "../api/types";
 
 // Set changes move the Collection overview's counts, and create/update can add a
@@ -105,6 +106,14 @@ export function useSetSetPhotoPrimary(setId: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (photoId: number) => setSetPhotoPrimary(setId, photoId),
+    onSuccess: () => invalidateSetQueries(queryClient),
+  });
+}
+
+export function useImportSetPhotoFromWiki(setId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (url: string) => importSetPhotoFromWiki(setId, url),
     onSuccess: () => invalidateSetQueries(queryClient),
   });
 }
