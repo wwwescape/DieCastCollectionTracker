@@ -75,7 +75,7 @@ function renderPage() {
 }
 
 const cardFor = async (name: string) =>
-  (await screen.findByText(name)).closest(".MuiCard-root") as HTMLElement;
+  (await screen.findByText(name)).closest(".item-card") as HTMLElement;
 
 describe("CatalogPackPage", () => {
   beforeEach(() => {

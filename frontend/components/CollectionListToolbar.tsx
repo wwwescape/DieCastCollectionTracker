@@ -1,33 +1,37 @@
-import { useRef, useState, type ReactNode } from "react";
-import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import CheckBoxOutlineBlankIcon from "@mui/icons-material/CheckBoxOutlineBlank";
+import { useState, type ReactNode } from "react";
+import AddCircleIcon from "@mui/icons-material/AddCircleOutline";
+import CheckBoxIcon from "@mui/icons-material/CheckBoxOutlined";
+import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
 import CloseIcon from "@mui/icons-material/Close";
-import DeleteIcon from "@mui/icons-material/Delete";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import GridViewIcon from "@mui/icons-material/GridView";
 import SearchIcon from "@mui/icons-material/Search";
-import Badge from "@mui/material/Badge";
+import SwapVertIcon from "@mui/icons-material/SwapVert";
+import TableRowsIcon from "@mui/icons-material/TableRowsOutlined";
+import TuneIcon from "@mui/icons-material/Tune";
+import ViewAgendaIcon from "@mui/icons-material/ViewAgendaOutlined";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import ButtonGroup from "@mui/material/ButtonGroup";
 import Checkbox from "@mui/material/Checkbox";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
+import Divider from "@mui/material/Divider";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Grid from "@mui/material/Grid2";
 import IconButton from "@mui/material/IconButton";
 import InputAdornment from "@mui/material/InputAdornment";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
+import ListSubheader from "@mui/material/ListSubheader";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import Paper from "@mui/material/Paper";
+import Slider from "@mui/material/Slider";
 import Stack from "@mui/material/Stack";
-import Tab from "@mui/material/Tab";
-import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
 import ToggleButton from "@mui/material/ToggleButton";
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
@@ -35,7 +39,7 @@ import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useTranslation } from "react-i18next";
 import AutocompleteMultiSelect from "./AutocompleteMultiSelect";
-import AutocompleteSelect from "./AutocompleteSelect";
+import { ToolbarButton, ToolbarDivider } from "./Page";
 
 // One filter in the Filters dialog: a multi-select plus its Exclude flag and, for a field an
 // item can have several values of (tags), a Match any / Match all toggle.
@@ -65,9 +69,23 @@ export interface BulkAction {
   onClick: () => void;
 }
 
+// "cards" is Photos for things without photos of their own (series, manufacturers).
+export type ListView = "photos" | "cards" | "table" | "overview";
+
+export const CARD_SIZE_MIN = 140;
+export const CARD_SIZE_MAX = 300;
+export const CARD_SIZE_DEFAULT = 190;
+
 interface CollectionListToolbarProps {
-  search: string;
-  onSearchChange: (value: string) => void;
+  // Leave out on pages you don't add to from here (Series, Manufacturers).
+  addLabel?: string;
+  addTo?: string;
+  // The views this page offers, first is the default; card size applies to photos and cards.
+  views?: ListView[];
+  view: ListView;
+  onViewChange: (value: ListView) => void;
+  cardSize: number;
+  onCardSizeChange: (value: number) => void;
   // Each entry's own type varies (ids, enum values...), so the list itself is loosely typed.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   filters: FilterField<any>[];
@@ -75,16 +93,17 @@ interface CollectionListToolbarProps {
   sortOptions: SortOption[];
   sort: string;
   onSortChange: (value: string) => void;
-  selectLabel: string;
-  selectionMode: boolean;
-  selectedCount: number;
+  // Selection and bulk actions: leave out on pages without them.
+  selectLabel?: string;
+  selectionMode?: boolean;
+  selectedCount?: number;
   visibleCount: number;
-  allVisibleSelected: boolean;
-  onEnterSelectionMode: () => void;
-  onExitSelectionMode: () => void;
-  onToggleSelectAll: () => void;
-  onBulkDelete: () => void;
-  bulkActions: BulkAction[];
+  allVisibleSelected?: boolean;
+  onEnterSelectionMode?: () => void;
+  onExitSelectionMode?: () => void;
+  onToggleSelectAll?: () => void;
+  onBulkDelete?: () => void;
+  bulkActions?: BulkAction[];
 }
 
 interface FilterFieldOptionsProps {
@@ -133,10 +152,10 @@ const FilterFieldOptions = ({
               disabled={selectedCount < 2}
               aria-label={t("listToolbar.matchMode")}
             >
-              <ToggleButton value="any" sx={{ py: 0.25, textTransform: "none" }}>
+              <ToggleButton value="any" sx={{ py: 0.25 }}>
                 {t("listToolbar.matchAny")}
               </ToggleButton>
-              <ToggleButton value="all" sx={{ py: 0.25, textTransform: "none" }}>
+              <ToggleButton value="all" sx={{ py: 0.25 }}>
                 {t("listToolbar.matchAll")}
               </ToggleButton>
             </ToggleButtonGroup>
@@ -147,231 +166,320 @@ const FilterFieldOptions = ({
   );
 };
 
-// The Vehicles and Sets toolbar, modelled on VideoGameTrackarr's Games toolbar: search, a
-// Filters & Sort dialog behind a badge showing how many filter values are active, and a
-// selection mode with Select all, Remove and a menu of further bulk actions.
+// A menu choice with a tick on the current one.
+const CheckedItem = ({
+  checked,
+  icon,
+  label,
+  onClick,
+}: {
+  checked: boolean;
+  icon?: ReactNode;
+  label: string;
+  onClick: () => void;
+}) => (
+  <MenuItem selected={checked} onClick={onClick} role="menuitemradio" aria-checked={checked}>
+    {icon ? <ListItemIcon>{icon}</ListItemIcon> : null}
+    <ListItemText>{label}</ListItemText>
+    <CheckIcon
+      fontSize="small"
+      sx={{ ml: 2, visibility: checked ? "visible" : "hidden", color: "primary.main" }}
+    />
+  </MenuItem>
+);
+
+type MenuName = "options" | "view" | "sort" | "bulk";
+
+// The Vehicles and Sets toolbar: Add and Select on the left; Options (card
+// size), View, Sort and Filter on the right. Filter opens the full dialog with Exclude and
+// Match all per field. Selection mode swaps the row for Done, Select all, the bulk actions and
+// Remove.
 const CollectionListToolbar = ({
-  search,
-  onSearchChange,
+  addLabel,
+  addTo,
+  views: viewKeys = ["photos", "table", "overview"],
+  view,
+  onViewChange,
+  cardSize,
+  onCardSizeChange,
   filters,
   onClearFilters,
   sortOptions,
   sort,
   onSortChange,
   selectLabel,
-  selectionMode,
-  selectedCount,
+  selectionMode = false,
+  selectedCount = 0,
   visibleCount,
-  allVisibleSelected,
+  allVisibleSelected = false,
   onEnterSelectionMode,
   onExitSelectionMode,
   onToggleSelectAll,
   onBulkDelete,
-  bulkActions,
+  bulkActions = [],
 }: CollectionListToolbarProps) => {
   const { t } = useTranslation();
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [tab, setTab] = useState<"filter" | "sort">("filter");
-  const [menuOpen, setMenuOpen] = useState(false);
-  const buttonGroupRef = useRef<HTMLDivElement>(null);
+  const [menu, setMenu] = useState<{ name: MenuName; anchor: HTMLElement } | null>(null);
+  const openMenu = (name: MenuName) => (event: React.MouseEvent<HTMLElement>) =>
+    setMenu({ name, anchor: event.currentTarget });
+  const closeMenu = () => setMenu(null);
 
   const activeFilterCount = filters.reduce((total, field) => total + field.selected.length, 0);
-  const selectedSort = sortOptions.find((option) => option.value === sort) ?? sortOptions[0];
 
   if (selectionMode) {
+    const allLabel = allVisibleSelected ? t("listToolbar.deselectAll") : t("listToolbar.selectAll");
     return (
-      <Paper sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2 }}>
-        <Stack direction="row" spacing={{ xs: 0.5, sm: 1.5 }} sx={{ alignItems: "center" }}>
-          <IconButton onClick={onExitSelectionMode} aria-label={t("listToolbar.exitSelection")}>
-            <CloseIcon />
-          </IconButton>
-          <Typography variant="subtitle1" noWrap sx={{ flexGrow: 1, minWidth: 0 }}>
-            {t("listToolbar.selectedCount", { count: selectedCount })}
-          </Typography>
-          <Tooltip
-            title={allVisibleSelected ? t("listToolbar.deselectAll") : t("listToolbar.selectAll")}
-          >
-            <span>
-              <IconButton
-                onClick={onToggleSelectAll}
-                aria-label={
-                  allVisibleSelected ? t("listToolbar.deselectAll") : t("listToolbar.selectAll")
-                }
-                aria-pressed={allVisibleSelected}
-                disabled={visibleCount === 0}
-                color={allVisibleSelected ? "primary" : "default"}
-                sx={{ bgcolor: allVisibleSelected ? "action.selected" : undefined }}
-              >
-                <DoneAllIcon />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <ButtonGroup
-            ref={buttonGroupRef}
-            color="error"
-            variant="contained"
-            disabled={selectedCount === 0}
-          >
-            {/* Icon-only on phones, so the whole bar fits on one line. */}
-            <Button onClick={onBulkDelete} aria-label={t("listToolbar.remove")}>
-              <DeleteIcon fontSize="small" />
-              <Box component="span" sx={{ display: { xs: "none", sm: "inline" }, ml: 1 }}>
-                {t("listToolbar.remove")}
-              </Box>
-            </Button>
-            {bulkActions.length ? (
-              <Button
-                size="small"
-                onClick={() => setMenuOpen(true)}
-                aria-label={t("listToolbar.moreActions")}
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-              >
-                <ArrowDropDownIcon />
-              </Button>
-            ) : null}
-          </ButtonGroup>
-          <Menu
-            anchorEl={buttonGroupRef.current}
-            open={menuOpen}
-            onClose={() => setMenuOpen(false)}
-            anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-            transformOrigin={{ vertical: "top", horizontal: "right" }}
-          >
-            {bulkActions.map((action) => (
-              <MenuItem
-                key={action.key}
-                onClick={() => {
-                  setMenuOpen(false);
-                  action.onClick();
-                }}
-              >
-                <ListItemIcon>{action.icon}</ListItemIcon>
-                <ListItemText>{action.label}</ListItemText>
-              </MenuItem>
-            ))}
-          </Menu>
-        </Stack>
-      </Paper>
+      <>
+        <ToolbarButton
+          icon={<CloseIcon />}
+          label={t("listToolbar.done")}
+          onClick={onExitSelectionMode}
+          hideLabelOnPhone
+          aria-label={t("listToolbar.exitSelection")}
+        />
+        <Typography variant="subtitle2" noWrap sx={{ px: 1 }}>
+          {t("listToolbar.selectedCount", { count: selectedCount })}
+        </Typography>
+        <ToolbarButton
+          icon={<DoneAllIcon />}
+          label={allLabel}
+          onClick={onToggleSelectAll}
+          active={allVisibleSelected}
+          disabled={visibleCount === 0}
+        />
+        <Box sx={{ flexGrow: 1 }} />
+        {/* Desktop: every bulk action has its own button; phones fold them into a menu. */}
+        <Box sx={{ display: { xs: "none", md: "contents" } }}>
+          {bulkActions.map((action) => (
+            <ToolbarButton
+              key={action.key}
+              icon={action.icon}
+              label={action.label}
+              onClick={action.onClick}
+              disabled={selectedCount === 0}
+            />
+          ))}
+        </Box>
+        {bulkActions.length ? (
+          <Box sx={{ display: { xs: "contents", md: "none" } }}>
+            <ToolbarButton
+              icon={<TuneIcon />}
+              label={t("listToolbar.edit")}
+              onClick={openMenu("bulk")}
+              disabled={selectedCount === 0}
+              aria-label={t("listToolbar.moreActions")}
+              aria-haspopup="menu"
+            />
+          </Box>
+        ) : null}
+        <ToolbarDivider />
+        <ToolbarButton
+          icon={<DeleteIcon />}
+          label={t("listToolbar.remove")}
+          onClick={onBulkDelete}
+          danger
+          disabled={selectedCount === 0}
+        />
+        <Menu anchorEl={menu?.anchor} open={menu?.name === "bulk"} onClose={closeMenu}>
+          {bulkActions.map((action) => (
+            <MenuItem
+              key={action.key}
+              onClick={() => {
+                closeMenu();
+                action.onClick();
+              }}
+            >
+              <ListItemIcon>{action.icon}</ListItemIcon>
+              <ListItemText>{action.label}</ListItemText>
+            </MenuItem>
+          ))}
+        </Menu>
+      </>
     );
   }
 
+  const allViews: Record<ListView, { label: string; icon: ReactNode }> = {
+    photos: { label: t("listToolbar.viewPhotos"), icon: <GridViewIcon fontSize="small" /> },
+    cards: { label: t("listToolbar.viewCards"), icon: <GridViewIcon fontSize="small" /> },
+    table: { label: t("listToolbar.viewTable"), icon: <TableRowsIcon fontSize="small" /> },
+    overview: { label: t("listToolbar.viewOverview"), icon: <ViewAgendaIcon fontSize="small" /> },
+  };
+  const views = viewKeys.map((value) => ({ value, ...allViews[value] }));
+  const currentView = views.find((option) => option.value === view) ?? views[0];
+
   return (
-    <Paper sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2 }}>
-      <Stack direction="row" spacing={1}>
-        <TextField
-          label={t("common.search")}
-          placeholder={t("listToolbar.searchPlaceholder")}
-          value={search}
-          onChange={(event) => onSearchChange(event.target.value)}
-          fullWidth
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon />
-                </InputAdornment>
-              ),
-              endAdornment: search ? (
-                <InputAdornment position="end">
-                  <IconButton
-                    size="small"
-                    onClick={() => onSearchChange("")}
-                    aria-label={t("listToolbar.clearSearch")}
-                  >
-                    <ClearIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ) : null,
-            },
-          }}
+    <>
+      {addLabel && addTo ? (
+        <ToolbarButton icon={<AddCircleIcon />} label={addLabel} to={addTo} primary />
+      ) : null}
+      {onEnterSelectionMode ? (
+        <ToolbarButton
+          icon={<CheckBoxIcon />}
+          label={t("listToolbar.select")}
+          aria-label={selectLabel}
+          onClick={onEnterSelectionMode}
+          disabled={visibleCount === 0}
         />
-        <Tooltip title={t("listToolbar.filtersAndSort")}>
-          <IconButton
-            onClick={() => setFiltersOpen(true)}
-            aria-label={t("listToolbar.filtersAndSort")}
-            sx={{ alignSelf: "center" }}
-          >
-            <Badge badgeContent={activeFilterCount} color="primary">
-              <FilterListIcon />
-            </Badge>
-          </IconButton>
-        </Tooltip>
-        <Tooltip title={selectLabel}>
-          <span style={{ alignSelf: "center" }}>
-            <IconButton
-              onClick={onEnterSelectionMode}
-              aria-label={selectLabel}
-              disabled={visibleCount === 0}
-            >
-              <CheckBoxOutlineBlankIcon />
-            </IconButton>
-          </span>
-        </Tooltip>
-      </Stack>
+      ) : null}
+      <Box sx={{ flexGrow: 1 }} />
+      {view === "photos" || view === "cards" ? (
+        <ToolbarButton
+          icon={<TuneIcon />}
+          label={t("listToolbar.options")}
+          onClick={openMenu("options")}
+          aria-haspopup="menu"
+        />
+      ) : null}
+      <ToolbarButton
+        icon={currentView.icon}
+        label={t("listToolbar.view")}
+        onClick={openMenu("view")}
+        aria-haspopup="menu"
+      />
+      <ToolbarButton
+        icon={<SwapVertIcon />}
+        label={t("listToolbar.sortTab")}
+        onClick={openMenu("sort")}
+        aria-haspopup="menu"
+      />
+      {filters.length ? (
+        <ToolbarButton
+          icon={<FilterListIcon />}
+          label={t("listToolbar.filterTab")}
+          onClick={() => setFiltersOpen(true)}
+          active={activeFilterCount > 0}
+          count={activeFilterCount}
+          aria-label={t("listToolbar.filters")}
+        />
+      ) : null}
+
+      <Menu anchorEl={menu?.anchor} open={menu?.name === "options"} onClose={closeMenu}>
+        <ListSubheader sx={{ lineHeight: "28px", bgcolor: "transparent" }}>
+          {t("listToolbar.cardSize")}
+        </ListSubheader>
+        <Box sx={{ px: 2.5, pb: 1, width: 240 }}>
+          <Slider
+            size="small"
+            min={CARD_SIZE_MIN}
+            max={CARD_SIZE_MAX}
+            step={10}
+            value={cardSize}
+            onChange={(_event, value) => onCardSizeChange(value as number)}
+            aria-label={t("listToolbar.cardSize")}
+          />
+        </Box>
+      </Menu>
+      <Menu anchorEl={menu?.anchor} open={menu?.name === "view"} onClose={closeMenu}>
+        {views.map((option) => (
+          <CheckedItem
+            key={option.value}
+            checked={option.value === view}
+            icon={option.icon}
+            label={option.label}
+            onClick={() => {
+              onViewChange(option.value);
+              closeMenu();
+            }}
+          />
+        ))}
+      </Menu>
+      <Menu anchorEl={menu?.anchor} open={menu?.name === "sort"} onClose={closeMenu}>
+        {sortOptions.map((option) => (
+          <CheckedItem
+            key={option.value}
+            checked={option.value === sort}
+            label={option.label}
+            onClick={() => {
+              onSortChange(option.value);
+              closeMenu();
+            }}
+          />
+        ))}
+      </Menu>
+
       <Dialog open={filtersOpen} onClose={() => setFiltersOpen(false)} fullWidth maxWidth="md">
-        <DialogTitle>{t("listToolbar.filtersAndSort")}</DialogTitle>
-        <Tabs value={tab} onChange={(_event, value) => setTab(value)} variant="fullWidth">
-          <Tab value="filter" label={t("listToolbar.filterTab")} />
-          <Tab value="sort" label={t("listToolbar.sortTab")} />
-        </Tabs>
+        <DialogTitle>{t("listToolbar.filters")}</DialogTitle>
+        <Divider />
         <DialogContent>
-          {tab === "filter" ? (
-            <Grid container spacing={2} sx={{ mt: 0.5 }}>
-              {filters.map((field) => (
-                <Grid key={field.key} size={{ xs: 12, sm: 6 }}>
-                  <Stack spacing={0.5}>
-                    <AutocompleteMultiSelect
-                      label={field.label}
-                      options={field.options}
-                      value={field.selected}
-                      onChange={field.onChange}
-                      getOptionLabel={field.getOptionLabel}
-                      isOptionEqualToValue={field.isOptionEqualToValue}
-                      placeholder={t("listToolbar.allPlaceholder")}
-                      fullWidth
-                    />
-                    <FilterFieldOptions
-                      selectedCount={field.selected.length}
-                      exclude={field.exclude}
-                      onExcludeChange={field.onExcludeChange}
-                      matchAll={field.matchAll}
-                      onMatchAllChange={field.onMatchAllChange}
-                    />
-                  </Stack>
-                </Grid>
-              ))}
-            </Grid>
-          ) : (
-            <Grid container spacing={2} sx={{ mt: 0.5 }}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <AutocompleteSelect<SortOption>
-                  label={t("listToolbar.sortBy")}
-                  options={sortOptions}
-                  value={selectedSort}
-                  onChange={(newValue) => onSortChange(newValue?.value ?? sortOptions[0].value)}
-                  getOptionLabel={(option) => option.label}
-                  isOptionEqualToValue={(option, val) => option.value === val.value}
-                  disableClearable
-                  fullWidth
-                />
+          <Grid container spacing={2} sx={{ mt: 0.5 }}>
+            {filters.map((field) => (
+              <Grid key={field.key} size={{ xs: 12, sm: 6 }}>
+                <Stack spacing={0.5}>
+                  <AutocompleteMultiSelect
+                    label={field.label}
+                    options={field.options}
+                    value={field.selected}
+                    onChange={field.onChange}
+                    getOptionLabel={field.getOptionLabel}
+                    isOptionEqualToValue={field.isOptionEqualToValue}
+                    placeholder={t("listToolbar.allPlaceholder")}
+                    fullWidth
+                  />
+                  <FilterFieldOptions
+                    selectedCount={field.selected.length}
+                    exclude={field.exclude}
+                    onExcludeChange={field.onExcludeChange}
+                    matchAll={field.matchAll}
+                    onMatchAllChange={field.onMatchAllChange}
+                  />
+                </Stack>
               </Grid>
-            </Grid>
-          )}
+            ))}
+          </Grid>
         </DialogContent>
         <DialogActions>
-          {tab === "filter" ? (
-            <Button onClick={onClearFilters} disabled={activeFilterCount === 0}>
-              {t("listToolbar.clearFilters")}
-            </Button>
-          ) : null}
+          <Button onClick={onClearFilters} disabled={activeFilterCount === 0}>
+            {t("listToolbar.clearFilters")}
+          </Button>
           <Button onClick={() => setFiltersOpen(false)} variant="contained">
             {t("listToolbar.close")}
           </Button>
         </DialogActions>
       </Dialog>
-    </Paper>
+    </>
   );
 };
 
 export default CollectionListToolbar;
+
+interface ListSearchFieldProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}
+
+// The list's own search, beside the breadcrumbs: narrows what's shown here, where the header
+// search jumps to a single item.
+export const ListSearchField = ({ value, onChange, placeholder }: ListSearchFieldProps) => {
+  const { t } = useTranslation();
+  return (
+    <TextField
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      placeholder={placeholder ?? t("listToolbar.searchPlaceholder")}
+      sx={{ width: { xs: "100%", sm: 320 } }}
+      slotProps={{
+        htmlInput: { "aria-label": t("common.search") },
+        input: {
+          startAdornment: (
+            <InputAdornment position="start">
+              <SearchIcon fontSize="small" sx={{ color: "dct.text3" }} />
+            </InputAdornment>
+          ),
+          endAdornment: value ? (
+            <InputAdornment position="end">
+              <IconButton
+                size="small"
+                onClick={() => onChange("")}
+                aria-label={t("listToolbar.clearSearch")}
+              >
+                <ClearIcon fontSize="small" />
+              </IconButton>
+            </InputAdornment>
+          ) : null,
+        },
+      }}
+    />
+  );
+};

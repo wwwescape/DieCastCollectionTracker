@@ -3,7 +3,6 @@ import { toast } from "react-toastify";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import IconButton from "@mui/material/IconButton";
-import Paper from "@mui/material/Paper";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
@@ -15,6 +14,8 @@ import type { UseMutationResult } from "@tanstack/react-query";
 import type { CarPhoto } from "../api/types";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
 import { useTranslation } from "react-i18next";
+import { Section } from "./Detail";
+import PhotoImg from "./PhotoImg";
 
 // Shared by vehicles and sets: the caller passes that item's photo mutations.
 interface PhotoGalleryProps {
@@ -67,11 +68,9 @@ const PhotoGallery = ({
   };
 
   return (
-    <Paper sx={{ p: { xs: 1.5, sm: 2 }, borderRadius: 2 }}>
-      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
-        <Typography variant="subtitle1" fontWeight={600}>
-          {t("gallery.title")}
-        </Typography>
+    <Section
+      title={t("gallery.title")}
+      action={
         <Tooltip title={t("gallery.add")}>
           <span>
             <IconButton
@@ -84,15 +83,15 @@ const PhotoGallery = ({
             </IconButton>
           </span>
         </Tooltip>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={(e) => void handleFileChange(e)}
-        />
-      </Box>
-
+      }
+    >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => void handleFileChange(e)}
+      />
       {sorted.length === 0 ? (
         <Typography variant="body2" color="text.secondary">
           {t("gallery.empty")}
@@ -104,20 +103,19 @@ const PhotoGallery = ({
               key={photo.id}
               sx={{
                 position: "relative",
-                width: 120,
-                height: 90,
-                borderRadius: 1,
+                width: 180,
+                height: 135,
+                borderRadius: 2,
                 overflow: "hidden",
+                bgcolor: "dct.photoBg",
                 border: photo.isPrimary ? "2px solid" : "1px solid",
                 borderColor: photo.isPrimary ? "primary.main" : "divider",
                 flexShrink: 0,
               }}
             >
-              <Box
-                component="img"
-                src={resolveAssetUrl(photo.url) ?? undefined}
+              <PhotoImg
+                src={resolveAssetUrl(photo.url)}
                 alt={photo.isPrimary ? t("gallery.primaryPhoto") : photoAlt}
-                sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
               />
               <Box
                 sx={{
@@ -192,7 +190,7 @@ const PhotoGallery = ({
           ))}
         </Box>
       )}
-    </Paper>
+    </Section>
   );
 };
 

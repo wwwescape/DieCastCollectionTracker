@@ -1,4 +1,3 @@
-import Chip from "@mui/material/Chip";
 import { useTranslation } from "react-i18next";
 import { resolveAssetUrl } from "../api/client";
 import type { Car } from "../api/types";
@@ -10,6 +9,7 @@ export type CarCardData = Pick<
   | "name"
   | "manufacturerName"
   | "seriesName"
+  | "year"
   | "status"
   | "photo"
   | "condition"
@@ -26,25 +26,24 @@ interface CarCardProps {
   onToggleSelect?: () => void;
 }
 
+// Photo, name and one meta line (series or manufacturer · year · condition). Owned is the
+// default, so only wishlisted cars get a badge.
 const CarCard = ({ car, onClick, selectable, selected, onToggleSelect }: CarCardProps) => {
   const { t } = useTranslation();
   return (
     <ItemCard
       title={car.name}
-      subtitle={[car.manufacturerName, car.seriesName].filter(Boolean).join(" · ")}
+      subtitle={[
+        car.seriesName || car.manufacturerName,
+        car.year,
+        car.condition ? t(`conditions.${car.condition}`) : null,
+      ]
+        .filter(Boolean)
+        .join(" · ")}
       imageUrl={resolveAssetUrl(car.photo)}
       holding={car}
+      wishlistOnly
       custom={!car.catalogTitle}
-      chips={
-        car.condition ? (
-          <Chip
-            label={t(`conditions.${car.condition}`)}
-            size="small"
-            variant="outlined"
-            color="info"
-          />
-        ) : null
-      }
       onClick={onClick}
       selectable={selectable}
       selected={selected}

@@ -247,5 +247,6 @@ def restore_backup(db: Session, payload: BackupPayload) -> BackupRestoreResult:
     return BackupRestoreResult(
         restored_cars=len(payload.cars),
         restored_sets=len(payload.sets),
-        safety_snapshot_path=str(safety_snapshot_path),
+        # Just the file name: the server's own directory layout is none of the client's business.
+        safety_snapshot_path=safety_snapshot_path.name,
     )

@@ -71,3 +71,50 @@ export async function createSeries(name: string, manufacturer: string | null): P
 export async function deleteSeries(id: number): Promise<void> {
   await apiClient.delete(`/api/series/${id}`);
 }
+
+// --- Settings → Lookups: usage, rename, merge (backend app/services/lookup_service.py) ---
+
+export type LookupKind = "manufacturers" | "series" | "vehicle-types" | "colors" | "tags";
+
+export interface LookupUsage {
+  id: number;
+  carCount: number;
+  setCount: number;
+  // Used by a wiki-matched vehicle or set: renaming or merging it away isn't allowed.
+  wikiBacked: boolean;
+}
+
+export interface LookupsUsage {
+  manufacturers: LookupUsage[];
+  series: LookupUsage[];
+  vehicleTypes: LookupUsage[];
+  colors: LookupUsage[];
+  tags: LookupUsage[];
+}
+
+export interface LookupEntry {
+  id: number;
+  name: string;
+  color: string | null;
+}
+
+export async function getLookupsUsage(): Promise<LookupsUsage> {
+  return (await apiClient.get<LookupsUsage>("/api/lookups/usage")).data;
+}
+
+// `color` is only sent for tags; leave it out to keep the tag's current color.
+export async function renameLookup(
+  kind: LookupKind,
+  id: number,
+  body: { name: string; color?: string | null }
+): Promise<LookupEntry> {
+  return (await apiClient.patch<LookupEntry>(`/api/lookups/${kind}/${id}`, body)).data;
+}
+
+export async function mergeLookup(
+  kind: LookupKind,
+  id: number,
+  intoId: number
+): Promise<LookupEntry> {
+  return (await apiClient.post<LookupEntry>(`/api/lookups/${kind}/${id}/merge`, { intoId })).data;
+}

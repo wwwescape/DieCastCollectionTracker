@@ -11,17 +11,18 @@ import AboutPage from "./pages/AboutPage";
 import CatalogCastingPage from "./pages/CatalogCastingPage";
 import CatalogPackPage from "./pages/CatalogPackPage";
 import CatalogSetPage from "./pages/CatalogSetPage";
-import CollectionPage from "./pages/CollectionPage";
-import DashboardPage from "./pages/DashboardPage";
 import InsightsPage from "./pages/InsightsPage";
 import Login from "./pages/Login";
 import LookupsPage from "./pages/LookupsPage";
+import OverviewPage from "./pages/OverviewPage";
 import ManufacturerPage from "./pages/ManufacturerPage";
 import ManufacturersPage from "./pages/ManufacturersPage";
 import PublicCollectionPage from "./pages/PublicCollectionPage";
 import SeriesListPage from "./pages/SeriesListPage";
 import SeriesPage from "./pages/SeriesPage";
+import SetPage from "./pages/SetPage";
 import SettingsPage from "./pages/SettingsPage";
+import VehiclePage from "./pages/VehiclePage";
 import ProtectedLayout from "./routes/ProtectedLayout";
 
 // Pre-1.3 car edit links (/cars/:id/edit) now live under /collection/vehicles.
@@ -62,16 +63,18 @@ const router = createBrowserRouter([
       {
         element: <AppShell />,
         children: [
-          { path: "/", element: <DashboardPage /> },
-          { path: "/collection", element: <CollectionPage /> },
+          { path: "/", element: <OverviewPage /> },
+          { path: "/collection", element: <Navigate to="/" replace /> },
           { path: "/collection/vehicles", element: <CarList /> },
           { path: "/collection/vehicles/add", element: <AddCarPage /> },
           { path: "/collection/vehicles/add/catalog", element: <CatalogCastingPage /> },
           { path: "/collection/vehicles/add/pack", element: <CatalogPackPage /> },
+          { path: "/collection/vehicles/:id", element: <VehiclePage /> },
           { path: "/collection/vehicles/:id/edit", element: <EditCarPage /> },
           { path: "/collection/sets", element: <SetList /> },
           { path: "/collection/sets/add", element: <AddSetPage /> },
           { path: "/collection/sets/add/catalog", element: <CatalogSetPage /> },
+          { path: "/collection/sets/:id", element: <SetPage /> },
           { path: "/collection/sets/:id/edit", element: <EditSetPage /> },
           { path: "/collection/manufacturers", element: <ManufacturersPage /> },
           { path: "/collection/manufacturers/:id", element: <ManufacturerPage /> },

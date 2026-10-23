@@ -13,6 +13,10 @@ import {
   listManufacturers,
   listSeries,
   listSeriesOverview,
+  getLookupsUsage,
+  mergeLookup,
+  renameLookup,
+  type LookupKind,
   listVehicleTypes,
 } from "../api/lookups";
 
@@ -107,5 +111,42 @@ export function useDeleteSeries() {
   return useMutation({
     mutationFn: deleteSeries,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["series"] }),
+  });
+}
+
+// --- Settings → Lookups: usage, rename, merge ---
+
+export const LOOKUPS_USAGE_KEY = ["lookups", "usage"] as const;
+
+export function useLookupsUsage() {
+  return useQuery({ queryKey: LOOKUPS_USAGE_KEY, queryFn: getLookupsUsage });
+}
+
+// A rename or merge changes names shown all over the app (cards, filters, series pages), so
+// everything is refetched rather than guessing which queries mention the entry.
+export function useRenameLookup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      kind,
+      id,
+      name,
+      color,
+    }: {
+      kind: LookupKind;
+      id: number;
+      name: string;
+      color?: string | null;
+    }) => renameLookup(kind, id, color === undefined ? { name } : { name, color }),
+    onSuccess: () => queryClient.invalidateQueries(),
+  });
+}
+
+export function useMergeLookup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ kind, id, intoId }: { kind: LookupKind; id: number; intoId: number }) =>
+      mergeLookup(kind, id, intoId),
+    onSuccess: () => queryClient.invalidateQueries(),
   });
 }

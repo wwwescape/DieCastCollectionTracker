@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
 from app.core.config import get_settings
+from app.core.rate_limit import password_throttle
 from app.core.security import hash_password
 from app.main import app
 from app.models import Base
@@ -53,3 +54,19 @@ def auth_client(client, test_user):
     token = login.json()["accessToken"]
     client.headers.update({"Authorization": f"Bearer {token}"})
     return client
+
+
+@pytest.fixture(autouse=True)
+def _reset_password_throttle():
+    # The throttle is process-wide; one test's failed logins mustn't lock out the next test.
+    password_throttle.reset()
+    yield
+    password_throttle.reset()
+
+
+@pytest.fixture(autouse=True)
+def _isolate_backup_snapshots(tmp_path, monkeypatch):
+    # Restores write a safety snapshot first; keep the tests' ones out of the real db/backups.
+    from app.services import backup_service
+
+    monkeypatch.setattr(backup_service, "BACKUPS_DIR", tmp_path / "backups")

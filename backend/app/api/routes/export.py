@@ -9,6 +9,10 @@ from app.services import backup_service, csv_service
 
 router = APIRouter(tags=["export"], dependencies=[Depends(get_current_user)])
 
+# Backups hold names, facts and photo URLs, not the photos themselves, so even a large
+# collection is a few MB. The cap stops an oversized upload from being read into memory.
+MAX_BACKUP_BYTES = 50 * 1024 * 1024
+
 
 @router.get("/api/export/csv")
 def export_csv(db: Session = Depends(get_db)) -> Response:
@@ -32,7 +36,11 @@ def export_backup(db: Session = Depends(get_db)) -> Response:
 
 @router.post("/api/import/backup", response_model=BackupRestoreResult)
 async def restore_backup(file: UploadFile = File(...), db: Session = Depends(get_db)) -> BackupRestoreResult:
-    raw = await file.read()
+    raw = await file.read(MAX_BACKUP_BYTES + 1)
+    if len(raw) > MAX_BACKUP_BYTES:
+        raise HTTPException(
+            status_code=413, detail=f"Backup file is larger than {MAX_BACKUP_BYTES // (1024 * 1024)} MB"
+        )
     try:
         payload = backup_service.parse_backup_payload(raw.decode("utf-8"))
     except (UnicodeDecodeError, ValidationError, ValueError) as exc:

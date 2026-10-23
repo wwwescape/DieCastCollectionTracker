@@ -53,3 +53,35 @@ class SeriesOverviewResponse(SeriesResponse):
 class SeriesCreateRequest(CamelModel):
     name: str = Field(min_length=1, max_length=255)
     manufacturer: str | None = None
+
+
+class LookupUsageResponse(CamelModel):
+    id: int
+    car_count: int
+    set_count: int
+    # Used by a wiki-matched vehicle or set, so it can't be renamed or merged away.
+    wiki_backed: bool
+
+
+class LookupsUsageResponse(CamelModel):
+    manufacturers: list[LookupUsageResponse]
+    series: list[LookupUsageResponse]
+    vehicle_types: list[LookupUsageResponse]
+    colors: list[LookupUsageResponse]
+    tags: list[LookupUsageResponse]
+
+
+class LookupRenameRequest(CamelModel):
+    name: str = Field(min_length=1, max_length=255)
+    # Tags only: the chip color (null clears it). Left out, the color is kept.
+    color: str | None = None
+
+
+class LookupMergeRequest(CamelModel):
+    into_id: int
+
+
+class LookupEntryResponse(CamelModel):
+    id: int
+    name: str
+    color: str | None = None

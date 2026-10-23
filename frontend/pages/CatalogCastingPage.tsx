@@ -1,4 +1,4 @@
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import Backdrop from "@mui/material/Backdrop";
 import Button from "@mui/material/Button";
@@ -7,6 +7,8 @@ import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useTranslation } from "react-i18next";
+import Page from "../components/Page";
+import { openedFrom, useStepBack } from "../utils/navState";
 import type { CatalogCasting, CatalogSourceId, CatalogVersion } from "../api/catalog";
 import type { AddCarLocationState } from "../components/AddCarPage";
 import CatalogVersionPicker from "../components/CatalogVersionPicker";
@@ -19,9 +21,11 @@ const SOURCES: CatalogSourceId[] = ["hotwheels", "matchbox"];
 // Step two of "Add Car → From wiki catalog": every release of one casting, newest first.
 // Picking one copies its photo into uploads/ and opens the Add Car form pre-filled; one
 // that's already in the collection opens the existing car instead.
-const CatalogCastingPage = () => {
+const CatalogCastingPageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const stepBack = useStepBack();
+  const location = useLocation();
   const [params] = useSearchParams();
   const sourceParam = params.get("source");
   const source = SOURCES.find((candidate) => candidate === sourceParam);
@@ -47,7 +51,7 @@ const CatalogCastingPage = () => {
   return (
     <Stack spacing={2}>
       <div>
-        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate("/collection/vehicles/add")}>
+        <Button startIcon={<ArrowBackIcon />} onClick={() => stepBack("/collection/vehicles/add")}>
           {t("common.backToSearch")}
         </Button>
       </div>
@@ -59,7 +63,9 @@ const CatalogCastingPage = () => {
           pickLabel={t("catalog.addThisVersion")}
           busy={importImage.isPending}
           onPick={(casting, version) => void handlePick(casting, version)}
-          onOpenExisting={(holding) => navigate(`/collection/vehicles/${holding.id}/edit`)}
+          onOpenExisting={(holding) =>
+            navigate(`/collection/vehicles/${holding.id}`, { state: openedFrom(location) })
+          }
         />
       ) : (
         <Paper sx={{ p: 3, textAlign: "center" }}>{t("catalog.noCasting")}</Paper>
@@ -71,6 +77,23 @@ const CatalogCastingPage = () => {
         <CircularProgress color="inherit" aria-label={t("common.copyingPhoto")} />
       </Backdrop>
     </Stack>
+  );
+};
+
+// The wiki result in the page frame: breadcrumbs back to the list and the search.
+const CatalogCastingPage = () => {
+  const { t } = useTranslation();
+  return (
+    <Page
+      crumbs={[
+        { label: t("nav.collection") },
+        { label: t("vehicles.title"), to: "/collection/vehicles" },
+        { label: t("vehicles.addVehicle"), to: "/collection/vehicles/add" },
+        { label: t("catalog.wikiResult") },
+      ]}
+    >
+      <CatalogCastingPageContent />
+    </Page>
   );
 };
 

@@ -1,8 +1,15 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MemoryRouter } from "react-router-dom";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { activeDestination, isPathWithin } from "../destinations";
-import NavDrawer from "../NavDrawer";
+import Sidebar from "../Sidebar";
+
+vi.mock("../../hooks/useCars", () => ({ useCarList: () => ({ data: [{ id: 1 }, { id: 2 }] }) }));
+vi.mock("../../hooks/useSets", () => ({ useSetList: () => ({ data: [{ id: 1 }] }) }));
+vi.mock("../../hooks/useVersion", () => ({
+  useVersion: () => ({ data: { currentVersion: "1.8.0" } }),
+}));
 
 describe("destinations", () => {
   it("matches a section and everything under it, but '/' only exactly", () => {
@@ -12,36 +19,49 @@ describe("destinations", () => {
     expect(isPathWithin("/", "/")).toBe(true);
   });
 
-  it("picks the top-level destination for nested pages", () => {
-    expect(activeDestination("/collection/sets/add/catalog")?.labelKey).toBe("nav.collection");
-    expect(activeDestination("/")?.labelKey).toBe("nav.dashboard");
-    expect(activeDestination("/settings")?.labelKey).toBe("nav.settings");
+  it("picks the destination for nested pages", () => {
+    expect(activeDestination("/collection/sets/add/catalog")?.labelKey).toBe("nav.sets");
+    expect(activeDestination("/")?.labelKey).toBe("nav.overview");
+    expect(activeDestination("/settings/lookups")?.labelKey).toBe("nav.settings");
   });
 });
 
-describe("NavDrawer", () => {
+describe("Sidebar", () => {
   function renderAt(path: string) {
     render(
-      <MemoryRouter initialEntries={[path]}>
-        <NavDrawer />
-      </MemoryRouter>
+      <QueryClientProvider client={new QueryClient()}>
+        <MemoryRouter initialEntries={[path]}>
+          <Sidebar />
+        </MemoryRouter>
+      </QueryClientProvider>
     );
   }
 
-  it("highlights the sub-item you're in rather than its section", () => {
+  it("highlights the section you're in and shows its sub-pages", () => {
     renderAt("/collection/sets/4/edit");
 
-    expect(screen.getByRole("link", { name: "Sets" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getByRole("link", { name: "Collection" })).not.toHaveAttribute("aria-current");
-    expect(screen.getByRole("link", { name: "Vehicles" })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: /^Sets/ })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: /^Vehicles/ })).not.toHaveAttribute("aria-current");
+    expect(screen.getByRole("link", { name: "Add set" })).not.toHaveAttribute("aria-current");
+    expect(screen.queryByRole("link", { name: "Add vehicle" })).not.toBeInTheDocument();
   });
 
-  it("highlights the section itself on its overview page", () => {
-    renderAt("/collection");
+  it("highlights a sub-page instead of its parent", () => {
+    renderAt("/collection/vehicles/add/catalog");
 
-    expect(screen.getByRole("link", { name: "Collection" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Add vehicle" })).toHaveAttribute(
       "aria-current",
       "page"
     );
+    expect(screen.getByRole("link", { name: /^Vehicles/ })).not.toHaveAttribute("aria-current");
+  });
+
+  it("shows collection counts and the version", () => {
+    renderAt("/");
+
+    expect(screen.getByRole("link", { name: "Overview" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getByRole("link", { name: "Vehicles 2" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Sets 1" })).toBeInTheDocument();
+    expect(screen.getByText("v1.8.0")).toBeInTheDocument();
   });
 });

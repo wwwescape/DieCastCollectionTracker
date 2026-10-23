@@ -1,12 +1,10 @@
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import Button from "@mui/material/Button";
-import Paper from "@mui/material/Paper";
 import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
-import DeleteIcon from "@mui/icons-material/Delete";
-import MenuBookIcon from "@mui/icons-material/MenuBook";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import DeleteIcon from "@mui/icons-material/DeleteOutline";
+import MenuBookIcon from "@mui/icons-material/MenuBookOutlined";
 import { useTranslation } from "react-i18next";
 import type { CarInput } from "../api/types";
 import {
@@ -19,17 +17,35 @@ import {
   useUpdateCar,
 } from "../hooks/useCars";
 import { versionToFormValues } from "../utils/catalog";
+import { navState, useEditReturn } from "../utils/navState";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
 import CarForm, { carToFormValues, type CarFormValues } from "./CarForm";
 import CatalogMatchDialog from "./CatalogMatchDialog";
 import ConfirmDialog from "./ConfirmDialog";
+import { EmptyState } from "./ListViews";
+import Page, { ToolbarButton, ToolbarDivider } from "./Page";
 import PhotoGallery from "./PhotoGallery";
 
 const EditCarPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  // "Match to wiki" on the vehicle's page lands here with the match dialog already open. The
+  // flag is used once, then dropped from history, so coming back to this entry later doesn't
+  // open the dialog again.
+  const location = useLocation();
+  const openMatch = Boolean(navState(location)?.openMatch);
+  useEffect(() => {
+    if (openMatch) {
+      navigate(location.pathname, {
+        replace: true,
+        state: { ...navState(location), openMatch: false },
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const carId = Number(id);
+  const returnToItem = useEditReturn(`/collection/vehicles/${carId}`);
   const { data: car, isLoading } = useCar(Number.isFinite(carId) ? carId : undefined);
   const updateCar = useUpdateCar(carId);
   const deleteCar = useDeleteCar();
@@ -37,7 +53,7 @@ const EditCarPage = () => {
   const addPhoto = useAddCarPhoto(carId);
   const deletePhoto = useDeleteCarPhoto(carId);
   const setPrimaryPhoto = useSetCarPhotoPrimary(carId);
-  const [matchOpen, setMatchOpen] = useState(false);
+  const [matchOpen, setMatchOpen] = useState(openMatch);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   // A catalog match is applied to the form, not saved — the user reviews it and saves as
   // usual. Bumping the key remounts CarForm so it picks up the merged values.
@@ -48,7 +64,7 @@ const EditCarPage = () => {
     try {
       await updateCar.mutateAsync(input);
       toast.success(t("vehicles.updated"), TOAST_OPTIONS);
-      navigate("/collection/vehicles");
+      returnToItem();
     } catch (error) {
       console.error("Error updating car:", error);
       toast.error(t("vehicles.updateError"), TOAST_OPTIONS);
@@ -60,57 +76,63 @@ const EditCarPage = () => {
     try {
       await deleteCar.mutateAsync(carId);
       toast.success(t("vehicles.deleted", { name: car?.name }), TOAST_OPTIONS);
-      navigate("/collection/vehicles");
+      navigate("/collection/vehicles", { replace: true });
     } catch (error) {
       console.error("Error deleting car:", error);
       toast.error(t("vehicles.deleteError"), TOAST_OPTIONS);
     }
   };
 
-  if (isLoading) {
-    return <Paper sx={{ p: 3, textAlign: "center" }}>{t("common.loading")}</Paper>;
-  }
-  if (!car) {
-    return <Paper sx={{ p: 3, textAlign: "center" }}>{t("vehicles.notFound")}</Paper>;
+  const listCrumbs = [
+    { label: t("nav.collection") },
+    { label: t("vehicles.title"), to: "/collection/vehicles" },
+  ];
+  if (isLoading || !car) {
+    return (
+      <Page crumbs={listCrumbs}>
+        <EmptyState>{isLoading ? t("common.loading") : t("vehicles.notFound")}</EmptyState>
+      </Page>
+    );
   }
 
   const formValues = matchedValues ?? carToFormValues(car);
 
   return (
-    <>
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{
-          mb: 2,
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          rowGap: 1,
-        }}
-      >
-        <Typography variant="h4" component="h1">
-          {t("vehicles.editVehicle")}
-        </Typography>
-        <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap", rowGap: 1 }}>
-          <Button
-            variant="outlined"
-            startIcon={<MenuBookIcon />}
+    <Page
+      crumbs={[
+        ...listCrumbs,
+        { label: car.name, to: `/collection/vehicles/${car.id}` },
+        { label: t("detail.edit") },
+      ]}
+      toolbar={
+        <>
+          <ToolbarButton
+            icon={<ArrowBackIcon />}
+            label={car.name}
+            onClick={returnToItem}
+            sx={{
+              maxWidth: 260,
+              "& > span:last-of-type": { overflow: "hidden", textOverflow: "ellipsis" },
+            }}
+          />
+          <ToolbarDivider />
+          <ToolbarButton
+            icon={<MenuBookIcon />}
+            label={car.catalogTitle ? t("detail.rematch") : t("detail.match")}
             onClick={() => setMatchOpen(true)}
-          >
-            {car.catalogTitle ? t("vehicles.rematchToCatalog") : t("vehicles.matchToCatalog")}
-          </Button>
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<DeleteIcon />}
-            disabled={deleteCar.isPending}
-            onClick={() => setConfirmDeleteOpen(true)}
-          >
-            {t("common.delete")}
-          </Button>
-        </Stack>
-      </Stack>
+          />
+        </>
+      }
+      toolbarEnd={
+        <ToolbarButton
+          icon={<DeleteIcon />}
+          label={t("common.delete")}
+          danger
+          disabled={deleteCar.isPending}
+          onClick={() => setConfirmDeleteOpen(true)}
+        />
+      }
+    >
       <Stack spacing={2}>
         <CarForm
           key={formKey}
@@ -157,7 +179,7 @@ const EditCarPage = () => {
         onClose={() => setConfirmDeleteOpen(false)}
         onConfirm={() => void handleDelete()}
       />
-    </>
+    </Page>
   );
 };
 

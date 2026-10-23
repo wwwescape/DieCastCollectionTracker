@@ -62,3 +62,13 @@ def source_filter(
 def order_by(column: Any, descending: bool) -> list[Any]:
     """Sort with empty values last either way (SQLite puts NULLs first ascending)."""
     return [column.is_(None), column.desc() if descending else column.asc()]
+
+
+LIKE_ESCAPE = "\\"
+
+
+def like_pattern(search: str) -> str:
+    """A "contains" pattern for ILIKE with the user's own % and _ taken literally (use with
+    escape=LIKE_ESCAPE), so a search for "50%" means 50%, not "50 followed by anything"."""
+    escaped = search.replace(LIKE_ESCAPE, LIKE_ESCAPE * 2).replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"

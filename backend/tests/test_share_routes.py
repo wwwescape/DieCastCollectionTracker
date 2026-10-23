@@ -49,3 +49,29 @@ def test_public_lists_hide_owner_data(auth_client, client):
 def test_unknown_share_token_is_404(client):
     assert client.get("/api/public/not-a-token/cars").status_code == 404
     assert client.get("/api/public/not-a-token/sets").status_code == 404
+
+
+def test_public_search_does_not_match_private_notes(auth_client):
+    auth_client.post(
+        "/api/cars", json={"name": "Bone Shaker", "manufacturer": "Hot Wheels", "notes": "paid 500 at the flea market"}
+    )
+    auth_client.post(
+        "/api/sets", json={"name": "Fire Station", "manufacturer": "Hot Wheels", "setType": "playset", "notes": "flea"}
+    )
+    token = auth_client.get("/api/share-link").json()["token"]
+
+    assert auth_client.get(f"/api/public/{token}/cars", params={"search": "flea"}).json() == []
+    assert auth_client.get(f"/api/public/{token}/sets", params={"search": "flea"}).json() == []
+    # The owner's own search still finds notes.
+    assert len(auth_client.get("/api/cars", params={"search": "flea"}).json()) == 1
+    # And public search still works on the public fields.
+    assert len(auth_client.get(f"/api/public/{token}/cars", params={"search": "Bone"}).json()) == 1
+
+
+def test_search_treats_percent_and_underscore_literally(auth_client):
+    auth_client.post("/api/cars", json={"name": "Model_T", "manufacturer": "Hot Wheels"})
+    auth_client.post("/api/cars", json={"name": "ModelXT", "manufacturer": "Hot Wheels"})
+
+    names = [car["name"] for car in auth_client.get("/api/cars", params={"search": "Model_T"}).json()]
+    assert names == ["Model_T"]
+    assert auth_client.get("/api/cars", params={"search": "%"}).json() == []

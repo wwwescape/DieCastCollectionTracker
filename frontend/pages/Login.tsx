@@ -7,6 +7,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { isAxiosError } from "axios";
 import { useTranslation } from "react-i18next";
 import { useLogin, useSetupStatus } from "../hooks/useAuth";
 import SetupAdmin from "./SetupAdmin";
@@ -41,7 +42,9 @@ const LoginForm = ({ onDone }: LoginFormProps) => {
       </Typography>
       {loginMutation.isError && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {t("auth.login.invalid")}
+          {isAxiosError(loginMutation.error) && loginMutation.error.response?.status === 429
+            ? t("auth.tooManyAttempts")
+            : t("auth.login.invalid")}
         </Alert>
       )}
       <Box component="form" onSubmit={handleSubmit}>
@@ -83,7 +86,10 @@ const Login = () => {
   const setupStatus = useSetupStatus();
 
   const goToApp = () => {
-    const redirectTo = (location.state as { from?: string } | null)?.from ?? "/";
+    const from = (location.state as { from?: string } | null)?.from;
+    // Only ever back to a page of this app: a plain "/path", never "//host" or "/\host",
+    // which browsers treat as another site.
+    const redirectTo = from && /^\/(?![/\\])/.test(from) ? from : "/";
     navigate(redirectTo, { replace: true });
   };
 
@@ -94,10 +100,18 @@ const Login = () => {
         minHeight: "100vh",
         alignItems: "center",
         justifyContent: "center",
+        flexDirection: "column",
+        gap: 2.5,
         p: 2,
       }}
     >
-      <Paper sx={{ p: 4, width: "100%", maxWidth: 400, borderRadius: 2 }}>
+      <Box
+        component="img"
+        src="/DieCastCollectionTracker.svg"
+        alt=""
+        sx={{ width: 64, height: 64 }}
+      />
+      <Paper sx={{ p: { xs: 3, sm: 4 }, width: "100%", maxWidth: 400, borderRadius: 3 }}>
         {setupStatus.isLoading ? (
           // Avoid flashing the wrong form (sign-in vs create-admin) while we don't yet know
           // whether an admin account exists.

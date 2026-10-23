@@ -12,10 +12,12 @@ import type { CatalogSearchSource } from "../api/catalog";
 import type { CarInput } from "../api/types";
 import { useCreateCar } from "../hooks/useCars";
 import { readSessionValue, writeSessionValue } from "../utils/sessionValue";
+import { useStepBack } from "../utils/navState";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
 import CarForm, { withFormDefaults, type CarFormValues } from "./CarForm";
 import CatalogSearch from "./CatalogSearch";
 import { useTranslation } from "react-i18next";
+import Page from "./Page";
 
 type AddMode = "catalog" | "manual";
 
@@ -24,6 +26,8 @@ export interface AddCarLocationState {
   // Where "Back" returns to, when not the prefill's casting page (e.g. the multi-pack page a
   // car was picked from).
   backTo?: string;
+  // Text from the header's "Search the wiki" option.
+  catalogQuery?: string;
 }
 
 const MODE_KEY = "addCar.mode";
@@ -34,6 +38,7 @@ const AddCarPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const stepBack = useStepBack();
   const createCar = useCreateCar();
   const locationState = location.state as AddCarLocationState | null;
   const prefill = locationState?.prefill;
@@ -42,7 +47,9 @@ const AddCarPage = () => {
   // and shows the pre-filled form for review in place of the search. Switching tabs drops the
   // prefill, so "Manually" always means a blank form.
   const [mode, setMode] = useState<AddMode>(
-    prefill ? "catalog" : readSessionValue<AddMode>(MODE_KEY, "catalog")
+    prefill || locationState?.catalogQuery
+      ? "catalog"
+      : readSessionValue<AddMode>(MODE_KEY, "catalog")
   );
   const [showPrefill, setShowPrefill] = useState(Boolean(prefill));
 
@@ -54,7 +61,7 @@ const AddCarPage = () => {
 
   const backToVersions = () => {
     if (locationState?.backTo) {
-      navigate(locationState.backTo);
+      stepBack(locationState.backTo);
       return;
     }
     if (!prefill?.catalogSource || !prefill.catalogTitle) {
@@ -66,14 +73,15 @@ const AddCarPage = () => {
       title: prefill.catalogTitle,
       q: readSessionValue(QUERY_KEY, ""),
     });
-    navigate(`/collection/vehicles/add/catalog?${params}`);
+    stepBack(`/collection/vehicles/add/catalog?${params}`);
   };
 
   const handleSubmit = async (input: CarInput) => {
     try {
       await createCar.mutateAsync(input);
       toast.success(t("vehicles.added"), TOAST_OPTIONS);
-      navigate("/collection/vehicles");
+      // Replace the filled-in form, so Back can't reopen it and add the same thing twice.
+      navigate("/collection/vehicles", { replace: true });
     } catch (error) {
       console.error("Error adding car:", error);
       toast.error(t("vehicles.addError"), TOAST_OPTIONS);
@@ -81,15 +89,16 @@ const AddCarPage = () => {
   };
 
   return (
-    <>
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          {t("vehicles.addVehicle")}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {t("vehicles.addIntro")}
-        </Typography>
-      </Box>
+    <Page
+      crumbs={[
+        { label: t("nav.collection") },
+        { label: t("vehicles.title"), to: "/collection/vehicles" },
+        { label: t("vehicles.addVehicle") },
+      ]}
+    >
+      <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
+        {t("vehicles.addIntro")}
+      </Typography>
       <RadioGroup
         row
         value={mode}
@@ -114,6 +123,8 @@ const AddCarPage = () => {
         </>
       ) : mode === "catalog" ? (
         <CatalogSearch
+          // The header's "Search the wiki" sends fresh text; remount so it runs even here.
+          key={locationState?.catalogQuery ? location.key : undefined}
           initialQuery={readSessionValue(QUERY_KEY, "")}
           initialSource={readSessionValue<CatalogSearchSource>(SOURCE_KEY, "all")}
           onQueryChange={(query, source) => {
@@ -136,7 +147,7 @@ const AddCarPage = () => {
       ) : (
         <CarForm submitLabel={t("vehicles.addVehicle")} onSubmit={handleSubmit} />
       )}
-    </>
+    </Page>
   );
 };
 

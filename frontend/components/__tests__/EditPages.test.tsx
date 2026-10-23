@@ -113,8 +113,6 @@ describe("deleting from the edit pages", () => {
 
     expect(deleteSpy).not.toHaveBeenCalled();
     // The page is aria-hidden until the dialog's close transition finishes.
-    await waitFor(() =>
-      expect(screen.getByRole("heading", { name: "Edit Set" })).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByRole("heading", { name: "Edit" })).toBeInTheDocument());
   });
 });

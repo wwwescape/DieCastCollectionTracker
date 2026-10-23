@@ -9,10 +9,10 @@ import Stack from "@mui/material/Stack";
 import Tab from "@mui/material/Tab";
 import Tabs from "@mui/material/Tabs";
 import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
 import type { AxiosError } from "axios";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
+import { useQueryClient } from "@tanstack/react-query";
 import {
   useColors,
   useCreateColor,
@@ -23,6 +23,8 @@ import {
   useDeleteManufacturer,
   useDeleteSeries,
   useDeleteVehicleType,
+  LOOKUPS_USAGE_KEY,
+  useLookupsUsage,
   useManufacturers,
   useSeries,
   useVehicleTypes,
@@ -31,7 +33,8 @@ import { useCreateTag, useDeleteTag, useTags } from "../hooks/useTags";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
 import LookupSection from "../components/LookupSection";
 import AutocompleteSelect from "../components/AutocompleteSelect";
-import SettingsSubNav from "../components/SettingsSubNav";
+import Page from "../components/Page";
+import { SettingsToolbar } from "../components/SettingsLayout";
 import type { NamedLookup } from "../api/types";
 
 // The API's 409 detail is English; the translated message says the same thing.
@@ -117,6 +120,11 @@ const LookupsPage = () => {
   );
   const setTab = (index: number) => setParams({ tab: TABS[index].key }, { replace: true });
 
+  // What uses each entry, and whether a wiki-matched item does; refreshed after every change.
+  const queryClient = useQueryClient();
+  const { data: usage } = useLookupsUsage();
+  const refreshUsage = () => queryClient.invalidateQueries({ queryKey: LOOKUPS_USAGE_KEY });
+
   // Manufacturers
   const { data: manufacturers, isLoading: mfrsLoading } = useManufacturers();
   const createManufacturer = useCreateManufacturer();
@@ -153,6 +161,7 @@ const LookupsPage = () => {
   const handleDelete = async (fn: () => Promise<void>) => {
     try {
       await fn();
+      void refreshUsage();
       toast.success(t("lookups.deleted"), TOAST_OPTIONS);
     } catch (error) {
       console.error("Error deleting item:", error);
@@ -166,6 +175,7 @@ const LookupsPage = () => {
     try {
       await createManufacturer.mutateAsync(name);
       setMfrName("");
+      void refreshUsage();
       toast.success(t("lookups.added.manufacturer"), TOAST_OPTIONS);
     } catch (error) {
       console.error("Error adding manufacturer:", error);
@@ -180,6 +190,7 @@ const LookupsPage = () => {
       await createSeries.mutateAsync({ name, manufacturer: seriesManufacturer?.name ?? null });
       setSeriesName("");
       setSeriesManufacturer(null);
+      void refreshUsage();
       toast.success(t("lookups.added.series"), TOAST_OPTIONS);
     } catch (error) {
       console.error("Error adding series:", error);
@@ -193,6 +204,7 @@ const LookupsPage = () => {
     try {
       await createVehicleType.mutateAsync(name);
       setVtName("");
+      void refreshUsage();
       toast.success(t("lookups.added.vehicleType"), TOAST_OPTIONS);
     } catch (error) {
       console.error("Error adding vehicle type:", error);
@@ -206,6 +218,7 @@ const LookupsPage = () => {
     try {
       await createColor.mutateAsync(name);
       setColorName("");
+      void refreshUsage();
       toast.success(t("lookups.added.color"), TOAST_OPTIONS);
     } catch (error) {
       console.error("Error adding color:", error);
@@ -220,6 +233,7 @@ const LookupsPage = () => {
       await createTag.mutateAsync({ name, color: tagUseColor ? tagColor : null });
       setTagName("");
       setTagUseColor(false);
+      void refreshUsage();
       toast.success(t("lookups.added.tag"), TOAST_OPTIONS);
     } catch (error) {
       console.error("Error adding tag:", error);
@@ -228,196 +242,207 @@ const LookupsPage = () => {
   };
 
   return (
-    <Stack spacing={2}>
-      <Typography variant="h4" component="h1">
-        {t("lookups.title")}
-      </Typography>
-      <SettingsSubNav />
-
-      <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
-        <Tabs
-          value={tab}
-          onChange={(_, v: number) => setTab(v)}
-          variant="scrollable"
-          scrollButtons="auto"
-        >
-          {TABS.map((item, index) => (
-            <Tab
-              key={item.key}
-              label={t(item.labelKey)}
-              id={`lookups-tab-${index}`}
-              aria-controls={`lookups-tabpanel-${index}`}
-            />
-          ))}
-        </Tabs>
-      </Box>
-
-      <TabPanel value={tab} index={0}>
-        <LookupSection
-          title={t("lookups.tabs.manufacturers")}
-          items={(manufacturers ?? []).map((m) => ({ id: m.id, label: m.name }))}
-          isLoading={mfrsLoading}
-          onDelete={(id) => void handleDelete(() => deleteManufacturer.mutateAsync(id))}
-        >
-          <SimpleAddForm
-            label={t("lookups.manufacturerName")}
-            value={mfrName}
-            onChange={setMfrName}
-            onAdd={() => void handleAddManufacturer()}
-          />
-        </LookupSection>
-      </TabPanel>
-
-      <TabPanel value={tab} index={1}>
-        <LookupSection
-          title={t("lookups.tabs.series")}
-          items={(allSeries ?? []).map((s) => ({
-            id: s.id,
-            label: s.name,
-            secondary: s.manufacturerName ?? undefined,
-          }))}
-          isLoading={seriesLoading}
-          onDelete={(id) => void handleDelete(() => deleteSeries.mutateAsync(id))}
-        >
-          <Stack
-            component="form"
-            spacing={1}
-            onSubmit={(e: FormEvent) => {
-              e.preventDefault();
-              void handleAddSeries();
-            }}
-            flexWrap="wrap"
-            useFlexGap
-            direction="row"
+    <Page
+      crumbs={[{ label: t("settings.title"), to: "/settings" }, { label: t("lookups.title") }]}
+      toolbar={<SettingsToolbar />}
+    >
+      <Stack spacing={2} sx={{ maxWidth: 980 }}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Tabs
+            value={tab}
+            onChange={(_, v: number) => setTab(v)}
+            variant="scrollable"
+            scrollButtons="auto"
           >
-            <TextField
-              label={t("lookups.seriesName")}
-              size="small"
-              value={seriesName}
-              onChange={(e) => setSeriesName(e.target.value)}
-              sx={{ minWidth: 220 }}
-            />
-            <AutocompleteSelect<NamedLookup>
-              label={t("lookups.seriesManufacturer")}
-              options={manufacturers ?? []}
-              value={seriesManufacturer}
-              getOptionLabel={(opt) => opt.name}
-              isOptionEqualToValue={(opt, val) => opt.id === val.id}
-              onChange={(val) => setSeriesManufacturer(val)}
-              sx={{ minWidth: 220 }}
-              size="small"
-            />
-            <Button
-              type="submit"
-              variant="contained"
-              startIcon={<AddIcon />}
-              disabled={!seriesName.trim()}
-            >
-              {t("common.add")}
-            </Button>
-          </Stack>
-        </LookupSection>
-      </TabPanel>
-
-      <TabPanel value={tab} index={2}>
-        <LookupSection
-          title={t("lookups.tabs.vehicleTypes")}
-          items={(vehicleTypes ?? []).map((v) => ({ id: v.id, label: v.name }))}
-          isLoading={vtLoading}
-          onDelete={(id) => void handleDelete(() => deleteVehicleType.mutateAsync(id))}
-        >
-          <SimpleAddForm
-            label={t("lookups.vehicleTypeName")}
-            value={vtName}
-            onChange={setVtName}
-            onAdd={() => void handleAddVehicleType()}
-          />
-        </LookupSection>
-      </TabPanel>
-
-      <TabPanel value={tab} index={3}>
-        <LookupSection
-          title={t("lookups.tabs.colors")}
-          items={(colors ?? []).map((c) => ({ id: c.id, label: c.name }))}
-          isLoading={colorsLoading}
-          onDelete={(id) => void handleDelete(() => deleteColor.mutateAsync(id))}
-        >
-          <SimpleAddForm
-            label={t("lookups.colorName")}
-            value={colorName}
-            onChange={setColorName}
-            onAdd={() => void handleAddColor()}
-          />
-        </LookupSection>
-      </TabPanel>
-
-      <TabPanel value={tab} index={4}>
-        <LookupSection
-          title={t("lookups.tabs.tags")}
-          items={(tags ?? []).map((tag) => ({ id: tag.id, label: tag.name, color: tag.color }))}
-          isLoading={tagsLoading}
-          onDelete={(id) => void handleDelete(() => deleteTag.mutateAsync(id))}
-        >
-          <Stack
-            component="form"
-            spacing={1}
-            onSubmit={(e: FormEvent) => {
-              e.preventDefault();
-              void handleAddTag();
-            }}
-            flexWrap="wrap"
-            useFlexGap
-            direction="row"
-            alignItems="center"
-          >
-            <TextField
-              label={t("lookups.tagName")}
-              size="small"
-              value={tagName}
-              onChange={(e) => setTagName(e.target.value)}
-              sx={{ minWidth: 220 }}
-            />
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={tagUseColor}
-                  onChange={(e) => setTagUseColor(e.target.checked)}
-                  size="small"
-                />
-              }
-              label={t("lookups.customColor")}
-            />
-            {tagUseColor && (
-              <Box
-                component="input"
-                type="color"
-                value={tagColor}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagColor(e.target.value)}
-                aria-label={t("lookups.tagColor")}
-                sx={{
-                  width: 40,
-                  height: 36,
-                  cursor: "pointer",
-                  border: "1px solid",
-                  borderColor: "divider",
-                  borderRadius: 1,
-                  p: 0.5,
-                  bgcolor: "transparent",
-                }}
+            {TABS.map((item, index) => (
+              <Tab
+                key={item.key}
+                label={t(item.labelKey)}
+                id={`lookups-tab-${index}`}
+                aria-controls={`lookups-tabpanel-${index}`}
               />
-            )}
-            <Button
-              type="submit"
-              variant="contained"
-              startIcon={<AddIcon />}
-              disabled={!tagName.trim()}
+            ))}
+          </Tabs>
+        </Box>
+
+        <TabPanel value={tab} index={0}>
+          <LookupSection
+            kind="manufacturers"
+            usage={usage?.manufacturers}
+            title={t("lookups.tabs.manufacturers")}
+            items={(manufacturers ?? []).map((m) => ({ id: m.id, label: m.name }))}
+            isLoading={mfrsLoading}
+            onDelete={(id) => void handleDelete(() => deleteManufacturer.mutateAsync(id))}
+          >
+            <SimpleAddForm
+              label={t("lookups.manufacturerName")}
+              value={mfrName}
+              onChange={setMfrName}
+              onAdd={() => void handleAddManufacturer()}
+            />
+          </LookupSection>
+        </TabPanel>
+
+        <TabPanel value={tab} index={1}>
+          <LookupSection
+            kind="series"
+            usage={usage?.series}
+            title={t("lookups.tabs.series")}
+            items={(allSeries ?? []).map((s) => ({
+              id: s.id,
+              label: s.name,
+              secondary: s.manufacturerName ?? undefined,
+              group: s.manufacturerId,
+            }))}
+            isLoading={seriesLoading}
+            onDelete={(id) => void handleDelete(() => deleteSeries.mutateAsync(id))}
+          >
+            <Stack
+              component="form"
+              spacing={1}
+              onSubmit={(e: FormEvent) => {
+                e.preventDefault();
+                void handleAddSeries();
+              }}
+              flexWrap="wrap"
+              useFlexGap
+              direction="row"
             >
-              {t("common.add")}
-            </Button>
-          </Stack>
-        </LookupSection>
-      </TabPanel>
-    </Stack>
+              <TextField
+                label={t("lookups.seriesName")}
+                size="small"
+                value={seriesName}
+                onChange={(e) => setSeriesName(e.target.value)}
+                sx={{ minWidth: 220 }}
+              />
+              <AutocompleteSelect<NamedLookup>
+                label={t("lookups.seriesManufacturer")}
+                options={manufacturers ?? []}
+                value={seriesManufacturer}
+                getOptionLabel={(opt) => opt.name}
+                isOptionEqualToValue={(opt, val) => opt.id === val.id}
+                onChange={(val) => setSeriesManufacturer(val)}
+                sx={{ minWidth: 220 }}
+                size="small"
+              />
+              <Button
+                type="submit"
+                variant="contained"
+                startIcon={<AddIcon />}
+                disabled={!seriesName.trim()}
+              >
+                {t("common.add")}
+              </Button>
+            </Stack>
+          </LookupSection>
+        </TabPanel>
+
+        <TabPanel value={tab} index={2}>
+          <LookupSection
+            kind="vehicle-types"
+            usage={usage?.vehicleTypes}
+            title={t("lookups.tabs.vehicleTypes")}
+            items={(vehicleTypes ?? []).map((v) => ({ id: v.id, label: v.name }))}
+            isLoading={vtLoading}
+            onDelete={(id) => void handleDelete(() => deleteVehicleType.mutateAsync(id))}
+          >
+            <SimpleAddForm
+              label={t("lookups.vehicleTypeName")}
+              value={vtName}
+              onChange={setVtName}
+              onAdd={() => void handleAddVehicleType()}
+            />
+          </LookupSection>
+        </TabPanel>
+
+        <TabPanel value={tab} index={3}>
+          <LookupSection
+            kind="colors"
+            usage={usage?.colors}
+            title={t("lookups.tabs.colors")}
+            items={(colors ?? []).map((c) => ({ id: c.id, label: c.name }))}
+            isLoading={colorsLoading}
+            onDelete={(id) => void handleDelete(() => deleteColor.mutateAsync(id))}
+          >
+            <SimpleAddForm
+              label={t("lookups.colorName")}
+              value={colorName}
+              onChange={setColorName}
+              onAdd={() => void handleAddColor()}
+            />
+          </LookupSection>
+        </TabPanel>
+
+        <TabPanel value={tab} index={4}>
+          <LookupSection
+            kind="tags"
+            usage={usage?.tags}
+            title={t("lookups.tabs.tags")}
+            items={(tags ?? []).map((tag) => ({ id: tag.id, label: tag.name, color: tag.color }))}
+            isLoading={tagsLoading}
+            onDelete={(id) => void handleDelete(() => deleteTag.mutateAsync(id))}
+          >
+            <Stack
+              component="form"
+              spacing={1}
+              onSubmit={(e: FormEvent) => {
+                e.preventDefault();
+                void handleAddTag();
+              }}
+              flexWrap="wrap"
+              useFlexGap
+              direction="row"
+              alignItems="center"
+            >
+              <TextField
+                label={t("lookups.tagName")}
+                size="small"
+                value={tagName}
+                onChange={(e) => setTagName(e.target.value)}
+                sx={{ minWidth: 220 }}
+              />
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={tagUseColor}
+                    onChange={(e) => setTagUseColor(e.target.checked)}
+                    size="small"
+                  />
+                }
+                label={t("lookups.customColor")}
+              />
+              {tagUseColor && (
+                <Box
+                  component="input"
+                  type="color"
+                  value={tagColor}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTagColor(e.target.value)}
+                  aria-label={t("lookups.tagColor")}
+                  sx={{
+                    width: 40,
+                    height: 36,
+                    cursor: "pointer",
+                    border: "1px solid",
+                    borderColor: "divider",
+                    borderRadius: 1,
+                    p: 0.5,
+                    bgcolor: "transparent",
+                  }}
+                />
+              )}
+              <Button
+                type="submit"
+                variant="contained"
+                startIcon={<AddIcon />}
+                disabled={!tagName.trim()}
+              >
+                {t("common.add")}
+              </Button>
+            </Stack>
+          </LookupSection>
+        </TabPanel>
+      </Stack>
+    </Page>
   );
 };
 

@@ -2,8 +2,8 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { createM3Theme } from "./createM3Theme";
-import { SEED_COLOR_HEX, type ColorMode, type ContrastLevel } from "./m3Colors";
+import { createDctTheme } from "./createDctTheme";
+import { SEED_COLOR_HEX, type ColorMode, type ContrastLevel } from "./colors";
 
 interface ColorModeContextValue {
   mode: ColorMode;
@@ -95,7 +95,7 @@ export const ColorModeProvider = ({ children }: { children: ReactNode }) => {
   const resetAccentColor = () => setAccentColorState(SEED_COLOR_HEX.toLowerCase());
 
   const theme = useMemo(
-    () => createM3Theme(mode, contrast, accentColor),
+    () => createDctTheme(mode, contrast, accentColor),
     [mode, contrast, accentColor]
   );
 

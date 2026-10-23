@@ -19,6 +19,8 @@ import Grid from "@mui/material/Grid2";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import { useTranslation } from "react-i18next";
+import Page from "../components/Page";
+import { openedFrom, useStepBack } from "../utils/navState";
 import type { CatalogPack, CatalogSetCar, CatalogSourceId } from "../api/catalog";
 import type { CarStatus } from "../api/types";
 import type { AddCarLocationState } from "../components/AddCarPage";
@@ -43,9 +45,10 @@ const STATUSES: CarStatus[] = ["owned", "wishlist"];
 // ticked except the ones already in the collection. "Add N vehicles" adds the ticked cars in
 // one go (the server copies their wiki photos); "Edit before adding" opens the usual
 // pre-filled form for a single car instead.
-const CatalogPackPage = () => {
+const CatalogPackPageContent = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const stepBack = useStepBack();
   const location = useLocation();
   const [params] = useSearchParams();
   const source = SOURCES.find((candidate) => candidate === params.get("source"));
@@ -75,7 +78,7 @@ const CatalogPackPage = () => {
 
   const back = (
     <div>
-      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate("/collection/vehicles/add")}>
+      <Button startIcon={<ArrowBackIcon />} onClick={() => stepBack("/collection/vehicles/add")}>
         {t("common.backToSearch")}
       </Button>
     </div>
@@ -143,7 +146,8 @@ const CatalogPackPage = () => {
       if (result.photosFailed > 0) {
         toast.warn(t("catalog.pack.photosFailed", { count: result.photosFailed }), TOAST_OPTIONS);
       }
-      navigate("/collection/vehicles");
+      // Replace the pack page, so Back can't offer to add the same cars again.
+      navigate("/collection/vehicles", { replace: true });
     } catch (addError) {
       console.error("Error adding pack vehicles:", addError);
       toast.error(t("catalog.pack.addError"), TOAST_OPTIONS);
@@ -306,7 +310,11 @@ const CatalogPackPage = () => {
                         {holding ? (
                           <Button
                             size="small"
-                            onClick={() => navigate(`/collection/vehicles/${holding.id}/edit`)}
+                            onClick={() =>
+                              navigate(`/collection/vehicles/${holding.id}`, {
+                                state: openedFrom(location),
+                              })
+                            }
                           >
                             {t("catalog.viewInCollection")}
                           </Button>
@@ -337,6 +345,23 @@ const CatalogPackPage = () => {
         </Stack>
       </Backdrop>
     </Stack>
+  );
+};
+
+// The wiki result in the page frame: breadcrumbs back to the list and the search.
+const CatalogPackPage = () => {
+  const { t } = useTranslation();
+  return (
+    <Page
+      crumbs={[
+        { label: t("nav.collection") },
+        { label: t("vehicles.title"), to: "/collection/vehicles" },
+        { label: t("vehicles.addVehicle"), to: "/collection/vehicles/add" },
+        { label: t("catalog.wikiResult") },
+      ]}
+    >
+      <CatalogPackPageContent />
+    </Page>
   );
 };
 

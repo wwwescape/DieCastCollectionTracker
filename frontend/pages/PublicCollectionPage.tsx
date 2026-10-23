@@ -3,17 +3,24 @@ import { useParams } from "react-router-dom";
 import { isAxiosError } from "axios";
 import SearchIcon from "@mui/icons-material/Search";
 import InputAdornment from "@mui/material/InputAdornment";
-import Paper from "@mui/material/Paper";
+import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import Grid from "@mui/material/Grid2";
 import CarCard from "../components/CarCard";
+import { EmptyState } from "../components/ListViews";
 import SetCard from "../components/SetCard";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
 import { usePublicCars, usePublicSets } from "../hooks/usePublic";
 import { useTranslation } from "react-i18next";
 
-const CARD_GRID_SIZE = { xs: 12, sm: 6, md: 4, lg: 3 } as const;
+const GRID_SX = {
+  display: "grid",
+  gridTemplateColumns: {
+    xs: "repeat(2, minmax(0, 1fr))",
+    sm: "repeat(auto-fill, minmax(190px, 1fr))",
+  },
+  gap: { xs: "14px 10px", sm: "18px 16px" },
+} as const;
 
 interface PublicCollectionPageProps {
   kind: "vehicles" | "sets";
@@ -34,64 +41,68 @@ const PublicCollectionPage = ({ kind }: PublicCollectionPageProps) => {
 
   let body: React.ReactNode;
   if (query.isLoading) {
-    body = <Paper sx={{ p: 3, textAlign: "center" }}>{t("common.loading")}</Paper>;
+    body = <EmptyState>{t("common.loading")}</EmptyState>;
   } else if (query.error) {
     body = (
-      <Paper sx={{ p: 3, textAlign: "center" }}>
+      <EmptyState>
         {isAxiosError(query.error) && query.error.response?.status === 404
           ? t("public.linkGone")
           : t("public.loadError")}
-      </Paper>
+      </EmptyState>
     );
   } else if (kind === "vehicles" && cars.data?.length) {
     body = (
-      <Grid container spacing={2}>
+      <Box sx={GRID_SX}>
         {cars.data.map((car) => (
-          <Grid key={car.id} size={CARD_GRID_SIZE}>
-            <CarCard car={car} />
-          </Grid>
+          <CarCard key={car.id} car={car} />
         ))}
-      </Grid>
+      </Box>
     );
   } else if (kind === "sets" && sets.data?.length) {
     body = (
-      <Grid container spacing={2}>
+      <Box sx={GRID_SX}>
         {sets.data.map((set) => (
-          <Grid key={set.id} size={CARD_GRID_SIZE}>
-            <SetCard set={set} />
-          </Grid>
+          <SetCard key={set.id} set={set} />
         ))}
-      </Grid>
+      </Box>
     );
   } else {
     body = (
-      <Paper sx={{ p: 3, textAlign: "center", color: "text.secondary" }}>
-        {kind === "vehicles" ? t("vehicles.noneFound") : t("sets.noneFound")}
-      </Paper>
+      <EmptyState>{kind === "vehicles" ? t("vehicles.noneFound") : t("sets.noneFound")}</EmptyState>
     );
   }
 
   return (
     <>
-      <Typography variant="h4" component="h1" gutterBottom>
-        {title}
-      </Typography>
-      <TextField
-        label={kind === "vehicles" ? t("public.searchVehicles") : t("public.searchSets")}
-        value={search}
-        onChange={(event) => setSearch(event.target.value)}
-        fullWidth
-        sx={{ mb: 3, maxWidth: 480 }}
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          },
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 1.5,
+          mb: 2,
         }}
-      />
+      >
+        <Typography component="h1" sx={{ fontSize: 13, fontWeight: 600 }}>
+          {title}
+        </Typography>
+        <TextField
+          label={kind === "vehicles" ? t("public.searchVehicles") : t("public.searchSets")}
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          sx={{ width: { xs: "100%", sm: 320 } }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
+      </Box>
       {body}
     </>
   );

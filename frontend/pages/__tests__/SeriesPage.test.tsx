@@ -84,7 +84,7 @@ describe("SeriesListPage", () => {
     await user.click(screen.getByText("HW City"));
 
     expect(await screen.findByRole("heading", { name: "HW City" })).toBeInTheDocument();
-    expect(screen.getByText("Hot Wheels · 2018", { selector: "h6" })).toBeInTheDocument();
+    expect(screen.getByText("Hot Wheels · 2018")).toBeInTheDocument();
     expect(await screen.findByText("Backdrafter")).toBeInTheDocument();
     expect(screen.getByText("Downtown Fire Station Spinout")).toBeInTheDocument();
     expect(listCars.mock.calls.at(-1)?.[0]).toEqual({ seriesId: 5 });

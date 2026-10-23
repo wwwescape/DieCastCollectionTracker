@@ -11,10 +11,12 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import type { SetInput } from "../api/types";
 import { useCreateSet } from "../hooks/useSets";
 import { readSessionValue, writeSessionValue } from "../utils/sessionValue";
+import { useStepBack } from "../utils/navState";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
 import SetCatalogSearch from "./SetCatalogSearch";
 import SetForm, { withSetFormDefaults, type SetFormValues } from "./SetForm";
 import { useTranslation } from "react-i18next";
+import Page from "./Page";
 
 type AddMode = "catalog" | "manual";
 
@@ -30,6 +32,7 @@ const QUERY_KEY = "addSet.catalogQuery";
 const AddSetPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const stepBack = useStepBack();
   const location = useLocation();
   const createSet = useCreateSet();
   const prefill = (location.state as AddSetLocationState | null)?.prefill;
@@ -54,14 +57,15 @@ const AddSetPage = () => {
       source: prefill.catalogSource,
       title: prefill.catalogTitle,
     });
-    navigate(`/collection/sets/add/catalog?${params}`);
+    stepBack(`/collection/sets/add/catalog?${params}`);
   };
 
   const handleSubmit = async (input: SetInput) => {
     try {
       await createSet.mutateAsync(input);
       toast.success(t("sets.added"), TOAST_OPTIONS);
-      navigate("/collection/sets");
+      // Replace the filled-in form, so Back can't reopen it and add the same thing twice.
+      navigate("/collection/sets", { replace: true });
     } catch (error) {
       console.error("Error adding set:", error);
       toast.error(t("sets.addError"), TOAST_OPTIONS);
@@ -69,15 +73,16 @@ const AddSetPage = () => {
   };
 
   return (
-    <>
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          {t("sets.addSet")}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {t("sets.addIntro")}
-        </Typography>
-      </Box>
+    <Page
+      crumbs={[
+        { label: t("nav.collection") },
+        { label: t("sets.title"), to: "/collection/sets" },
+        { label: t("sets.addSet") },
+      ]}
+    >
+      <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
+        {t("sets.addIntro")}
+      </Typography>
       <RadioGroup
         row
         value={mode}
@@ -113,7 +118,7 @@ const AddSetPage = () => {
       ) : (
         <SetForm submitLabel={t("sets.addSet")} onSubmit={handleSubmit} />
       )}
-    </>
+    </Page>
   );
 };
 

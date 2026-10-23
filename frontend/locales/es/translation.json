@@ -40,7 +40,8 @@
     "wikiPhotoCopyError": "No se pudo copiar la foto de la wiki. Puedes subir una tú mismo.",
     "vehicleCount_one": "{{count}} vehículo",
     "vehicleCount_other": "{{count}} vehículos",
-    "custom": "Personalizado"
+    "custom": "Personalizado",
+    "back": "Atrás"
   },
   "status": {
     "owned": "En propiedad",
@@ -70,12 +71,21 @@
     "about": "Acerca de",
     "vehicles": "Vehículos",
     "insights": "Estadísticas",
-    "series": "Series"
+    "series": "Series",
+    "groups": {
+      "collection": "Colección",
+      "insights": "Estadísticas",
+      "system": "Sistema"
+    },
+    "addVehicle": "Añadir vehículo",
+    "addSet": "Añadir set"
   },
   "appShell": {
     "skipToMainContent": "Saltar al contenido principal",
     "darkMode": "Modo oscuro",
-    "updateAvailable": "Nueva versión disponible: {{version}}"
+    "updateAvailable": "Nueva versión disponible: {{version}}",
+    "lightMode": "Modo claro",
+    "openMenu": "Abrir menú"
   },
   "offline": {
     "wentOffline": "Estás sin conexión. Los cambios se guardarán y sincronizarán automáticamente cuando vuelvas a conectarte.",
@@ -105,10 +115,8 @@
       "passwordsMismatch": "Las contraseñas no coinciden.",
       "createAccount": "Crear cuenta de administrador",
       "creatingAccount": "Creando cuenta..."
-    }
-  },
-  "dashboard": {
-    "welcome": "Bienvenido a DieCastCollectionTracker"
+    },
+    "tooManyAttempts": "Demasiados intentos. Espera unos minutos y vuelve a intentarlo."
   },
   "collection": {
     "title": "Colección",
@@ -179,7 +187,11 @@
       "photosFailed_one": "No se pudo copiar {{count}} foto de la wiki. Puedes subirla desde la página del vehículo.",
       "photosFailed_other": "No se pudieron copiar {{count}} fotos de la wiki. Puedes subirlas desde la página de cada vehículo.",
       "addError": "Error al añadir los vehículos. No se añadió nada; inténtalo de nuevo."
-    }
+    },
+    "wikiResult": "Resultado de la wiki",
+    "confirmSet": "¿Es este el set?",
+    "useThisSet": "Usar este set",
+    "loadError": "No se pudo cargar desde la wiki. Inténtalo de nuevo."
   },
   "sets": {
     "title": "Sets",
@@ -218,7 +230,8 @@
     "deleteConfirmDescription": "\"{{name}}\" se quitará de tu colección. No se puede deshacer.",
     "vehiclesIncluded": "Vehículos incluidos",
     "linkedVehicles": "Vehículos vinculados",
-    "linkedVehiclesHelper": "Vehículos de tu colección que vinieron con este set"
+    "linkedVehiclesHelper": "Vehículos de tu colección que vinieron con este set",
+    "matchFilled": "Datos completados desde la wiki. Revísalos y guarda."
   },
   "manufacturers": {
     "title": "Fabricantes",
@@ -233,7 +246,18 @@
     "subNavLabel": "Configuración",
     "account": {
       "heading": "Cuenta",
-      "signedInAs": "Sesión iniciada como <1>{{username}}</1>"
+      "signedInAs": "Sesión iniciada como <1>{{username}}</1>",
+      "password": "Contraseña",
+      "passwordHelp": "Cambia la contraseña con la que inicias sesión. Se cerrará la sesión en otros navegadores y dispositivos; en este seguirás conectado.",
+      "changePassword": "Cambiar contraseña",
+      "currentPassword": "Contraseña actual",
+      "newPassword": "Contraseña nueva",
+      "confirmPassword": "Confirma la contraseña nueva",
+      "passwordsDontMatch": "Las contraseñas no coinciden.",
+      "wrongPassword": "La contraseña actual no es correcta.",
+      "changePasswordError": "No se pudo cambiar la contraseña. Inténtalo de nuevo.",
+      "passwordChanged": "Contraseña cambiada. Se ha cerrado la sesión en otros dispositivos.",
+      "changing": "Cambiando..."
     },
     "display": {
       "heading": "Pantalla",
@@ -241,7 +265,7 @@
       "highContrast": "Alto contraste",
       "accentColor": "Color de acento",
       "customAccentColor": "Color personalizado",
-      "accentColorHelp": "Los botones, los resaltados y la barra superior se generan a partir de este color, en modo claro y oscuro. Se guarda en este navegador.",
+      "accentColorHelp": "Los botones, los resaltados y el elemento activo del menú usan este color, en modo claro y oscuro. Se guarda en este navegador.",
       "resetAccentColor": "Restablecer color",
       "accentColors": {
         "blue": "Azul",
@@ -255,7 +279,10 @@
         "racingRed": "Rojo carreras",
         "pink": "Rosa",
         "violet": "Violeta"
-      }
+      },
+      "lead": "Cómo se ve DCT en este navegador.",
+      "darkModeHelp": "Superficies oscuras, más cómodas de noche.",
+      "highContrastHelp": "Bordes y texto más marcados para leer mejor."
     },
     "language": {
       "heading": "Idioma",
@@ -275,7 +302,8 @@
       "restoreDescription": "Subir una copia de seguridad sustituye todos los datos actuales. Antes de restaurar se guarda automáticamente una copia de seguridad.",
       "restoreButton": "Restaurar desde copia de seguridad",
       "restoreError": "No se pudo restaurar la copia de seguridad. Revisa el archivo e inténtalo de nuevo.",
-      "restored": "Se han restaurado {{cars}} vehículo(s) y {{sets}} set(s) desde la copia de seguridad."
+      "restored": "Se han restaurado {{cars}} vehículo(s) y {{sets}} set(s) desde la copia de seguridad.",
+      "lead": "Exporta tu colección o restáurala desde una copia de seguridad."
     },
     "share": {
       "heading": "Compartir",
@@ -291,6 +319,11 @@
       "regenerateConfirmTitle": "¿Regenerar los enlaces?",
       "regenerateConfirmDescription": "Los enlaces actuales dejarán de funcionar al instante. Quien los tenga necesitará los nuevos.",
       "vehiclesLink": "Enlace de vehículos"
+    },
+    "general": "General",
+    "regional": {
+      "heading": "Idioma y moneda",
+      "lead": "Se usan para las etiquetas y los precios."
     }
   },
   "lookups": {
@@ -327,7 +360,29 @@
       "vehicleType": "Error al añadir el tipo de vehículo. Inténtalo de nuevo.",
       "color": "Error al añadir el color. Inténtalo de nuevo.",
       "tag": "Error al añadir la etiqueta. Inténtalo de nuevo."
-    }
+    },
+    "unused": "Sin usar",
+    "fromWiki": "De la wiki",
+    "wikiBackedHelp": "Lo usan vehículos o sets vinculados a la wiki. Renombrarlo o fusionarlo lo alejaría de la wiki, y el siguiente Volver a vincular recuperaría el nombre anterior.",
+    "rename": "Renombrar",
+    "renameItem": "Renombrar {{name}}",
+    "renameTitle": "Renombrar «{{name}}»",
+    "renamed": "Renombrado.",
+    "renameError": "No se pudo renombrar. Inténtalo de nuevo.",
+    "cantRenameWiki": "Viene de la wiki, así que no se puede renombrar",
+    "merge": "Fusionar",
+    "mergeItem": "Fusionar {{name}} con otro",
+    "mergeTitle": "Fusionar «{{name}}»",
+    "mergeInto": "Fusionar con",
+    "mergeHelp": "Elige el elemento que se conserva. Todo lo que usa «{{name}}» pasa a él y «{{name}}» se elimina.",
+    "mergeSummary": "{{usage}} pasarán de «{{from}}» a «{{into}}».",
+    "merged": "«{{from}}» fusionado con «{{into}}».",
+    "mergeError": "No se pudieron fusionar. Inténtalo de nuevo.",
+    "cantMergeWiki": "Viene de la wiki, así que no se puede fusionar con otro (otros sí pueden fusionarse con él)",
+    "nothingToMergeInto": "No hay con qué fusionar",
+    "cantDeleteInUse": "En uso ({{usage}}), así que no se puede eliminar. Fusiónalo con otro.",
+    "deleteTagTitle": "¿Eliminar la etiqueta «{{name}}»?",
+    "deleteTagDescription": "Se quitará «{{name}}» de {{usage}}. Los elementos no cambian en nada más."
   },
   "public": {
     "subNavLabel": "Colección compartida",
@@ -371,7 +426,16 @@
       "totalVehicles": "Vehículos en total",
       "noVehicles": "Todavía no hay vehículos."
     },
-    "title": "Estadísticas"
+    "title": "Estadísticas",
+    "breakdowns": "Desgloses",
+    "byStatus": "Vehículos por estado",
+    "byCondition": "Vehículos propios por conservación",
+    "bySource": "Wiki o personalizado",
+    "byYear": "Vehículos por año",
+    "topSeries": "Series principales",
+    "setsByType": "Sets por tipo",
+    "notSet": "Sin indicar",
+    "other": "Otros"
   },
   "vehicles": {
     "title": "Vehículos",
@@ -445,7 +509,22 @@
     "deselectAll": "Deseleccionar todo",
     "remove": "Eliminar",
     "moreActions": "Más acciones en bloque",
-    "noMatch": "Nada coincide con esta búsqueda y estos filtros."
+    "noMatch": "Nada coincide con esta búsqueda y estos filtros.",
+    "select": "Seleccionar",
+    "done": "Listo",
+    "options": "Opciones",
+    "view": "Vista",
+    "filters": "Filtros",
+    "cardSize": "Tamaño de tarjeta",
+    "viewPhotos": "Fotos",
+    "viewTable": "Tabla",
+    "viewOverview": "Resumen",
+    "edit": "Editar",
+    "jumpTo": "Ir a la letra",
+    "toyNumberShort": "N.º juguete",
+    "collectionNumberShort": "N.º col.",
+    "quantityShort": "Cant.",
+    "viewCards": "Tarjetas"
   },
   "listSort": {
     "nameAsc": "Nombre (A–Z)",
@@ -494,5 +573,60 @@
     "tagsChecked_other": "{{count}} etiquetas marcadas",
     "addSubmit": "Añadir etiquetas",
     "removeSubmit": "Quitar etiquetas"
+  },
+  "search": {
+    "label": "Buscar en la colección",
+    "placeholder": "Buscar vehículos, sets, series…",
+    "wiki": "Buscar “{{query}}” en la wiki",
+    "groups": {
+      "vehicle": "Vehículos",
+      "set": "Sets",
+      "series": "Series",
+      "manufacturer": "Fabricantes",
+      "wiki": "¿No está en tu colección?"
+    }
+  },
+  "detail": {
+    "edit": "Editar",
+    "match": "Vincular a la wiki",
+    "rematch": "Volver a vincular",
+    "details": "Detalles",
+    "conditionNotSet": "Estado sin indicar",
+    "toyNumber": "N.º juguete {{value}}",
+    "collectionNumber": "N.º col. {{value}}",
+    "wikiCasting": "Página de la wiki",
+    "moreFrom": "Más de {{name}}",
+    "notInSets": "No está vinculado a ningún set.",
+    "noLinkedVehicles": "Ningún vehículo de tu colección está vinculado a este set."
+  },
+  "overview": {
+    "addVehicle": "Añadir un vehículo",
+    "addSet": "Añadir un set",
+    "quickAdd": "Añadir rápido",
+    "wishlist": "Lista de deseos",
+    "viewAll": "Ver todo",
+    "needsAttention": "Requiere atención",
+    "pieces_one": "{{count}} pieza",
+    "pieces_other": "{{count}} piezas",
+    "attention": {
+      "noPhoto": "Sin foto",
+      "notMatched": "Sin vincular a la wiki",
+      "noCondition": "Sin estado",
+      "noToyNumber": "Sin n.º de juguete"
+    }
+  },
+  "browse": {
+    "contents": "En la colección",
+    "has": {
+      "vehicles": "Con vehículos",
+      "sets": "Con sets"
+    },
+    "noYear": "Sin año",
+    "searchSeries": "Nombre de la serie, fabricante, año…",
+    "searchManufacturers": "Nombre del fabricante…",
+    "sort": {
+      "mostVehicles": "Más vehículos",
+      "mostSets": "Más sets"
+    }
   }
 }

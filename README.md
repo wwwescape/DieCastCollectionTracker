@@ -100,7 +100,8 @@ Open `http://localhost:8000`. On a fresh instance you'll see a create-admin form
 login screen: fill it in once and you're signed in. Migrations run automatically on startup, and
 your database and photos live in the named volumes, so they survive restarts and upgrades.
 
-Locked out later? Reset the password from the CLI:
+To change your password, use **Settings → Account → Change password**. It signs out every
+other browser and device. Locked out? Reset the password from the CLI:
 
 ```bash
 docker compose exec app python -m scripts.create_admin --username admin
@@ -125,6 +126,15 @@ JWT_SECRET_KEY=            # generate with: python -c "import secrets; print(sec
 
 Optional: `DATABASE_URL` (a local SQLite file by default), `CORS_ORIGINS`, and `APP_PORT`
 (`8000` by default, used by the repo's own `docker-compose.yml`).
+
+### Reverse proxy
+
+Sign-in is limited to 5 failed attempts per 15 minutes per client address. Behind a reverse
+proxy every request comes from the proxy's address, so let uvicorn trust the proxy's
+`X-Forwarded-For` header. Override the container's command with
+`uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips=<proxy IP>`.
+Serve the app over HTTPS at the proxy, which is also where HSTS belongs. The interactive API docs
+(`/docs`) are only available when `ENVIRONMENT=development`; the Docker image runs in production.
 
 ## Development
 

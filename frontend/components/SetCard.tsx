@@ -1,4 +1,3 @@
-import Chip from "@mui/material/Chip";
 import { useTranslation } from "react-i18next";
 import { resolveAssetUrl } from "../api/client";
 import type { CarSet } from "../api/types";
@@ -28,31 +27,24 @@ interface SetCardProps {
   onToggleSelect?: () => void;
 }
 
-// Same layout as CarCard, so cars and sets look alike across the Collection.
+// Same layout as CarCard: photo, name and one meta line (type · vehicles · sealed · year).
 const SetCard = ({ set, onClick, selectable, selected, onToggleSelect }: SetCardProps) => {
   const { t } = useTranslation();
   return (
     <ItemCard
       title={set.name}
-      subtitle={[set.manufacturerName, set.year].filter(Boolean).join(" · ")}
+      subtitle={[
+        t(`setTypes.${set.setType}`),
+        set.contents.length ? t("common.vehicleCount", { count: set.contents.length }) : null,
+        set.status === "owned" ? (set.sealed ? t("sets.sealed") : t("sets.opened")) : null,
+        set.year,
+      ]
+        .filter(Boolean)
+        .join(" · ")}
       imageUrl={resolveAssetUrl(set.photo)}
       holding={set}
+      wishlistOnly
       custom={!set.catalogTitle}
-      chips={
-        <>
-          <Chip label={t(`setTypes.${set.setType}`)} size="small" variant="outlined" color="info" />
-          {set.contents.length ? (
-            <Chip label={t("common.vehicleCount", { count: set.contents.length })} size="small" />
-          ) : null}
-          {set.status === "owned" ? (
-            <Chip
-              label={set.sealed ? t("sets.sealed") : t("sets.opened")}
-              size="small"
-              variant="outlined"
-            />
-          ) : null}
-        </>
-      }
       onClick={onClick}
       selectable={selectable}
       selected={selected}
