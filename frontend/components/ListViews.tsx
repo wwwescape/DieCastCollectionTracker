@@ -1,4 +1,4 @@
-import { useMemo, useRef, type ReactNode } from "react";
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import Checkbox from "@mui/material/Checkbox";
@@ -15,6 +15,13 @@ import VirtualCarGrid, { type VirtualGridHandle } from "./VirtualCarGrid";
 import PhotoImg from "./PhotoImg";
 
 const LETTERS = "#ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+// The rail sticks just under the header and page toolbar.
+const RAIL_TOP_PX = 120;
+const RAIL_BOTTOM_GAP_PX = 16;
+// Each letter's row: the mockup's compact 19px, shrinking on short windows (never below 10px)
+// so the whole rail always fits in the window.
+const LETTER_MAX_PX = 19;
+const LETTER_MIN_PX = 10;
 
 const letterOf = (name: string) => {
   const first = name.trim().charAt(0).toUpperCase();
@@ -81,44 +88,95 @@ export function PhotoGrid<T>({
         />
       </Box>
       {showRail ? (
-        <Box
-          component="nav"
-          aria-label={t("listToolbar.jumpTo")}
-          sx={{
-            display: { xs: "none", md: "flex" },
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "1px",
-            position: "sticky",
-            top: 120,
-            alignSelf: "flex-start",
-            width: 22,
-            flexShrink: 0,
-          }}
-        >
-          {LETTERS.map((letter) => {
-            const index = firstIndex.get(letter);
-            return (
-              <ButtonBase
-                key={letter}
-                disabled={index === undefined}
-                onClick={() => index !== undefined && gridRef.current?.scrollToIndex(index)}
-                sx={{
-                  fontSize: 11,
-                  fontWeight: 600,
-                  px: 0.5,
-                  borderRadius: 1,
-                  color: "dct.text3",
-                  "&.Mui-disabled": { opacity: 0.35 },
-                  "&:hover": { color: "primary.main", bgcolor: "dct.accentSoft" },
-                }}
-              >
-                {letter}
-              </ButtonBase>
-            );
-          })}
-        </Box>
+        <AzRail
+          label={t("listToolbar.jumpTo")}
+          firstIndex={firstIndex}
+          onJump={(index) => gridRef.current?.scrollToIndex(index)}
+        />
       ) : null}
+    </Box>
+  );
+}
+
+interface AzRailProps {
+  label: string;
+  firstIndex: Map<string, number>;
+  onJump: (index: number) => void;
+}
+
+// The # A–Z jump rail. Compact like the mockup, and always entirely inside the window: the
+// letters shrink on a short window. The room it has is measured live, since it changes as
+// the rail scrolls up into its sticky spot under the toolbar.
+function AzRail({ label, firstIndex, onJump }: AzRailProps) {
+  const railRef = useRef<HTMLElement>(null);
+  const [letterPx, setLetterPx] = useState(LETTER_MAX_PX);
+
+  useLayoutEffect(() => {
+    let frame = 0;
+    const measure = () => {
+      frame = 0;
+      const rail = railRef.current;
+      if (!rail) return;
+      const top = Math.max(rail.getBoundingClientRect().top, RAIL_TOP_PX);
+      const room = window.innerHeight - top - RAIL_BOTTOM_GAP_PX;
+      const next = Math.max(
+        LETTER_MIN_PX,
+        Math.min(LETTER_MAX_PX, Math.floor(room / LETTERS.length))
+      );
+      setLetterPx((current) => (current === next ? current : next));
+    };
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(measure);
+    };
+    measure();
+    window.addEventListener("resize", schedule);
+    window.addEventListener("scroll", schedule, { passive: true });
+    return () => {
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("scroll", schedule);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  return (
+    <Box
+      ref={railRef}
+      component="nav"
+      aria-label={label}
+      sx={{
+        display: { xs: "none", md: "flex" },
+        flexDirection: "column",
+        alignItems: "center",
+        position: "sticky",
+        top: RAIL_TOP_PX,
+        alignSelf: "flex-start",
+        width: 22,
+        flexShrink: 0,
+      }}
+    >
+      {LETTERS.map((letter) => {
+        const index = firstIndex.get(letter);
+        return (
+          <ButtonBase
+            key={letter}
+            disabled={index === undefined}
+            onClick={() => index !== undefined && onJump(index)}
+            sx={{
+              width: "100%",
+              height: letterPx,
+              lineHeight: `${letterPx}px`,
+              fontSize: Math.min(11, Math.round(letterPx * 0.62)),
+              fontWeight: 600,
+              borderRadius: 1,
+              color: "dct.text3",
+              "&.Mui-disabled": { opacity: 0.35 },
+              "&:hover": { color: "primary.main", bgcolor: "dct.accentSoft" },
+            }}
+          >
+            {letter}
+          </ButtonBase>
+        );
+      })}
     </Box>
   );
 }

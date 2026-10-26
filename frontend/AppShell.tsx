@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import DarkModeIcon from "@mui/icons-material/DarkModeOutlined";
 import LightModeIcon from "@mui/icons-material/LightModeOutlined";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -14,6 +12,7 @@ import { useTheme } from "@mui/material/styles";
 import Tooltip from "@mui/material/Tooltip";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import OfflineStatusIndicator from "./components/OfflineStatusIndicator";
+import Toasts from "./components/Toasts";
 import UpdateAvailableChip from "./components/UpdateAvailableChip";
 import { useLogout } from "./hooks/useAuth";
 import GlobalSearch from "./navigation/GlobalSearch";
@@ -145,7 +144,7 @@ const AppShell = () => {
         </Box>
       </Box>
 
-      <ToastContainer theme={mode === "dark" ? "dark" : "light"} position="bottom-right" />
+      <Toasts />
     </Box>
   );
 };

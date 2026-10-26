@@ -80,6 +80,9 @@ beforeEach(() => {
   vi.spyOn(lookupsApi, "listColors").mockResolvedValue([]);
   vi.spyOn(lookupsApi, "listSeries").mockResolvedValue([]);
   vi.spyOn(tagsApi, "listTags").mockResolvedValue([]);
+  // The forms' linked vehicles/sets pickers and the set match load the whole collection.
+  vi.spyOn(carsApi, "listCars").mockResolvedValue([]);
+  vi.spyOn(setsApi, "listSets").mockResolvedValue([]);
 });
 
 afterEach(() => {
