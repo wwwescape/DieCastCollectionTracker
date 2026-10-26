@@ -318,7 +318,16 @@
       "regenerateError": "No se pudieron crear nuevos enlaces. Inténtalo de nuevo.",
       "regenerateConfirmTitle": "¿Regenerar los enlaces?",
       "regenerateConfirmDescription": "Los enlaces actuales dejarán de funcionar al instante. Quien los tenga necesitará los nuevos.",
-      "vehiclesLink": "Enlace de vehículos"
+      "vehiclesLink": "Enlace de vehículos",
+      "off": "Compartir está desactivado: no hay enlaces para compartir y las páginas públicas muestran «no encontrado».",
+      "enable": "Activar compartir",
+      "enabled": "Compartir está activado.",
+      "enableError": "No se pudo activar compartir. Inténtalo de nuevo.",
+      "disable": "Desactivar compartir",
+      "disabled": "Compartir está desactivado. Los enlaces ya no funcionan.",
+      "disableError": "No se pudo desactivar compartir. Inténtalo de nuevo.",
+      "disableConfirmTitle": "¿Desactivar compartir?",
+      "disableConfirmDescription": "Los enlaces dejan de funcionar de inmediato. Si vuelves a activar compartir más adelante, se crean enlaces nuevos; estos no volverán a funcionar."
     },
     "general": "General",
     "regional": {

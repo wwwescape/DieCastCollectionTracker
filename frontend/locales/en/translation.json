@@ -318,7 +318,16 @@
       "regenerateError": "Couldn't create new share links. Please try again.",
       "regenerateConfirmTitle": "Regenerate share links?",
       "regenerateConfirmDescription": "The current links stop working straight away. Anyone you shared them with will need the new ones.",
-      "vehiclesLink": "Vehicles link"
+      "vehiclesLink": "Vehicles link",
+      "off": "Sharing is off: there are no share links, and the public pages show \"not found\".",
+      "enable": "Turn on sharing",
+      "enabled": "Sharing is on.",
+      "enableError": "Couldn't turn sharing on. Please try again.",
+      "disable": "Turn off sharing",
+      "disabled": "Sharing is off. The links no longer work.",
+      "disableError": "Couldn't turn sharing off. Please try again.",
+      "disableConfirmTitle": "Turn off sharing?",
+      "disableConfirmDescription": "The links stop working straight away. Turning sharing back on later makes new links; these ones never work again."
     },
     "general": "General",
     "regional": {

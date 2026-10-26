@@ -15,6 +15,16 @@
   <a href="https://github.com/wwwescape/DieCastCollectionTracker"><img src="https://img.shields.io/github/languages/code-size/wwwescape/DieCastCollectionTracker.svg?color=red&style=flat-square" alt="GitHub code size" /></a>
 </p>
 
+## Screenshots
+
+![](./screenshots/1.png)
+![](./screenshots/2.png)
+![](./screenshots/3.png)
+![](./screenshots/4.png)
+![](./screenshots/5.png)
+![](./screenshots/6.png)
+![](./screenshots/7.png)
+
 ## Features
 
 - **Collection tracking** — vehicles (cars, bikes, planes, boats and more) you own or have
@@ -55,9 +65,10 @@
 - **Insights** — vehicle and set counts, collection value, stats by manufacturer and vehicle type,
   plus recently added vehicles.
 - **Share links** — read-only links to your vehicles and sets for people without an account,
-  without your purchase prices, notes, or tags. Regenerate them to revoke access.
+  without your purchase prices, notes, or tags. Sharing is off until you turn it on in
+  Settings; regenerate the links or turn sharing off to revoke access.
 - **Languages and currency** — English, Spanish, French, and Portuguese, and a choice of currency
-  for prices.
+  for prices, saved on your account for every browser.
 - **Data portability** — CSV export, plus full JSON backup and restore.
 - **PWA** — installable, and works offline for anything you've already viewed (photos included).
 - **Material 3 design** — light and dark mode, high contrast, a choice of accent colors (the

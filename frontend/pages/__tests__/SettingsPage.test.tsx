@@ -24,7 +24,7 @@ function renderSettings() {
 describe("SettingsPage", () => {
   beforeEach(() => {
     vi.spyOn(authApi, "isAuthenticated").mockReturnValue(true);
-    vi.spyOn(authApi, "fetchCurrentUser").mockResolvedValue({ id: 1, username: "eric" });
+    vi.spyOn(authApi, "fetchCurrentUser").mockResolvedValue({ id: 1, username: "eric", currency: "USD" });
   });
 
   afterEach(() => {

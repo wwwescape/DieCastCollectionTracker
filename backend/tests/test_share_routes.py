@@ -1,10 +1,33 @@
 def test_share_link_requires_auth(client):
     assert client.get("/api/share-link").status_code == 401
+    assert client.post("/api/share-link").status_code == 401
+    assert client.delete("/api/share-link").status_code == 401
     assert client.post("/api/share-link/regenerate").status_code == 401
 
 
+def test_share_link_is_off_until_turned_on(auth_client):
+    assert auth_client.get("/api/share-link").json()["token"] is None
+    assert auth_client.get("/api/share-link").json()["token"] is None
+
+    token = auth_client.post("/api/share-link").json()["token"]
+
+    assert len(token) > 20
+    assert auth_client.post("/api/share-link").json()["token"] == token
+    assert auth_client.get("/api/share-link").json()["token"] == token
+
+
+def test_turning_sharing_off_breaks_the_links(auth_client):
+    token = auth_client.post("/api/share-link").json()["token"]
+
+    assert auth_client.delete("/api/share-link").status_code == 204
+
+    assert auth_client.get("/api/share-link").json()["token"] is None
+    assert auth_client.get(f"/api/public/{token}/cars").status_code == 404
+    assert auth_client.post("/api/share-link").json()["token"] != token
+
+
 def test_share_link_is_stable_until_regenerated(auth_client):
-    first = auth_client.get("/api/share-link").json()["token"]
+    first = auth_client.post("/api/share-link").json()["token"]
     assert auth_client.get("/api/share-link").json()["token"] == first
 
     regenerated = auth_client.post("/api/share-link/regenerate").json()["token"]
@@ -29,7 +52,7 @@ def test_public_lists_hide_owner_data(auth_client, client):
         "/api/sets",
         json={"name": "Fire Station", "manufacturer": "Hot Wheels", "purchasePrice": 30, "notes": "Gift"},
     )
-    token = auth_client.get("/api/share-link").json()["token"]
+    token = auth_client.post("/api/share-link").json()["token"]
     client.headers.pop("Authorization", None)
 
     cars = client.get(f"/api/public/{token}/cars").json()
@@ -58,7 +81,7 @@ def test_public_search_does_not_match_private_notes(auth_client):
     auth_client.post(
         "/api/sets", json={"name": "Fire Station", "manufacturer": "Hot Wheels", "setType": "playset", "notes": "flea"}
     )
-    token = auth_client.get("/api/share-link").json()["token"]
+    token = auth_client.post("/api/share-link").json()["token"]
 
     assert auth_client.get(f"/api/public/{token}/cars", params={"search": "flea"}).json() == []
     assert auth_client.get(f"/api/public/{token}/sets", params={"search": "flea"}).json() == []

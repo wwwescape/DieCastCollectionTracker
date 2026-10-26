@@ -318,7 +318,16 @@
       "regenerateError": "Impossible de créer de nouveaux liens. Veuillez réessayer.",
       "regenerateConfirmTitle": "Régénérer les liens de partage ?",
       "regenerateConfirmDescription": "Les liens actuels cesseront immédiatement de fonctionner. Les personnes avec qui vous les avez partagés auront besoin des nouveaux.",
-      "vehiclesLink": "Lien des véhicules"
+      "vehiclesLink": "Lien des véhicules",
+      "off": "Le partage est désactivé : il n'y a aucun lien de partage, et les pages publiques affichent « introuvable ».",
+      "enable": "Activer le partage",
+      "enabled": "Le partage est activé.",
+      "enableError": "Impossible d'activer le partage. Veuillez réessayer.",
+      "disable": "Désactiver le partage",
+      "disabled": "Le partage est désactivé. Les liens ne fonctionnent plus.",
+      "disableError": "Impossible de désactiver le partage. Veuillez réessayer.",
+      "disableConfirmTitle": "Désactiver le partage ?",
+      "disableConfirmDescription": "Les liens cessent immédiatement de fonctionner. Réactiver le partage plus tard crée de nouveaux liens ; ceux-ci ne fonctionneront plus jamais."
     },
     "general": "Général",
     "regional": {

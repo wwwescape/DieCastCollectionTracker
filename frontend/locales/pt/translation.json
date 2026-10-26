@@ -318,7 +318,16 @@
       "regenerateError": "Não foi possível criar novas ligações. Tente novamente.",
       "regenerateConfirmTitle": "Regenerar as ligações de partilha?",
       "regenerateConfirmDescription": "As ligações atuais deixam de funcionar de imediato. Quem as tiver vai precisar das novas.",
-      "vehiclesLink": "Ligação dos veículos"
+      "vehiclesLink": "Ligação dos veículos",
+      "off": "A partilha está desativada: não há ligações de partilha e as páginas públicas mostram «não encontrado».",
+      "enable": "Ativar partilha",
+      "enabled": "A partilha está ativada.",
+      "enableError": "Não foi possível ativar a partilha. Tente novamente.",
+      "disable": "Desativar partilha",
+      "disabled": "A partilha está desativada. As ligações já não funcionam.",
+      "disableError": "Não foi possível desativar a partilha. Tente novamente.",
+      "disableConfirmTitle": "Desativar a partilha?",
+      "disableConfirmDescription": "As ligações deixam de funcionar de imediato. Voltar a ativar a partilha mais tarde cria novas ligações; estas nunca mais voltam a funcionar."
     },
     "general": "Geral",
     "regional": {

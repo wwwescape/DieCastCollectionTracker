@@ -20,9 +20,17 @@ class AuthError(Exception):
     """Raised for any auth failure that should surface as 401 to the API client."""
 
 
+# Checked against when the username doesn't exist, so a wrong username takes as long as a wrong
+# password and the response time doesn't reveal which usernames exist.
+_DUMMY_PASSWORD_HASH = hash_password(secrets.token_urlsafe(16))
+
+
 def authenticate_user(db: Session, username: str, password: str) -> User:
     user = db.query(User).filter(User.username == username).first()
-    if user is None or not verify_password(password, user.password_hash):
+    if user is None:
+        verify_password(password, _DUMMY_PASSWORD_HASH)
+        raise AuthError("Invalid username or password")
+    if not verify_password(password, user.password_hash):
         raise AuthError("Invalid username or password")
     return user
 
@@ -44,6 +52,13 @@ def create_initial_admin(db: Session, username: str, password: str) -> User:
 class WrongPasswordError(Exception):
     """The current password given to change_password didn't match — surfaced as a 400, not a
     401, since the user is signed in; a 401 would read as an expired session."""
+
+
+def set_preferences(db: Session, user: User, currency: str) -> User:
+    user.currency = currency
+    db.commit()
+    db.refresh(user)
+    return user
 
 
 def change_password(db: Session, user: User, current_password: str, new_password: str) -> None:
@@ -146,6 +161,19 @@ def _load_active_refresh_token(db: Session, refresh_token: str) -> tuple[Refresh
 # --- Share link (ported from VideoGameTrackarr) ---
 
 
+def get_share_token(user: User) -> str | None:
+    """The share token if sharing is on, without creating one - viewing Settings must not
+    publish anything."""
+    return user.public_share_token
+
+
+def disable_share_token(db: Session, user: User) -> None:
+    """Turns sharing off: both share links stop working until it's turned on again (which
+    makes a new token, so the old links never come back)."""
+    user.public_share_token = None
+    db.commit()
+
+
 def get_or_create_share_token(db: Session, user: User) -> str:
     if user.public_share_token is None:
         user.public_share_token = secrets.token_urlsafe(32)
@@ -155,8 +183,8 @@ def get_or_create_share_token(db: Session, user: User) -> str:
 
 
 def regenerate_share_token(db: Session, user: User) -> str:
-    # Regenerating immediately breaks every URL built from the old token — that's the only
-    # way to revoke a leaked share link, since there's no per-link revocation.
+    # Regenerating immediately breaks every URL built from the old token, so a leaked link
+    # can be revoked while sharing stays on (there's no per-link revocation).
     user.public_share_token = secrets.token_urlsafe(32)
     db.commit()
     db.refresh(user)

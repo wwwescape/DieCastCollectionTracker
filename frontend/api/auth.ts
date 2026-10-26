@@ -47,6 +47,11 @@ export async function changePassword(currentPassword: string, newPassword: strin
   tokenStorage.setTokens(response.data.accessToken, response.data.refreshToken);
 }
 
+export async function updatePreferences(preferences: { currency: string }): Promise<CurrentUser> {
+  const response = await apiClient.put<CurrentUser>("/api/auth/me/preferences", preferences);
+  return response.data;
+}
+
 export async function fetchCurrentUser(): Promise<CurrentUser> {
   const response = await apiClient.get<CurrentUser>("/api/auth/me");
   return response.data;

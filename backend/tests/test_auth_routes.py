@@ -33,7 +33,7 @@ def test_me_returns_current_user_with_valid_access_token(client, test_user):
     response = client.get("/api/auth/me", headers={"Authorization": f"Bearer {access_token}"})
 
     assert response.status_code == 200
-    assert response.json() == {"id": test_user.id, "username": "admin"}
+    assert response.json() == {"id": test_user.id, "username": "admin", "currency": None}
 
 
 def test_me_rejects_garbage_token(client):
@@ -276,3 +276,48 @@ def test_a_token_revoked_by_logout_is_not_treated_as_reuse(client, test_user, mo
 
     assert client.post("/api/auth/refresh", json={"refreshToken": logged_out}).status_code == 401
     assert client.post("/api/auth/refresh", json={"refreshToken": other}).status_code == 200
+
+
+def test_currency_is_saved_on_the_account(auth_client):
+    assert auth_client.get("/api/auth/me").json()["currency"] is None
+
+    response = auth_client.put("/api/auth/me/preferences", json={"currency": "EUR"})
+
+    assert response.status_code == 200
+    assert response.json()["currency"] == "EUR"
+    assert auth_client.get("/api/auth/me").json()["currency"] == "EUR"
+
+
+def test_currency_must_be_a_three_letter_code(auth_client):
+    assert auth_client.put("/api/auth/me/preferences", json={"currency": "euro"}).status_code == 422
+
+
+def test_preferences_require_auth(client):
+    assert client.put("/api/auth/me/preferences", json={"currency": "EUR"}).status_code == 401
+
+
+def test_unknown_username_is_still_checked_against_a_hash(client, monkeypatch):
+    from app.services import auth_service
+
+    checked = []
+    real_verify = auth_service.verify_password
+    monkeypatch.setattr(auth_service, "verify_password", lambda pw, h: checked.append(h) or real_verify(pw, h))
+
+    response = client.post("/api/auth/login", json={"username": "nobody", "password": "whatever"})
+
+    assert response.status_code == 401
+    assert checked == [auth_service._DUMMY_PASSWORD_HASH]
+
+
+def test_setup_rejects_a_password_longer_than_72_bytes(client):
+    response = client.post("/api/auth/setup", json={"username": "admin", "password": "é" * 37})
+
+    assert response.status_code == 422
+
+
+def test_change_password_rejects_a_password_longer_than_72_bytes(auth_client):
+    response = auth_client.post(
+        "/api/auth/change-password", json={"currentPassword": "correct-password", "newPassword": "x" * 73}
+    )
+
+    assert response.status_code == 422

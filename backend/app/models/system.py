@@ -18,6 +18,9 @@ class User(TimestampMixin, Base):
     public_share_token: Mapped[str | None] = mapped_column(
         String(64), unique=True, comment="Unlisted share-link token for the public Cars/Sets view"
     )
+    currency: Mapped[str | None] = mapped_column(
+        String(3), comment="Display currency (ISO 4217 code), shared by every browser"
+    )
 
 
 class RefreshToken(Base):

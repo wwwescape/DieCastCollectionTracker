@@ -9,6 +9,8 @@ export interface AuthTokens {
 export interface CurrentUser {
   id: number;
   username: string;
+  // The account's display currency; null until one is chosen.
+  currency: string | null;
 }
 
 export interface SetupStatus {

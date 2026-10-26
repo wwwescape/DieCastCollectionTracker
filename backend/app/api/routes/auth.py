@@ -7,6 +7,7 @@ from app.models.system import User
 from app.schemas.auth import (
     ChangePasswordRequest,
     LoginRequest,
+    PreferencesRequest,
     RefreshRequest,
     SetupRequest,
     SetupStatusResponse,
@@ -86,7 +87,19 @@ def logout(body: RefreshRequest, db: Session = Depends(get_db)) -> None:
 
 @router.get("/me", response_model=UserResponse)
 def me(current_user: User = Depends(get_current_user)) -> UserResponse:
-    return UserResponse(id=current_user.id, username=current_user.username)
+    return UserResponse(id=current_user.id, username=current_user.username, currency=current_user.currency)
+
+
+@router.put("/me/preferences", response_model=UserResponse)
+def update_preferences(
+    body: PreferencesRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> UserResponse:
+    """Display preferences kept on the server, so every browser shows the same (today the
+    currency; colour mode and language stay per browser)."""
+    user = auth_service.set_preferences(db, current_user, body.currency)
+    return UserResponse(id=user.id, username=user.username, currency=user.currency)
 
 
 @router.post("/change-password", response_model=TokenResponse)

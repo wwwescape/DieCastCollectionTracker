@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -22,6 +23,7 @@ from app.api.routes import (
 )
 from app.core.config import REPO_ROOT, UPLOADS_DIR, get_settings
 from app.core.logging import configure_logging
+from app.core.security import weak_secret_warning
 from app.services.exceptions import ConflictError, NotFoundError
 from app.services.wiki_catalog import CatalogUnavailableError
 
@@ -46,6 +48,8 @@ def resolve_static_file(base_dir: Path, requested_path: str) -> Path | None:
 
 configure_logging()
 settings = get_settings()
+if _secret_warning := weak_secret_warning():
+    logging.getLogger(__name__).warning(_secret_warning)
 
 # The interactive API docs (/docs, /redoc, /openapi.json) map out every endpoint; handy when
 # developing, needless to publish. The Docker image sets ENVIRONMENT=production.

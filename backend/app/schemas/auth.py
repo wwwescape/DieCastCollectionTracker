@@ -1,6 +1,15 @@
-from pydantic import Field
+from pydantic import Field, field_validator
 
 from app.schemas.base import CamelModel
+
+# bcrypt only uses a password's first 72 bytes, so a longer one would be silently cut short.
+BCRYPT_MAX_BYTES = 72
+
+
+def _check_bcrypt_length(value: str) -> str:
+    if len(value.encode("utf-8")) > BCRYPT_MAX_BYTES:
+        raise ValueError(f"Password must be at most {BCRYPT_MAX_BYTES} bytes")
+    return value
 
 
 class LoginRequest(CamelModel):
@@ -21,6 +30,12 @@ class TokenResponse(CamelModel):
 class UserResponse(CamelModel):
     id: int
     username: str
+    currency: str | None = None
+
+
+class PreferencesRequest(CamelModel):
+    # An ISO 4217 code; the frontend only offers the currencies it can format.
+    currency: str = Field(pattern=r"^[A-Z]{3}$")
 
 
 class SetupStatusResponse(CamelModel):
@@ -34,6 +49,11 @@ class ChangePasswordRequest(CamelModel):
     current_password: str
     new_password: str = Field(min_length=8)
 
+    @field_validator("new_password")
+    @classmethod
+    def _fits_bcrypt(cls, value: str) -> str:
+        return _check_bcrypt_length(value)
+
 
 class SetupRequest(CamelModel):
     """Minimal provisioning validation that plain LoginRequest deliberately skips -
@@ -42,3 +62,8 @@ class SetupRequest(CamelModel):
 
     username: str = Field(min_length=3, max_length=255)
     password: str = Field(min_length=8)
+
+    @field_validator("password")
+    @classmethod
+    def _fits_bcrypt(cls, value: str) -> str:
+        return _check_bcrypt_length(value)
