@@ -142,10 +142,17 @@ export const DetailHero = ({ photo, crumbs, title, subline, pills }: DetailHeroP
   </Box>
 );
 
+// Hero pill tones, as in VideoGameTrackarr: owned in green, wishlisted in pink.
+const PILL_TONES = {
+  owned: { border: "rgba(63,178,127,.45)", bg: "rgba(63,178,127,.12)", color: "dct.owned" },
+  wishlist: { border: "rgba(255,107,139,.45)", bg: "rgba(255,107,139,.12)", color: "dct.wishlist" },
+  accent: { border: "primary.main", bg: "dct.accentSoft", color: "text.primary" },
+} as const;
+
 interface PillProps {
   icon?: ReactNode;
   children: ReactNode;
-  tone?: "owned" | "accent";
+  tone?: keyof typeof PILL_TONES;
   href?: string;
   to?: string;
 }
@@ -173,19 +180,9 @@ export const Pill = ({ icon, children, tone, href, to }: PillProps) => {
         whiteSpace: "nowrap",
         textDecoration: "none",
         border: 1,
-        borderColor:
-          tone === "owned"
-            ? "rgba(63,178,127,.45)"
-            : tone === "accent"
-              ? "primary.main"
-              : "dct.border",
-        bgcolor:
-          tone === "owned"
-            ? "rgba(63,178,127,.12)"
-            : tone === "accent"
-              ? "dct.accentSoft"
-              : "dct.surface2",
-        color: tone === "owned" ? "dct.owned" : "text.primary",
+        borderColor: tone ? PILL_TONES[tone].border : "dct.border",
+        bgcolor: tone ? PILL_TONES[tone].bg : "dct.surface2",
+        color: tone ? PILL_TONES[tone].color : "text.primary",
         "& svg": { fontSize: 16 },
         ...(href || to ? { "&:hover": { borderColor: "primary.main" } } : {}),
       }}

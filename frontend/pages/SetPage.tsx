@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CheckIcon from "@mui/icons-material/Check";
 import CategoryIcon from "@mui/icons-material/CategoryOutlined";
 import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCarOutlined";
 import EditIcon from "@mui/icons-material/EditOutlined";
-import FavoriteIcon from "@mui/icons-material/FavoriteBorder";
-import Inventory2Icon from "@mui/icons-material/Inventory2Outlined";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import LockIcon from "@mui/icons-material/LockOutlined";
 import MenuBookIcon from "@mui/icons-material/MenuBookOutlined";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
@@ -124,8 +124,8 @@ const SetPage = () => {
           pills={
             <>
               <Pill
-                icon={set.status === "owned" ? <Inventory2Icon /> : <FavoriteIcon />}
-                tone={set.status === "owned" ? "owned" : undefined}
+                icon={set.status === "owned" ? <CheckIcon /> : <FavoriteIcon />}
+                tone={set.status === "owned" ? "owned" : "wishlist"}
               >
                 {t(`status.${set.status}`)}
                 {set.quantity > 1 ? ` ×${set.quantity}` : ""}

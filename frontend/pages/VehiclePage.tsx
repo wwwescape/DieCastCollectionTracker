@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CheckIcon from "@mui/icons-material/Check";
 import CategoryIcon from "@mui/icons-material/CategoryOutlined";
 import DeleteIcon from "@mui/icons-material/DeleteOutline";
 import EditIcon from "@mui/icons-material/EditOutlined";
-import FavoriteIcon from "@mui/icons-material/FavoriteBorder";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import FormatListNumberedIcon from "@mui/icons-material/FormatListNumbered";
-import Inventory2Icon from "@mui/icons-material/Inventory2Outlined";
 import MenuBookIcon from "@mui/icons-material/MenuBookOutlined";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PaletteIcon from "@mui/icons-material/PaletteOutlined";
@@ -134,8 +134,8 @@ const VehiclePage = () => {
           pills={
             <>
               <Pill
-                icon={car.status === "owned" ? <Inventory2Icon /> : <FavoriteIcon />}
-                tone={car.status === "owned" ? "owned" : undefined}
+                icon={car.status === "owned" ? <CheckIcon /> : <FavoriteIcon />}
+                tone={car.status === "owned" ? "owned" : "wishlist"}
               >
                 {t(`status.${car.status}`)}
                 {car.quantity > 1 ? ` ×${car.quantity}` : ""}

@@ -62,6 +62,8 @@
   series in one go.
 - **Your own lookup lists** — manufacturers, series, vehicle types, and colors grow as you type,
   and can be managed in Settings → Lookups.
+- **Customizable Overview** — reorder or hide its sections (summary tiles, quick add, recently
+  added, wishlist, needs attention); the layout is saved on your account.
 - **Insights** — vehicle and set counts, collection value, stats by manufacturer and vehicle type,
   plus recently added vehicles.
 - **Share links** — read-only links to your vehicles and sets for people without an account,
@@ -69,7 +71,10 @@
   Settings; regenerate the links or turn sharing off to revoke access.
 - **Languages and currency** — English, Spanish, French, and Portuguese, and a choice of currency
   for prices, saved on your account for every browser.
-- **Data portability** — CSV export, plus full JSON backup and restore.
+- **Backup and restore** — export everything as a .zip with your uploaded photos, or as a
+  data-only .json; restore either in one step, after a safety snapshot of the current collection.
+- **Danger Zone** — clear notes, tags or purchase prices, remove unused lookups or photo files,
+  or reset vehicles, sets or everything (resets need RESET typed and take a safety snapshot first).
 - **PWA** — installable, and works offline for anything you've already viewed (photos included).
 - **Material 3 design** — light and dark mode, high contrast, a choice of accent colors (the
   logo's blue by default), and responsive navigation for phone, tablet, and desktop.

@@ -326,7 +326,12 @@ interface OverviewRowsProps<T> extends SelectionProps {
   onOpen: (item: T) => void;
 }
 
-const Chip = ({ children, tone }: { children: ReactNode; tone?: "owned" }) => (
+const CHIP_TONES = {
+  owned: { border: "rgba(63,178,127,.45)", bg: "rgba(63,178,127,.12)", color: "dct.owned" },
+  wishlist: { border: "rgba(255,107,139,.45)", bg: "rgba(255,107,139,.12)", color: "dct.wishlist" },
+} as const;
+
+const Chip = ({ children, tone }: { children: ReactNode; tone?: keyof typeof CHIP_TONES }) => (
   <Box
     component="span"
     sx={{
@@ -339,9 +344,9 @@ const Chip = ({ children, tone }: { children: ReactNode; tone?: "owned" }) => (
       fontWeight: 500,
       whiteSpace: "nowrap",
       border: 1,
-      borderColor: tone === "owned" ? "rgba(63,178,127,.45)" : "dct.border",
-      bgcolor: tone === "owned" ? "rgba(63,178,127,.12)" : "dct.surface2",
-      color: tone === "owned" ? "dct.owned" : "text.secondary",
+      borderColor: tone ? CHIP_TONES[tone].border : "dct.border",
+      bgcolor: tone ? CHIP_TONES[tone].bg : "dct.surface2",
+      color: tone ? CHIP_TONES[tone].color : "text.secondary",
     }}
   >
     {children}
@@ -412,7 +417,7 @@ export function OverviewRows<T>({
               </Box>
             </Box>
             <Box sx={{ display: { xs: "none", sm: "block" } }}>
-              <Chip tone={row.status === "owned" ? "owned" : undefined}>
+              <Chip tone={row.status}>
                 {t(`status.${row.status}`)}
                 {row.quantity > 1 ? ` ×${row.quantity}` : ""}
               </Chip>

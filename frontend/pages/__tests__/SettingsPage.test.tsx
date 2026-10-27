@@ -24,7 +24,12 @@ function renderSettings() {
 describe("SettingsPage", () => {
   beforeEach(() => {
     vi.spyOn(authApi, "isAuthenticated").mockReturnValue(true);
-    vi.spyOn(authApi, "fetchCurrentUser").mockResolvedValue({ id: 1, username: "eric", currency: "USD" });
+    vi.spyOn(authApi, "fetchCurrentUser").mockResolvedValue({
+      id: 1,
+      username: "eric",
+      currency: "USD",
+      overviewLayout: null,
+    });
   });
 
   afterEach(() => {
@@ -39,7 +44,7 @@ describe("SettingsPage", () => {
     expect(screen.getByRole("checkbox", { name: "Dark mode" })).toBeInTheDocument();
     expect(screen.getByRole("checkbox", { name: "High contrast" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Blue" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /export csv/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Export" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "General" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("link", { name: "Lookups" })).toHaveAttribute(
       "href",

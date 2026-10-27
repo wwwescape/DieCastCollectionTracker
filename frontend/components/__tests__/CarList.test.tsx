@@ -111,8 +111,10 @@ describe("CarList", () => {
     renderCarList();
 
     await screen.findByText("Custom Camaro");
-    expect(screen.getByText("Wishlisted")).toBeInTheDocument();
-    expect(screen.getByLabelText("Quantity")).toHaveTextContent("3");
+    // The heart badge (top-left) and the bare quantity, no "×" (bottom-left).
+    expect(screen.getByLabelText("Wishlisted")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Owned")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Quantity")).toHaveTextContent(/^3$/);
     expect(screen.queryByRole("button", { name: /delete/i })).not.toBeInTheDocument();
     // Added by hand, so it carries the Custom chip.
     expect(screen.getByText("Custom")).toBeInTheDocument();

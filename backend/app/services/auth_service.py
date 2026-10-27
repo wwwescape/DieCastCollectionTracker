@@ -54,8 +54,14 @@ class WrongPasswordError(Exception):
     401, since the user is signed in; a 401 would read as an expired session."""
 
 
-def set_preferences(db: Session, user: User, currency: str) -> User:
-    user.currency = currency
+def set_preferences(
+    db: Session, user: User, currency: str | None = None, overview_layout: list[dict] | None = None
+) -> User:
+    """Changes only what's given (None leaves a preference as it is)."""
+    if currency is not None:
+        user.currency = currency
+    if overview_layout is not None:
+        user.overview_layout = overview_layout
     db.commit()
     db.refresh(user)
     return user

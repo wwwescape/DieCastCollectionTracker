@@ -27,15 +27,27 @@ class TokenResponse(CamelModel):
     token_type: str = "bearer"
 
 
+class OverviewSection(CamelModel):
+    # The frontend's section keys (pages/OverviewPage.tsx); keys it doesn't know are ignored
+    # there, so a layout saved by a newer version still loads after a downgrade.
+    key: str = Field(pattern=r"^[a-zA-Z][a-zA-Z0-9]{0,39}$")
+    hidden: bool = False
+
+
 class UserResponse(CamelModel):
     id: int
     username: str
     currency: str | None = None
+    # The Overview's sections in order; null until customised.
+    overview_layout: list[OverviewSection] | None = None
 
 
 class PreferencesRequest(CamelModel):
+    """Only the fields sent are changed."""
+
     # An ISO 4217 code; the frontend only offers the currencies it can format.
-    currency: str = Field(pattern=r"^[A-Z]{3}$")
+    currency: str | None = Field(default=None, pattern=r"^[A-Z]{3}$")
+    overview_layout: list[OverviewSection] | None = Field(default=None, max_length=50)
 
 
 class SetupStatusResponse(CamelModel):

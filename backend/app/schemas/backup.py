@@ -58,8 +58,8 @@ class BackupCar(CamelModel):
     notes: str | None
     catalog_source: str | None = None
     catalog_title: str | None = None
-    # Primary photo URL, kept so v1 readers still see a photo. Image files aren't bundled in
-    # the backup, they live in uploads/.
+    # Primary photo URL, kept so v1 readers still see a photo. The image files themselves are
+    # only in a full .zip backup (under photos/); a .json backup expects them in uploads/.
     photo: str | None
     # Full gallery. Missing from v1 backups, in which case restore falls back to `photo`.
     photos: list[BackupPhoto] = []
@@ -105,4 +105,11 @@ class BackupPayload(CamelModel):
 class BackupRestoreResult(CamelModel):
     restored_cars: int
     restored_sets: int = 0
+    # Photo files copied in from a full .zip backup (0 for a .json backup).
+    restored_photos: int = 0
     safety_snapshot_path: str
+
+
+class FullBackupLinkResponse(CamelModel):
+    # A same-origin path with a short-lived signed token, for the browser to download from.
+    url: str

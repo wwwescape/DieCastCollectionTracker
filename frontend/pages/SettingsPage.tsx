@@ -9,6 +9,7 @@ import { Trans, useTranslation } from "react-i18next";
 import AccentColorSetting from "../components/AccentColorSetting";
 import AutocompleteSelect from "../components/AutocompleteSelect";
 import ChangePasswordDialog from "../components/ChangePasswordDialog";
+import DangerZoneSection from "../components/DangerZoneSection";
 import DataManagementSection from "../components/DataManagementSection";
 import Page from "../components/Page";
 import { SettingRow, SettingsGroup, SettingsToolbar } from "../components/SettingsLayout";
@@ -98,9 +99,7 @@ const SettingsPage = () => {
         </SettingsGroup>
 
         <SettingsGroup title={t("settings.data.heading")} lead={t("settings.data.lead")}>
-          <SettingRow stacked>
-            <DataManagementSection />
-          </SettingRow>
+          <DataManagementSection />
         </SettingsGroup>
 
         <SettingsGroup title={t("settings.share.heading")} lead={t("settings.share.description")}>
@@ -146,6 +145,8 @@ const SettingsPage = () => {
           </SettingRow>
         </SettingsGroup>
         <ChangePasswordDialog open={passwordOpen} onClose={() => setPasswordOpen(false)} />
+
+        <DangerZoneSection />
       </Box>
     </Page>
   );

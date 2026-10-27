@@ -1,23 +1,20 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import i18next from "i18next";
 import { toast } from "react-toastify";
-import { exportBackupBlob, exportCsvBlob, restoreBackup } from "../api/importExport";
-import { downloadBlob } from "../utils/download";
+import { exportBackupBlob, fullBackupDownloadUrl, restoreBackup } from "../api/importExport";
+import { downloadBlob, downloadUrl } from "../utils/download";
+import { TOAST_OPTIONS } from "../utils/toastOptions";
 
-export function useExportCsv() {
-  return useMutation({
-    mutationFn: async () => {
-      const blob = await exportCsvBlob();
-      downloadBlob(blob, "diecast-collection.csv");
-    },
-  });
-}
+export type BackupFormat = "zip" | "json";
 
 export function useExportBackup() {
   return useMutation({
-    mutationFn: async () => {
-      const blob = await exportBackupBlob();
-      downloadBlob(blob, "diecast-backup.json");
+    mutationFn: async (format: BackupFormat) => {
+      if (format === "zip") {
+        downloadUrl(await fullBackupDownloadUrl());
+      } else {
+        downloadBlob(await exportBackupBlob(), "diecast-backup.json");
+      }
     },
   });
 }
@@ -33,10 +30,15 @@ export function useRestoreBackup() {
     onSuccess: (result) => {
       queryClient.invalidateQueries();
       toast.success(
-        i18next.t("settings.data.restored", {
-          cars: result.restoredCars,
-          sets: result.restoredSets,
-        })
+        i18next.t(
+          result.restoredPhotos ? "settings.data.restoredWithPhotos" : "settings.data.restored",
+          {
+            cars: result.restoredCars,
+            sets: result.restoredSets,
+            photos: result.restoredPhotos,
+          }
+        ),
+        TOAST_OPTIONS
       );
     },
   });

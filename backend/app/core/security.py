@@ -11,6 +11,7 @@ from app.core.config import get_settings
 class TokenType(StrEnum):
     ACCESS = "access"
     REFRESH = "refresh"
+    BACKUP_DOWNLOAD = "backup_download"
 
 
 class TokenError(Exception):
@@ -60,6 +61,21 @@ def create_access_token(user_id: int) -> str:
         "type": TokenType.ACCESS.value,
         "iat": now,
         "exp": now + timedelta(minutes=settings.access_token_expire_minutes),
+    }
+    return jwt.encode(payload, _require_secret(), algorithm=settings.jwt_algorithm)
+
+
+def create_backup_download_token(user_id: int, expires_minutes: int = 5) -> str:
+    """A one-purpose link for downloading a full backup: the .zip can be large, so the
+    browser downloads it directly (streamed to disk) instead of through a script holding it
+    in memory — and a plain navigation can't carry an Authorization header."""
+    settings = get_settings()
+    now = datetime.now(UTC)
+    payload = {
+        "sub": str(user_id),
+        "type": TokenType.BACKUP_DOWNLOAD.value,
+        "iat": now,
+        "exp": now + timedelta(minutes=expires_minutes),
     }
     return jwt.encode(payload, _require_secret(), algorithm=settings.jwt_algorithm)
 

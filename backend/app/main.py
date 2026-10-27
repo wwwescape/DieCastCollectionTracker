@@ -10,6 +10,7 @@ from app.api.routes import (
     auth,
     cars,
     catalog,
+    danger_zone,
     dashboard,
     export,
     health,
@@ -131,7 +132,9 @@ app.include_router(lookups.router)
 app.include_router(tags.router)
 app.include_router(uploads.router)
 app.include_router(dashboard.router)
+app.include_router(danger_zone.router)
 app.include_router(export.router)
+app.include_router(export.download_router)
 app.include_router(share.router)
 app.include_router(public.router)
 app.include_router(version.router)

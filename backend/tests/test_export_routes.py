@@ -1,15 +1,10 @@
 import io
 import json
+import zipfile
 
 from PIL import Image
 
 from app.core.config import UPLOADS_DIR
-
-
-def test_export_csv_requires_auth(client):
-    response = client.get("/api/export/csv")
-
-    assert response.status_code == 401
 
 
 def test_export_backup_requires_auth(client):
@@ -22,55 +17,6 @@ def test_import_backup_requires_auth(client):
     response = client.post("/api/import/backup", files={"file": ("backup.json", b"{}", "application/json")})
 
     assert response.status_code == 401
-
-
-def test_export_csv_empty(auth_client):
-    response = auth_client.get("/api/export/csv")
-
-    assert response.status_code == 200
-    assert "text/csv" in response.headers["content-type"]
-    lines = response.text.strip().splitlines()
-    assert lines[0].startswith("name,manufacturer")
-    assert len(lines) == 1  # header only
-
-
-def test_export_csv_includes_condition(auth_client):
-    auth_client.post(
-        "/api/cars", json={"name": "Bone Shaker", "manufacturer": "Hot Wheels", "condition": "near_mint"}
-    )
-
-    response = auth_client.get("/api/export/csv")
-
-    header, row = response.text.strip().splitlines()
-    columns = header.split(",")
-    assert "condition" in columns
-    assert row.split(",")[columns.index("condition")] == "near_mint"
-
-
-def test_export_csv_with_cars(auth_client):
-    auth_client.post(
-        "/api/cars",
-        json={
-            "name": "Custom '67 Camaro",
-            "manufacturer": "Hot Wheels",
-            "vehicleType": "Car",
-            "status": "owned",
-            "quantity": 2,
-            "tags": ["Favorite"],
-        },
-    )
-
-    response = auth_client.get("/api/export/csv")
-
-    assert response.status_code == 200
-    lines = response.text.strip().splitlines()
-    assert len(lines) == 2
-    row = lines[1]
-    assert "Custom '67 Camaro" in row
-    assert "Hot Wheels" in row
-    assert "Car" in row
-    assert "owned" in row
-    assert "Favorite" in row
 
 
 def test_export_backup_json_structure(auth_client):
@@ -228,3 +174,150 @@ def test_restore_rejects_an_oversized_file(auth_client, monkeypatch):
     response = auth_client.post("/api/import/backup", files={"file": ("b.json", oversized, "application/json")})
 
     assert response.status_code == 413
+
+
+# --- Full backup (.zip with photos) ---
+
+
+def _jpeg_bytes(color="red") -> bytes:
+    buffer = io.BytesIO()
+    Image.new("RGB", (8, 8), color=color).save(buffer, format="JPEG")
+    return buffer.getvalue()
+
+
+def _isolate_photos(tmp_path, monkeypatch):
+    from app.services import upload_service
+
+    photos = tmp_path / "car-images"
+    photos.mkdir()
+    monkeypatch.setattr(upload_service, "CAR_IMAGES_DIR", photos)
+    return photos
+
+
+def _download_zip(auth_client) -> bytes:
+    link = auth_client.post("/api/export/backup/full-link")
+    assert link.status_code == 200
+    response = auth_client.get(link.json()["url"], headers={"Authorization": ""})
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/zip"
+    return response.content
+
+
+def test_full_backup_link_requires_auth(client):
+    assert client.post("/api/export/backup/full-link").status_code == 401
+
+
+def test_full_backup_download_rejects_a_bad_link(client):
+    response = client.get("/api/export/backup/full/not-a-token/diecast-backup.zip")
+
+    assert response.status_code == 401
+
+
+def test_full_backup_zip_holds_the_data_and_the_referenced_photos(auth_client, tmp_path, monkeypatch):
+    photos = _isolate_photos(tmp_path, monkeypatch)
+    name = "0b5f7a1e-3c2d-4e5f-8a9b-0c1d2e3f4a5b.jpg"
+    (photos / name).write_bytes(_jpeg_bytes())
+    (photos / "11111111-2222-3333-4444-555555555555.jpg").write_bytes(_jpeg_bytes("blue"))  # unused
+    auth_client.post(
+        "/api/cars",
+        json={"name": "Bone Shaker", "manufacturer": "Hot Wheels", "photo": f"/uploads/car-images/{name}"},
+    )
+
+    with zipfile.ZipFile(io.BytesIO(_download_zip(auth_client))) as archive:
+        names = set(archive.namelist())
+        data = json.loads(archive.read("backup.json"))
+
+    assert names == {"backup.json", f"photos/{name}"}
+    assert data["cars"][0]["name"] == "Bone Shaker"
+
+
+def test_full_backup_zip_round_trip_restores_rows_and_photos(auth_client, tmp_path, monkeypatch):
+    photos = _isolate_photos(tmp_path, monkeypatch)
+    name = "0b5f7a1e-3c2d-4e5f-8a9b-0c1d2e3f4a5b.jpg"
+    (photos / name).write_bytes(_jpeg_bytes())
+    auth_client.post(
+        "/api/cars",
+        json={"name": "Bone Shaker", "manufacturer": "Hot Wheels", "photo": f"/uploads/car-images/{name}"},
+    )
+    backup = _download_zip(auth_client)
+
+    # A new server: no photo on disk, a different collection.
+    (photos / name).unlink()
+    auth_client.post("/api/cars", json={"name": "Extra Car", "manufacturer": "Matchbox"})
+
+    result = auth_client.post(
+        "/api/import/backup", files={"file": ("diecast-backup.zip", backup, "application/zip")}
+    ).json()
+
+    assert result["restoredCars"] == 1 and result["restoredPhotos"] == 1
+    assert (photos / name).is_file()
+    cars = auth_client.get("/api/cars").json()
+    assert [car["name"] for car in cars] == ["Bone Shaker"]
+    assert cars[0]["photo"] == f"/uploads/car-images/{name}"
+
+
+def test_zip_restore_takes_only_safe_referenced_photos(auth_client, tmp_path, monkeypatch):
+    photos = _isolate_photos(tmp_path, monkeypatch)
+    good = "0b5f7a1e-3c2d-4e5f-8a9b-0c1d2e3f4a5b.jpg"
+    not_an_image = "22222222-3333-4444-5555-666666666666.jpg"
+    payload = json.dumps(
+        {
+            "version": 5,
+            "exportedAt": "2026-10-27T00:00:00Z",
+            "manufacturers": [{"id": 1, "name": "Hot Wheels"}],
+            "series": [],
+            "vehicleTypes": [],
+            "colors": [],
+            "tags": [],
+            "cars": [
+                {
+                    "id": 1,
+                    "name": "Bone Shaker",
+                    "manufacturerId": 1,
+                    "seriesId": None,
+                    "vehicleTypeId": None,
+                    "colorId": None,
+                    "castNumber": None,
+                    "collectionNumber": None,
+                    "year": None,
+                    "status": "owned",
+                    "condition": None,
+                    "quantity": 1,
+                    "purchasePrice": None,
+                    "notes": None,
+                    "photo": f"/uploads/car-images/{good}",
+                    "tagIds": [],
+                    "photos": [
+                        {"url": f"/uploads/car-images/{good}", "isPrimary": True, "sortOrder": 0},
+                        {"url": f"/uploads/car-images/{not_an_image}", "isPrimary": False, "sortOrder": 1},
+                    ],
+                }
+            ],
+        }
+    )
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("backup.json", payload)
+        archive.writestr(f"photos/{good}", _jpeg_bytes())
+        archive.writestr(f"photos/{not_an_image}", b"not an image")
+        archive.writestr("photos/../../evil.jpg", _jpeg_bytes())  # path traversal
+        archive.writestr("photos/33333333-4444-5555-6666-777777777777.jpg", _jpeg_bytes())  # unreferenced
+
+    result = auth_client.post(
+        "/api/import/backup", files={"file": ("b.zip", buffer.getvalue(), "application/zip")}
+    ).json()
+
+    assert result["restoredPhotos"] == 1
+    assert sorted(path.name for path in photos.iterdir()) == [good]
+    assert not (tmp_path / "evil.jpg").exists()
+
+
+def test_zip_restore_rejects_a_zip_without_backup_json(auth_client):
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("readme.txt", "hello")
+
+    response = auth_client.post("/api/import/backup", files={"file": ("b.zip", buffer.getvalue(), "application/zip")})
+
+    assert response.status_code == 400
+    assert "backup.json" in response.json()["detail"]

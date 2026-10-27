@@ -11,6 +11,13 @@ export interface CurrentUser {
   username: string;
   // The account's display currency; null until one is chosen.
   currency: string | null;
+  // The Overview's sections in order; null until customised (see hooks/useOverviewLayout.ts).
+  overviewLayout: OverviewSectionSetting[] | null;
+}
+
+export interface OverviewSectionSetting {
+  key: string;
+  hidden: boolean;
 }
 
 export interface SetupStatus {

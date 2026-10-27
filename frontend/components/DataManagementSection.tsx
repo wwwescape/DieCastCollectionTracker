@@ -1,81 +1,107 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import DownloadIcon from "@mui/icons-material/Download";
 import RestoreIcon from "@mui/icons-material/Restore";
-import UploadIcon from "@mui/icons-material/Upload";
-import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
-import Divider from "@mui/material/Divider";
 import Stack from "@mui/material/Stack";
-import Typography from "@mui/material/Typography";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import { useTranslation } from "react-i18next";
 import { toast } from "react-toastify";
-import { useExportBackup, useExportCsv, useRestoreBackup } from "../hooks/useImportExport";
+import { useExportBackup, useRestoreBackup, type BackupFormat } from "../hooks/useImportExport";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
+import ConfirmDialog from "./ConfirmDialog";
+import { SettingRow } from "./SettingsLayout";
 
+// Settings → Data: one Export (a full .zip with photos, or the data alone as .json) and one
+// Restore that takes either, after confirming it replaces the collection.
 export default function DataManagementSection() {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const exportCsv = useExportCsv();
+  const [format, setFormat] = useState<BackupFormat>("zip");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const exportBackup = useExportBackup();
   const restoreBackup = useRestoreBackup();
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = "";
-    restoreBackup.mutate(file, {
+  const handleExport = () =>
+    exportBackup.mutate(format, {
+      onError: () => toast.error(t("settings.data.exportError"), TOAST_OPTIONS),
+    });
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (file) setPendingFile(file);
+  };
+
+  const handleRestore = () => {
+    if (!pendingFile) return;
+    restoreBackup.mutate(pendingFile, {
       onError: () => toast.error(t("settings.data.restoreError"), TOAST_OPTIONS),
     });
-  }
+    setPendingFile(null);
+  };
 
   return (
-    <Box>
-      <Typography variant="subtitle2" gutterBottom>
-        {t("settings.data.export")}
-      </Typography>
-      <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap mb={3}>
-        <Button
-          variant="outlined"
-          startIcon={<DownloadIcon />}
-          onClick={() => exportCsv.mutate()}
-          loading={exportCsv.isPending}
+    <>
+      <SettingRow name={t("settings.data.export")} description={t("settings.data.exportHelp")}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ alignItems: "center", flexWrap: "wrap", rowGap: 1 }}
         >
-          {t("settings.data.exportCsv")}
-        </Button>
-        <Button
-          variant="outlined"
-          startIcon={<DownloadIcon />}
-          onClick={() => exportBackup.mutate()}
-          loading={exportBackup.isPending}
-        >
-          {t("settings.data.exportBackup")}
-        </Button>
-      </Stack>
-
-      <Divider sx={{ my: 2 }} />
-
-      <Typography variant="subtitle2" gutterBottom>
-        {t("settings.data.restore")}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" mb={2}>
-        {t("settings.data.restoreDescription")}
-      </Typography>
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="application/json,.json"
-        style={{ display: "none" }}
-        onChange={handleFileChange}
-      />
-      <Button
-        variant="contained"
-        color="warning"
-        startIcon={restoreBackup.isPending ? <UploadIcon /> : <RestoreIcon />}
-        onClick={() => fileInputRef.current?.click()}
-        loading={restoreBackup.isPending}
+          <ToggleButtonGroup
+            size="small"
+            exclusive
+            value={format}
+            onChange={(_event, value: BackupFormat | null) => value && setFormat(value)}
+            aria-label={t("settings.data.format")}
+          >
+            <ToggleButton value="zip">{t("settings.data.formatZip")}</ToggleButton>
+            <ToggleButton value="json">{t("settings.data.formatJson")}</ToggleButton>
+          </ToggleButtonGroup>
+          <Button
+            variant="outlined"
+            startIcon={<DownloadIcon />}
+            onClick={handleExport}
+            loading={exportBackup.isPending}
+          >
+            {t("settings.data.exportButton")}
+          </Button>
+        </Stack>
+      </SettingRow>
+      <SettingRow
+        name={t("settings.data.restore")}
+        description={t("settings.data.restoreDescription")}
       >
-        {t("settings.data.restoreButton")}
-      </Button>
-    </Box>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".zip,.json,application/zip,application/json"
+          style={{ display: "none" }}
+          onChange={handleFileChange}
+          data-testid="restore-file"
+        />
+        <Button
+          variant="outlined"
+          color="warning"
+          startIcon={<RestoreIcon />}
+          onClick={() => fileInputRef.current?.click()}
+          loading={restoreBackup.isPending}
+        >
+          {t("settings.data.restoreButton")}
+        </Button>
+      </SettingRow>
+      <ConfirmDialog
+        open={pendingFile !== null}
+        title={t("settings.data.restoreConfirmTitle")}
+        description={t("settings.data.restoreConfirmDescription", {
+          file: pendingFile?.name ?? "",
+        })}
+        confirmLabel={t("settings.data.restoreConfirm")}
+        confirmColor="error"
+        onClose={() => setPendingFile(null)}
+        onConfirm={handleRestore}
+      />
+    </>
   );
 }

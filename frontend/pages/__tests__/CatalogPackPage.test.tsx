@@ -93,7 +93,7 @@ describe("CatalogPackPage", () => {
 
     const mclaren = await cardFor("McLaren Formula 1 Team");
     const ferrari = await cardFor("Scuderia Ferrari HP");
-    await waitFor(() => expect(within(ferrari).getByText("Owned")).toBeInTheDocument());
+    await waitFor(() => expect(within(ferrari).getByLabelText("Owned")).toBeInTheDocument());
 
     expect(within(mclaren).getByRole("checkbox", { name: "Add" })).toBeChecked();
     expect(within(ferrari).getByRole("checkbox", { name: "Add" })).not.toBeChecked();

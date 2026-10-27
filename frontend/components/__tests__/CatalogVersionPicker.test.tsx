@@ -111,7 +111,7 @@ describe("CatalogVersionPicker", () => {
 
     // The owned version: status and quantity chips, and "View in collection" instead of adding.
     const owned = (await screen.findByText("2026 · Yellow")).closest(".item-card") as HTMLElement;
-    expect(within(owned).getByText("Owned")).toBeInTheDocument();
+    expect(within(owned).getByLabelText("Owned")).toBeInTheDocument();
     expect(within(owned).getByLabelText("Quantity")).toHaveTextContent("3");
     await user.click(within(owned).getByRole("button", { name: "View in collection" }));
     expect(onOpenExisting.mock.calls[0]?.[0]).toMatchObject({
@@ -122,7 +122,7 @@ describe("CatalogVersionPicker", () => {
 
     // Not owned, but a car from its series is: only the "related" chip.
     const sameSeries = screen.getByText("2013 · Red").closest(".item-card") as HTMLElement;
-    expect(within(sameSeries).queryByText("Owned")).not.toBeInTheDocument();
+    expect(within(sameSeries).queryByLabelText("Owned")).not.toBeInTheDocument();
     expect(
       within(sameSeries).getByLabelText("You have vehicles from this series")
     ).toBeInTheDocument();
@@ -151,7 +151,7 @@ describe("CatalogVersionPicker", () => {
     const packVersion = (await screen.findByText("2026 · Yellow")).closest(
       ".item-card"
     ) as HTMLElement;
-    expect(within(packVersion).queryByText("Owned")).not.toBeInTheDocument();
+    expect(within(packVersion).queryByLabelText("Owned")).not.toBeInTheDocument();
     expect(
       within(packVersion).getByRole("button", { name: "Add this version" })
     ).toBeInTheDocument();

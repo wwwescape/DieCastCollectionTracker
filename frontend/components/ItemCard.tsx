@@ -6,6 +6,7 @@ import Typography from "@mui/material/Typography";
 import CheckIcon from "@mui/icons-material/Check";
 import PlaylistAddCheckIcon from "@mui/icons-material/PlaylistAddCheck";
 import { useTranslation } from "react-i18next";
+import OwnershipBadges from "./OwnershipBadges";
 import PhotoImg from "./PhotoImg";
 import type { CarStatus } from "../api/types";
 
@@ -22,12 +23,11 @@ interface ItemCardProps {
   imageUrl?: string | null;
   // Photos are shown whole by default; "cover" crops them to fill the well.
   imageFit?: "cover" | "contain";
-  // This exact item is in DCT: a Wishlist badge top-left (and Owned too, unless
-  // `wishlistOnly` — on the collection's own lists owned is the default and goes unsaid),
-  // and the quantity top-right when it's more than one.
+  // This exact item is in DCT: VideoGameTrackarr's status badge (a heart top-left when
+  // wishlisted, a check top-right when owned) and the quantity bottom-left when it's more
+  // than one.
   holding?: ItemCardHolding | null;
-  wishlistOnly?: boolean;
-  // Bottom-left: something related (same casting, series...) is already in DCT.
+  // Bottom-left, after the quantity: something related (same casting, series...) is in DCT.
   relatedHint?: string | null;
   // Bottom-right: added by hand rather than from the wiki, like VideoGameTrackarr's Custom tag.
   custom?: boolean;
@@ -80,7 +80,6 @@ const ItemCard = ({
   imageUrl,
   imageFit = "contain",
   holding,
-  wishlistOnly = false,
   relatedHint,
   custom = false,
   chips,
@@ -94,10 +93,6 @@ const ItemCard = ({
   const { t } = useTranslation();
   const handleClick = selectable ? onToggleSelect : onClick;
   const ring = selected || highlighted;
-  const statusBadge =
-    holding && (holding.status === "wishlist" || !wishlistOnly)
-      ? t(`status.${holding.status}`)
-      : null;
 
   const media = (
     <Box
@@ -144,43 +139,69 @@ const ItemCard = ({
         >
           {selected ? <CheckIcon /> : null}
         </Box>
-      ) : statusBadge ? (
-        <Pill
+      ) : null}
+      {/* In selection mode the check box takes the wishlist heart's corner. */}
+      {holding && !(selectable && holding.status === "wishlist") ? (
+        <OwnershipBadges status={holding.status} />
+      ) : null}
+      {(holding && holding.quantity > 1) || relatedHint ? (
+        <Box
           sx={{
-            top: 8,
+            position: "absolute",
+            bottom: 8,
             left: 8,
-            bgcolor: holding?.status === "owned" ? "success.main" : "rgba(10,12,16,.72)",
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
           }}
         >
-          {statusBadge}
-        </Pill>
-      ) : null}
-      {holding && holding.quantity > 1 ? (
-        <Pill sx={{ top: 8, right: 8 }}>
-          <span aria-label={t("common.quantity")}>×{holding.quantity}</span>
-        </Pill>
-      ) : null}
-      {relatedHint ? (
-        <Tooltip title={relatedHint}>
-          <Box
-            aria-label={relatedHint}
-            sx={{
-              position: "absolute",
-              bottom: 8,
-              left: 8,
-              display: "grid",
-              placeItems: "center",
-              width: 24,
-              height: 24,
-              borderRadius: "50%",
-              bgcolor: "rgba(10,12,16,.72)",
-              color: "#fff",
-              "& svg": { fontSize: 16 },
-            }}
-          >
-            <PlaylistAddCheckIcon />
-          </Box>
-        </Tooltip>
+          {holding && holding.quantity > 1 ? (
+            <Tooltip title={t("common.quantity")}>
+              <Box
+                component="span"
+                aria-label={t("common.quantity")}
+                sx={{
+                  minWidth: 24,
+                  height: 24,
+                  px: 0.875,
+                  borderRadius: 3,
+                  display: "inline-grid",
+                  placeItems: "center",
+                  bgcolor: "dct.glass",
+                  border: 1,
+                  borderColor: "dct.glassLine",
+                  color: "#fff",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {holding.quantity}
+              </Box>
+            </Tooltip>
+          ) : null}
+          {relatedHint ? (
+            <Tooltip title={relatedHint}>
+              <Box
+                aria-label={relatedHint}
+                sx={{
+                  display: "grid",
+                  placeItems: "center",
+                  width: 24,
+                  height: 24,
+                  borderRadius: "50%",
+                  bgcolor: "dct.glass",
+                  border: 1,
+                  borderColor: "dct.glassLine",
+                  color: "#fff",
+                  "& svg": { fontSize: 16 },
+                }}
+              >
+                <PlaylistAddCheckIcon />
+              </Box>
+            </Tooltip>
+          ) : null}
+        </Box>
       ) : null}
       {custom ? (
         <Pill sx={{ bottom: 8, right: 8, fontSize: 10, textTransform: "uppercase" }}>

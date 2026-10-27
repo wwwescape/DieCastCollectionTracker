@@ -41,7 +41,8 @@
     "vehicleCount_one": "{{count}} véhicule",
     "vehicleCount_other": "{{count}} véhicules",
     "custom": "Personnalisé",
-    "back": "Retour"
+    "back": "Retour",
+    "save": "Enregistrer"
   },
   "status": {
     "owned": "Possédé",
@@ -296,14 +297,22 @@
     "data": {
       "heading": "Données",
       "export": "Exporter",
-      "exportCsv": "Exporter en CSV",
-      "exportBackup": "Exporter une sauvegarde (JSON)",
       "restore": "Restaurer",
-      "restoreDescription": "Importer une sauvegarde remplace toutes les données actuelles. Un instantané de sécurité est enregistré automatiquement avant la restauration.",
-      "restoreButton": "Restaurer une sauvegarde",
+      "restoreDescription": "Remplace toute votre collection par une sauvegarde .zip ou .json. Un instantané de sécurité de la collection actuelle est d'abord enregistré.",
+      "restoreButton": "Restaurer une sauvegarde…",
       "restoreError": "Impossible de restaurer la sauvegarde. Vérifiez le fichier et réessayez.",
       "restored": "{{cars}} véhicule(s) et {{sets}} coffret(s) restaurés depuis la sauvegarde.",
-      "lead": "Exportez votre collection ou restaurez-la depuis une sauvegarde."
+      "lead": "Exportez votre collection ou restaurez-la depuis une sauvegarde.",
+      "exportHelp": "Une sauvegarde complète inclut vos photos importées, elle passe donc entière sur un nouveau serveur. Données seules est identique sans les fichiers photo.",
+      "format": "Format de la sauvegarde",
+      "formatZip": "Avec photos (.zip)",
+      "formatJson": "Données seules (.json)",
+      "exportButton": "Exporter",
+      "exportError": "Impossible d'exporter la sauvegarde. Réessayez.",
+      "restoreConfirmTitle": "Remplacer votre collection ?",
+      "restoreConfirmDescription": "Tout ce qui est dans DCT sera remplacé par « {{file}} ». Un instantané de sécurité de la collection actuelle est d'abord enregistré sur le serveur.",
+      "restoreConfirm": "Remplacer la collection",
+      "restoredWithPhotos": "{{cars}} véhicule(s), {{sets}} coffret(s) et {{photos}} photo(s) restaurés depuis la sauvegarde."
     },
     "share": {
       "heading": "Partage",
@@ -333,6 +342,67 @@
     "regional": {
       "heading": "Langue et devise",
       "lead": "Utilisées pour les libellés et les prix."
+    },
+    "dangerZone": {
+      "heading": "Zone de danger",
+      "lead": "Effacez un type de données, faites le ménage dans ce qui ne sert plus, ou repartez de zéro. Votre compte, vos réglages, le lien de partage et les sauvegardes ne sont jamais touchés.",
+      "clearConfirmTitle": "{{action}} ?",
+      "resetConfirmTitle": "{{action}} ?",
+      "snapshotNote": "Un instantané de sécurité de tout, tel quel, est d'abord enregistré sur le serveur : on peut annuler en le restaurant.",
+      "typeToConfirm": "Tapez {{word}} pour confirmer",
+      "doneToast": "{{action}} : fait",
+      "resetDoneToast": "{{action}} : fait. Un instantané de sécurité a d'abord été enregistré sur le serveur.",
+      "errorToast": "« {{action}} » n'a pas abouti. Réessayez.",
+      "actions": {
+        "clearNotes": {
+          "name": "Effacer les notes",
+          "button": "Effacer",
+          "removes": "Supprime les notes de tous les véhicules et coffrets.",
+          "keeps": "Garde tout le reste."
+        },
+        "clearTags": {
+          "name": "Effacer les étiquettes",
+          "button": "Effacer",
+          "removes": "Supprime toutes les étiquettes de vos véhicules et coffrets.",
+          "keeps": "Garde vos véhicules et coffrets."
+        },
+        "clearPurchasePrices": {
+          "name": "Effacer les prix d'achat",
+          "button": "Effacer",
+          "removes": "Supprime le prix d'achat de tous les véhicules et coffrets ; la valeur de la collection repart de zéro.",
+          "keeps": "Garde tout le reste."
+        },
+        "removeUnusedLookups": {
+          "name": "Retirer les listes inutilisées",
+          "button": "Retirer",
+          "removes": "Supprime les fabricants, séries, types de véhicule et couleurs qu'aucun véhicule ni coffret n'utilise.",
+          "keeps": "Garde tout ce qui est utilisé."
+        },
+        "removeUnusedPhotos": {
+          "name": "Retirer les photos inutilisées",
+          "button": "Retirer",
+          "removes": "Supprime les fichiers photo importés qu'aucun véhicule ni coffret n'utilise plus (restes de suppressions, réinitialisations et restaurations) pour libérer de l'espace.",
+          "keeps": "Garde les photos utilisées et tout ce qui a été importé dans l'heure."
+        },
+        "resetVehicles": {
+          "name": "Réinitialiser les véhicules",
+          "button": "Réinitialiser",
+          "removes": "Supprime tous les véhicules, avec leurs photos, étiquettes et liens aux coffrets.",
+          "keeps": "Garde vos coffrets, listes, étiquettes, compte et réglages. Les fichiers photo restent jusqu'à ce que vous retiriez les inutilisés."
+        },
+        "resetSets": {
+          "name": "Réinitialiser les coffrets",
+          "button": "Réinitialiser",
+          "removes": "Supprime tous les coffrets, avec leurs photos, étiquettes et liens aux véhicules.",
+          "keeps": "Garde vos véhicules, listes, étiquettes, compte et réglages. Les fichiers photo restent jusqu'à ce que vous retiriez les inutilisés."
+        },
+        "resetEverything": {
+          "name": "Tout réinitialiser",
+          "button": "Réinitialiser",
+          "removes": "Supprime tous les véhicules et coffrets, toutes les étiquettes, et tous les fabricants, séries, types de véhicule et couleurs.",
+          "keeps": "Garde votre compte, vos réglages, le lien de partage et les sauvegardes. Les fichiers photo restent jusqu'à ce que vous retiriez les inutilisés."
+        }
+      }
     }
   },
   "lookups": {
@@ -622,6 +692,18 @@
       "notMatched": "Non associé au wiki",
       "noCondition": "Sans état",
       "noToyNumber": "Sans n° de jouet"
+    },
+    "customize": {
+      "button": "Personnaliser",
+      "title": "Personnaliser l'aperçu",
+      "description": "Faites glisser les sections (ou utilisez les flèches) pour les réordonner, et désactivez celles dont vous ne voulez pas. Enregistré sur votre compte, donc identique sur tous les navigateurs.",
+      "stats": "Chiffres clés",
+      "moveUp": "Monter {{name}}",
+      "moveDown": "Descendre {{name}}",
+      "show": "Afficher {{name}}",
+      "reset": "Réinitialiser",
+      "saveError": "Impossible d'enregistrer la disposition de l'aperçu. Réessayez.",
+      "allHidden": "Toutes les sections sont masquées. Utilisez Personnaliser pour en afficher."
     }
   },
   "browse": {

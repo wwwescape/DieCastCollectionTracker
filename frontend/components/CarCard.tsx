@@ -26,8 +26,8 @@ interface CarCardProps {
   onToggleSelect?: () => void;
 }
 
-// Photo, name and one meta line (series or manufacturer · year · condition). Owned is the
-// default, so only wishlisted cars get a badge.
+// Photo, name and one meta line (series or manufacturer · year · condition), with the
+// owned/wishlisted badge on the photo.
 const CarCard = ({ car, onClick, selectable, selected, onToggleSelect }: CarCardProps) => {
   const { t } = useTranslation();
   return (
@@ -42,7 +42,6 @@ const CarCard = ({ car, onClick, selectable, selected, onToggleSelect }: CarCard
         .join(" · ")}
       imageUrl={resolveAssetUrl(car.photo)}
       holding={car}
-      wishlistOnly
       custom={!car.catalogTitle}
       onClick={onClick}
       selectable={selectable}

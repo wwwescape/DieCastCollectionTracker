@@ -41,7 +41,8 @@
     "vehicleCount_one": "{{count}} veículo",
     "vehicleCount_other": "{{count}} veículos",
     "custom": "Personalizado",
-    "back": "Voltar"
+    "back": "Voltar",
+    "save": "Guardar"
   },
   "status": {
     "owned": "Possuído",
@@ -296,14 +297,22 @@
     "data": {
       "heading": "Dados",
       "export": "Exportar",
-      "exportCsv": "Exportar CSV",
-      "exportBackup": "Exportar cópia de segurança (JSON)",
       "restore": "Restaurar",
-      "restoreDescription": "Carregar uma cópia de segurança substitui todos os dados atuais. Antes do restauro é guardada automaticamente uma cópia de segurança.",
-      "restoreButton": "Restaurar a partir de cópia de segurança",
+      "restoreDescription": "Substitui toda a sua coleção por uma cópia .zip ou .json. Antes é guardado um instantâneo de segurança da atual.",
+      "restoreButton": "Restaurar de uma cópia…",
       "restoreError": "Não foi possível restaurar a cópia de segurança. Verifique o ficheiro e tente novamente.",
       "restored": "Foram restaurados {{cars}} veículo(s) e {{sets}} conjunto(s) a partir da cópia de segurança.",
-      "lead": "Exporte a sua coleção ou restaure-a a partir de uma cópia de segurança."
+      "lead": "Exporte a sua coleção ou restaure-a a partir de uma cópia de segurança.",
+      "exportHelp": "Uma cópia completa inclui as suas fotos carregadas, por isso passa inteira para outro servidor. Só dados é o mesmo sem os ficheiros das fotos.",
+      "format": "Formato da cópia",
+      "formatZip": "Com fotos (.zip)",
+      "formatJson": "Só dados (.json)",
+      "exportButton": "Exportar",
+      "exportError": "Não foi possível exportar a cópia. Tente novamente.",
+      "restoreConfirmTitle": "Substituir a sua coleção?",
+      "restoreConfirmDescription": "Tudo o que está agora no DCT será substituído por “{{file}}”. Antes é guardado no servidor um instantâneo de segurança da coleção atual.",
+      "restoreConfirm": "Substituir coleção",
+      "restoredWithPhotos": "Restaurados {{cars}} veículo(s), {{sets}} conjunto(s) e {{photos}} foto(s) a partir da cópia."
     },
     "share": {
       "heading": "Partilhar",
@@ -333,6 +342,67 @@
     "regional": {
       "heading": "Idioma e moeda",
       "lead": "Usados para os rótulos e os preços."
+    },
+    "dangerZone": {
+      "heading": "Zona de perigo",
+      "lead": "Apague um tipo de dados, arrume o que nada usa ou comece do zero. A sua conta, definições, link de partilha e cópias guardadas nunca são tocados.",
+      "clearConfirmTitle": "{{action}}?",
+      "resetConfirmTitle": "{{action}}?",
+      "snapshotNote": "Antes é guardado no servidor um instantâneo de segurança de tudo como está, por isso pode desfazer restaurando-o.",
+      "typeToConfirm": "Escreva {{word}} para confirmar",
+      "doneToast": "{{action}}: feito",
+      "resetDoneToast": "{{action}}: feito. Antes foi guardado um instantâneo de segurança no servidor.",
+      "errorToast": "Não foi possível concluir “{{action}}”. Tente novamente.",
+      "actions": {
+        "clearNotes": {
+          "name": "Apagar notas",
+          "button": "Apagar",
+          "removes": "Remove as notas de todos os veículos e conjuntos.",
+          "keeps": "Mantém tudo o resto."
+        },
+        "clearTags": {
+          "name": "Apagar etiquetas",
+          "button": "Apagar",
+          "removes": "Remove todas as etiquetas dos seus veículos e conjuntos.",
+          "keeps": "Mantém os seus veículos e conjuntos."
+        },
+        "clearPurchasePrices": {
+          "name": "Apagar preços de compra",
+          "button": "Apagar",
+          "removes": "Remove o preço de compra de todos os veículos e conjuntos, por isso o valor da coleção recomeça.",
+          "keeps": "Mantém tudo o resto."
+        },
+        "removeUnusedLookups": {
+          "name": "Remover listas sem uso",
+          "button": "Remover",
+          "removes": "Remove os fabricantes, séries, tipos de veículo e cores que nenhum veículo ou conjunto usa.",
+          "keeps": "Mantém tudo o que está em uso."
+        },
+        "removeUnusedPhotos": {
+          "name": "Remover ficheiros de fotos sem uso",
+          "button": "Remover",
+          "removes": "Apaga as fotos carregadas que nenhum veículo ou conjunto usa (restos de eliminações, reposições e restauros) para libertar espaço.",
+          "keeps": "Mantém as fotos em uso e o que foi carregado na última hora."
+        },
+        "resetVehicles": {
+          "name": "Repor veículos",
+          "button": "Repor",
+          "removes": "Remove todos os veículos, com as fotos, etiquetas e ligações a conjuntos.",
+          "keeps": "Mantém os conjuntos, listas, etiquetas, conta e definições. Os ficheiros de fotos ficam até remover os sem uso."
+        },
+        "resetSets": {
+          "name": "Repor conjuntos",
+          "button": "Repor",
+          "removes": "Remove todos os conjuntos, com as fotos, etiquetas e ligações a veículos.",
+          "keeps": "Mantém os veículos, listas, etiquetas, conta e definições. Os ficheiros de fotos ficam até remover os sem uso."
+        },
+        "resetEverything": {
+          "name": "Repor tudo",
+          "button": "Repor",
+          "removes": "Remove todos os veículos e conjuntos, todas as etiquetas e todos os fabricantes, séries, tipos de veículo e cores.",
+          "keeps": "Mantém a sua conta, definições, link de partilha e cópias guardadas. Os ficheiros de fotos ficam até remover os sem uso."
+        }
+      }
     }
   },
   "lookups": {
@@ -622,6 +692,18 @@
       "notMatched": "Não associado à wiki",
       "noCondition": "Sem estado",
       "noToyNumber": "Sem n.º de brinquedo"
+    },
+    "customize": {
+      "button": "Personalizar",
+      "title": "Personalizar a vista geral",
+      "description": "Arraste as secções (ou use as setas) para as reordenar e desligue as que não quer. Guardado na sua conta, por isso todos os navegadores mostram o mesmo.",
+      "stats": "Números principais",
+      "moveUp": "Subir {{name}}",
+      "moveDown": "Descer {{name}}",
+      "show": "Mostrar {{name}}",
+      "reset": "Repor o padrão",
+      "saveError": "Não foi possível guardar a disposição da vista geral. Tente novamente.",
+      "allHidden": "Todas as secções estão ocultas. Use Personalizar para mostrar algumas."
     }
   },
   "browse": {

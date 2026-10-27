@@ -24,6 +24,10 @@ export interface DctTokens {
   owned: string;
   wishlist: string;
   accentSoft: string;
+  // Badges and chips that sit on photos keep one dark glass look in both themes, so they
+  // read the same on any shot (as in VideoGameTrackarr).
+  glass: string;
+  glassLine: string;
 }
 
 declare module "@mui/material/styles" {
@@ -105,8 +109,11 @@ export function createDctTheme(mode: ColorMode, contrast: ContrastLevel, accent:
         text3: tokens.text3,
         photoBg: tokens.photoBg,
         owned: "#3fb27f",
-        wishlist: mode === "dark" ? "#8b95a5" : "#9aa3b2",
+        // VideoGameTrackarr's wishlist pink, so the two apps mark wishlisted items alike.
+        wishlist: "#ff6b8b",
         accentSoft: alpha(accent, 0.16),
+        glass: "rgba(10, 12, 16, 0.74)",
+        glassLine: "rgba(255, 255, 255, 0.16)",
       },
     },
     shape: { borderRadius: RADIUS },

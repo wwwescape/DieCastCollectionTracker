@@ -43,7 +43,6 @@ const SetCard = ({ set, onClick, selectable, selected, onToggleSelect }: SetCard
         .join(" · ")}
       imageUrl={resolveAssetUrl(set.photo)}
       holding={set}
-      wishlistOnly
       custom={!set.catalogTitle}
       onClick={onClick}
       selectable={selectable}

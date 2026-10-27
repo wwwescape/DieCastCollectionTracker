@@ -41,7 +41,8 @@
     "vehicleCount_one": "{{count}} vehicle",
     "vehicleCount_other": "{{count}} vehicles",
     "custom": "Custom",
-    "back": "Back"
+    "back": "Back",
+    "save": "Save"
   },
   "status": {
     "owned": "Owned",
@@ -296,14 +297,22 @@
     "data": {
       "heading": "Data",
       "export": "Export",
-      "exportCsv": "Export CSV",
-      "exportBackup": "Export Backup (JSON)",
       "restore": "Restore",
-      "restoreDescription": "Uploading a backup will replace all current data. A safety snapshot is saved automatically before the restore.",
-      "restoreButton": "Restore from Backup",
+      "restoreDescription": "Replaces your whole collection with a .zip or .json backup. A safety snapshot of the current one is saved first.",
+      "restoreButton": "Restore from backup…",
       "restoreError": "Failed to restore backup. Check the file and try again.",
       "restored": "Restored {{cars}} vehicle(s) and {{sets}} set(s) from backup.",
-      "lead": "Export your collection or restore it from a backup."
+      "lead": "Export your collection or restore it from a backup.",
+      "exportHelp": "A full backup includes your uploaded photos, so it moves to a new server whole. Data only is the same without the photo files.",
+      "format": "Backup format",
+      "formatZip": "With photos (.zip)",
+      "formatJson": "Data only (.json)",
+      "exportButton": "Export",
+      "exportError": "Couldn't export the backup. Please try again.",
+      "restoreConfirmTitle": "Replace your collection?",
+      "restoreConfirmDescription": "Everything in DCT now will be replaced by “{{file}}”. A safety snapshot of the current collection is saved on the server first.",
+      "restoreConfirm": "Replace collection",
+      "restoredWithPhotos": "Restored {{cars}} vehicle(s), {{sets}} set(s) and {{photos}} photo(s) from backup."
     },
     "share": {
       "heading": "Share",
@@ -333,6 +342,67 @@
     "regional": {
       "heading": "Language & currency",
       "lead": "Used for labels and prices."
+    },
+    "dangerZone": {
+      "heading": "Danger Zone",
+      "lead": "Clear one kind of data, tidy up what nothing uses, or start over. Your account, settings, share link and saved backups are never touched.",
+      "clearConfirmTitle": "{{action}}?",
+      "resetConfirmTitle": "{{action}}?",
+      "snapshotNote": "A safety snapshot of everything as it is now is saved on the server first, so this can be undone by restoring it.",
+      "typeToConfirm": "Type {{word}} to confirm",
+      "doneToast": "{{action}}: done",
+      "resetDoneToast": "{{action}}: done. A safety snapshot was saved on the server first.",
+      "errorToast": "{{action}} didn't work. Please try again.",
+      "actions": {
+        "clearNotes": {
+          "name": "Clear notes",
+          "button": "Clear",
+          "removes": "Removes the notes on every vehicle and set.",
+          "keeps": "Keeps everything else."
+        },
+        "clearTags": {
+          "name": "Clear tags",
+          "button": "Clear",
+          "removes": "Removes every tag, from all your vehicles and sets.",
+          "keeps": "Keeps your vehicles and sets."
+        },
+        "clearPurchasePrices": {
+          "name": "Clear purchase prices",
+          "button": "Clear",
+          "removes": "Removes the purchase price from every vehicle and set, so the collection value starts over.",
+          "keeps": "Keeps everything else."
+        },
+        "removeUnusedLookups": {
+          "name": "Remove unused lookups",
+          "button": "Remove",
+          "removes": "Removes the manufacturers, series, vehicle types and colors no vehicle or set uses.",
+          "keeps": "Keeps every entry something uses."
+        },
+        "removeUnusedPhotos": {
+          "name": "Remove unused photo files",
+          "button": "Remove",
+          "removes": "Deletes uploaded photo files no vehicle or set uses any more (left behind by deletes, resets and restores), to free disk space.",
+          "keeps": "Keeps every photo in use, and anything uploaded in the last hour."
+        },
+        "resetVehicles": {
+          "name": "Reset vehicles",
+          "button": "Reset",
+          "removes": "Removes every vehicle, with its photos, tags and set links.",
+          "keeps": "Keeps your sets, lookups, tags, account and settings. Photo files stay until you remove unused ones."
+        },
+        "resetSets": {
+          "name": "Reset sets",
+          "button": "Reset",
+          "removes": "Removes every set, with its photos, tags and vehicle links.",
+          "keeps": "Keeps your vehicles, lookups, tags, account and settings. Photo files stay until you remove unused ones."
+        },
+        "resetEverything": {
+          "name": "Reset everything",
+          "button": "Reset",
+          "removes": "Removes every vehicle and set, all tags, and every manufacturer, series, vehicle type and color.",
+          "keeps": "Keeps your account, settings, share link and saved backups. Photo files stay until you remove unused ones."
+        }
+      }
     }
   },
   "lookups": {
@@ -622,6 +692,18 @@
       "notMatched": "Not matched to the wiki",
       "noCondition": "No condition",
       "noToyNumber": "No toy number"
+    },
+    "customize": {
+      "button": "Customize",
+      "title": "Customize Overview",
+      "description": "Drag sections (or use the arrows) to reorder them, and switch off the ones you don't want. Saved to your account, so every browser shows the same.",
+      "stats": "Summary tiles",
+      "moveUp": "Move {{name}} up",
+      "moveDown": "Move {{name}} down",
+      "show": "Show {{name}}",
+      "reset": "Reset to default",
+      "saveError": "Couldn't save the Overview layout. Please try again.",
+      "allHidden": "Every section is hidden. Use Customize to show some again."
     }
   },
   "browse": {
