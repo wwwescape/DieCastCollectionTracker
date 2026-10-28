@@ -148,7 +148,7 @@ const GlobalSearch = () => {
       groupBy={(option) => t(`search.groups.${option.kind}`)}
       getOptionLabel={(option) => (typeof option === "string" ? option : option.label)}
       isOptionEqualToValue={(a, b) => a.kind === b.kind && a.id === b.id}
-      sx={{ width: "100%", maxWidth: 420 }}
+      sx={{ width: "100%", maxWidth: 520, mx: "auto" }}
       renderOption={({ key: _key, ...props }, option) => (
         <Box component="li" key={`${option.kind}-${option.id}`} {...props} sx={{ gap: 1.25 }}>
           <Box sx={{ color: "dct.text3", display: "flex" }}>{ICONS[option.kind]}</Box>
