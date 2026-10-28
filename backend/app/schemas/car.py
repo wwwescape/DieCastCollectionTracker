@@ -22,6 +22,7 @@ class LinkedItemResponse(CamelModel):
     name: str
     manufacturer_name: str
     year: int | None
+    status: CarStatus
     photo: str | None
 
 
@@ -32,6 +33,7 @@ def linked_car_from_orm(car: Car) -> LinkedItemResponse:
         name=car.name,
         manufacturer_name=car.manufacturer.name,
         year=car.year,
+        status=car.status,
         photo=photos[0].url if photos else None,
     )
 

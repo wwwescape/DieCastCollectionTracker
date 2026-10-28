@@ -42,7 +42,9 @@
     "vehicleCount_other": "{{count}} vehicles",
     "custom": "Custom",
     "back": "Back",
-    "save": "Save"
+    "save": "Save",
+    "scrollPrevious": "Scroll previous",
+    "scrollNext": "Scroll next"
   },
   "status": {
     "owned": "Owned",

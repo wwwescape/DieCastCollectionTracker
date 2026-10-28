@@ -1,7 +1,9 @@
-import { Fragment, type ReactNode } from "react";
+import { Fragment, type ReactNode, type Ref } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import type { CarStatus } from "../api/types";
+import OwnershipBadges from "./OwnershipBadges";
 import type { Crumb } from "./Page";
 import PhotoImg from "./PhotoImg";
 import { openedFrom } from "../utils/navState";
@@ -15,9 +17,11 @@ interface DetailHeroProps {
   title: string;
   subline: ReactNode[];
   pills: ReactNode;
+  // Shows the owned/wishlisted badge on the photo, as on the cards.
+  status?: CarStatus;
 }
 
-export const DetailHero = ({ photo, crumbs, title, subline, pills }: DetailHeroProps) => (
+export const DetailHero = ({ photo, crumbs, title, subline, pills, status }: DetailHeroProps) => (
   <Box
     component="section"
     sx={{
@@ -62,6 +66,7 @@ export const DetailHero = ({ photo, crumbs, title, subline, pills }: DetailHeroP
     >
       <Box
         sx={{
+          position: "relative",
           aspectRatio: "4 / 3",
           borderRadius: 2.5,
           overflow: "hidden",
@@ -72,6 +77,7 @@ export const DetailHero = ({ photo, crumbs, title, subline, pills }: DetailHeroP
           maxWidth: { xs: 420, md: "none" },
         }}
       >
+        {status ? <OwnershipBadges status={status} /> : null}
         <PhotoImg src={photo} alt={title} iconSize={48} sx={{ p: 1.25 }} />
       </Box>
       <Box sx={{ minWidth: 0 }}>
@@ -252,15 +258,25 @@ export interface StripItem {
   photo: string | null;
   title: string;
   subtitle?: string;
-  // Green border: this one is in the collection.
-  owned?: boolean;
+  // Shows the owned/wishlisted badge on the photo, as on the cards.
+  status?: CarStatus;
+}
+
+interface StripProps {
+  items: StripItem[];
+  // Paged with < and > (PagedStrip) instead of a scrollbar: the scroll box, snapping to tiles.
+  scrollRef?: Ref<HTMLDivElement>;
+  onScroll?: () => void;
+  paged?: boolean;
 }
 
 // A sideways-scrolling row of small photo tiles (more from the series, linked sets...).
-export const Strip = ({ items }: { items: StripItem[] }) => {
+export const Strip = ({ items, scrollRef, onScroll, paged }: StripProps) => {
   const location = useLocation();
   return (
     <Box
+      ref={scrollRef}
+      onScroll={onScroll}
       sx={{
         display: "grid",
         gridAutoFlow: "column",
@@ -268,6 +284,14 @@ export const Strip = ({ items }: { items: StripItem[] }) => {
         gap: 1.5,
         overflowX: "auto",
         pb: 0.75,
+        ...(paged
+          ? {
+              scrollSnapType: "x mandatory",
+              "& > *": { scrollSnapAlign: "start" },
+              scrollbarWidth: "none",
+              "&::-webkit-scrollbar": { display: "none" },
+            }
+          : {}),
       }}
     >
       {items.map((item) => (
@@ -278,7 +302,7 @@ export const Strip = ({ items }: { items: StripItem[] }) => {
             display: "block",
             bgcolor: "background.paper",
             border: 1,
-            borderColor: item.owned ? "dct.owned" : "divider",
+            borderColor: "divider",
             borderRadius: 2,
             overflow: "hidden",
             color: "inherit",
@@ -286,7 +310,8 @@ export const Strip = ({ items }: { items: StripItem[] }) => {
             "&:hover": item.to ? { borderColor: "primary.main" } : undefined,
           }}
         >
-          <Box sx={{ aspectRatio: "4 / 3", bgcolor: "dct.photoBg" }}>
+          <Box sx={{ position: "relative", aspectRatio: "4 / 3", bgcolor: "dct.photoBg" }}>
+            {item.status ? <OwnershipBadges status={item.status} /> : null}
             <PhotoImg src={item.photo} />
           </Box>
           <Box sx={{ px: 1.25, py: 1, fontSize: 12.5 }}>

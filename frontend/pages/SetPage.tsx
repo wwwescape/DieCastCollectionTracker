@@ -118,6 +118,7 @@ const SetPage = () => {
       hero={
         <DetailHero
           photo={resolveAssetUrl(set.photo)}
+          status={set.status}
           crumbs={[...listCrumbs, { label: set.manufacturerName }]}
           title={set.name}
           subline={[set.manufacturerName, set.seriesName, set.year]}
@@ -216,6 +217,7 @@ const SetPage = () => {
               photo: resolveAssetUrl(car.photo),
               title: car.name,
               subtitle: [car.manufacturerName, car.year].filter(Boolean).join(" · "),
+              status: car.status,
             }))}
           />
         ) : (

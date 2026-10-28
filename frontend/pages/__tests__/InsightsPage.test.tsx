@@ -113,6 +113,19 @@ describe("OverviewPage", () => {
     expect(within(missingPhoto).getByText("1")).toBeInTheDocument();
   });
 
+  it("shows the owned and wishlisted badges on the strips", async () => {
+    vi.spyOn(dashboardApi, "getDashboardStats").mockResolvedValue({
+      ...STATS,
+      recentlyAdded: [car(1)],
+    });
+    renderAt("/");
+
+    const recent = (await screen.findByRole("link", { name: /Car 1/ })) as HTMLElement;
+    expect(within(recent).getByLabelText("Owned")).toBeInTheDocument();
+    const wished = screen.getByRole("link", { name: /Car 3/ });
+    expect(within(wished).getByLabelText("Wishlisted")).toBeInTheDocument();
+  });
+
   it("opens the add flows from Quick add", async () => {
     const user = userEvent.setup();
     renderAt("/");

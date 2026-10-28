@@ -77,6 +77,7 @@ def linked_set_from_orm(car_set: CarSet) -> LinkedItemResponse:
         name=car_set.name,
         manufacturer_name=car_set.manufacturer.name,
         year=car_set.year,
+        status=car_set.status,
         photo=photos[0].url if photos else None,
     )
 

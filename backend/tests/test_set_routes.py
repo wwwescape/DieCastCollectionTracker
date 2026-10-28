@@ -149,7 +149,9 @@ def test_series_and_tags_used_by_sets(auth_client):
 
 def test_vehicles_and_sets_link_from_either_side(auth_client):
     backdrafter = auth_client.post("/api/cars", json={"name": "Backdrafter", "manufacturer": "Hot Wheels"}).json()
-    pursuit = auth_client.post("/api/cars", json={"name": "HW Pursuit", "manufacturer": "Hot Wheels"}).json()
+    pursuit = auth_client.post(
+        "/api/cars", json={"name": "HW Pursuit", "manufacturer": "Hot Wheels", "status": "wishlist"}
+    ).json()
     station = auth_client.post(
         "/api/sets", json={**FIRE_STATION, "vehicleIds": [pursuit["id"], backdrafter["id"], 999]}
     ).json()
@@ -157,6 +159,7 @@ def test_vehicles_and_sets_link_from_either_side(auth_client):
 
     # From the set side: unknown ids are ignored, names come back sorted.
     assert [v["name"] for v in station["vehicles"]] == ["Backdrafter", "HW Pursuit"]
+    assert [v["status"] for v in station["vehicles"]] == ["owned", "wishlist"]
     assert [s["name"] for s in auth_client.get(f"/api/cars/{backdrafter['id']}").json()["sets"]] == [
         "Downtown Fire Station Spinout"
     ]

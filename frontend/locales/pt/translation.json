@@ -42,7 +42,9 @@
     "vehicleCount_other": "{{count}} veículos",
     "custom": "Personalizado",
     "back": "Voltar",
-    "save": "Guardar"
+    "save": "Guardar",
+    "scrollPrevious": "Deslocar para trás",
+    "scrollNext": "Deslocar para a frente"
   },
   "status": {
     "owned": "Possuído",

@@ -128,6 +128,7 @@ const VehiclePage = () => {
       hero={
         <DetailHero
           photo={photo}
+          status={car.status}
           crumbs={[...listCrumbs, { label: car.manufacturerName }]}
           title={car.name}
           subline={[car.manufacturerName, car.seriesName, car.year]}
@@ -213,14 +214,8 @@ const VehiclePage = () => {
               to: `/collection/vehicles/${other.id}`,
               photo: resolveAssetUrl(other.photo),
               title: other.name,
-              subtitle: [
-                other.year,
-                other.colorName,
-                other.status === "wishlist" ? t("status.wishlist") : null,
-              ]
-                .filter(Boolean)
-                .join(" · "),
-              owned: other.status === "owned",
+              subtitle: [other.year, other.colorName].filter(Boolean).join(" · "),
+              status: other.status,
             }))}
           />
         </Section>
@@ -234,6 +229,7 @@ const VehiclePage = () => {
               photo: resolveAssetUrl(set.photo),
               title: set.name,
               subtitle: [set.manufacturerName, set.year].filter(Boolean).join(" · "),
+              status: set.status,
             }))}
           />
         ) : (

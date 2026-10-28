@@ -62,6 +62,7 @@ export interface LinkedItem {
   name: string;
   manufacturerName: string;
   year: number | null;
+  status: CarStatus;
   photo: string | null;
 }
 

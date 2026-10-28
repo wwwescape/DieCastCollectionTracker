@@ -8,7 +8,8 @@ import ButtonBase from "@mui/material/ButtonBase";
 import { useTranslation } from "react-i18next";
 import { resolveAssetUrl } from "../api/client";
 import CustomizeOverviewDialog from "../components/CustomizeOverviewDialog";
-import { Section, Strip } from "../components/Detail";
+import { Section } from "../components/Detail";
+import PagedStrip from "../components/PagedStrip";
 import { EmptyState } from "../components/ListViews";
 import Page, { ToolbarButton } from "../components/Page";
 import { StatTile, TileGrid } from "../components/Stats";
@@ -111,20 +112,20 @@ const OverviewPage = () => {
       </Section>
     ),
     recentlyAdded: stats?.recentlyAdded.length ? (
-      <Section title={t("insights.stats.recentlyAdded")}>
-        <Strip
-          items={stats.recentlyAdded.slice(0, PREVIEW).map((car) => ({
-            key: car.id,
-            to: `/collection/vehicles/${car.id}`,
-            photo: resolveAssetUrl(car.photo),
-            title: car.name,
-            subtitle: [car.manufacturerName, car.year].filter(Boolean).join(" · "),
-          }))}
-        />
-      </Section>
+      <PagedStrip
+        title={t("insights.stats.recentlyAdded")}
+        items={stats.recentlyAdded.slice(0, PREVIEW).map((car) => ({
+          key: car.id,
+          to: `/collection/vehicles/${car.id}`,
+          photo: resolveAssetUrl(car.photo),
+          title: car.name,
+          subtitle: [car.manufacturerName, car.year].filter(Boolean).join(" · "),
+          status: car.status,
+        }))}
+      />
     ) : null,
     wishlist: wishlist.length ? (
-      <Section
+      <PagedStrip
         title={t("overview.wishlist")}
         action={
           <ButtonBase
@@ -134,17 +135,15 @@ const OverviewPage = () => {
             {t("overview.viewAll")}
           </ButtonBase>
         }
-      >
-        <Strip
-          items={wishlist.slice(0, PREVIEW).map((item) => ({
-            key: `${"setType" in item ? "s" : "v"}${item.id}`,
-            to: `/collection/${"setType" in item ? "sets" : "vehicles"}/${item.id}`,
-            photo: resolveAssetUrl(item.photo),
-            title: item.name,
-            subtitle: [item.manufacturerName, item.year].filter(Boolean).join(" · "),
-          }))}
-        />
-      </Section>
+        items={wishlist.slice(0, PREVIEW).map((item) => ({
+          key: `${"setType" in item ? "s" : "v"}${item.id}`,
+          to: `/collection/${"setType" in item ? "sets" : "vehicles"}/${item.id}`,
+          photo: resolveAssetUrl(item.photo),
+          title: item.name,
+          subtitle: [item.manufacturerName, item.year].filter(Boolean).join(" · "),
+          status: item.status,
+        }))}
+      />
     ) : null,
     needsAttention: (
       <Section title={t("overview.needsAttention")}>
