@@ -114,4 +114,16 @@ const router = createBrowserRouter([
   },
 ]);
 
+// Once the first screen is up, fetch every other page's code in the background, so a click
+// later doesn't wait for it. Skipped on share pages, whose visitors never see the app.
+const preloadPages = (routes: typeof router.routes) =>
+  routes.forEach((route) => {
+    void route.lazy?.();
+    if (route.children) preloadPages(route.children);
+  });
+
+if (!window.location.pathname.startsWith("/public/")) {
+  window.addEventListener("load", () => setTimeout(() => preloadPages(router.routes), 1500));
+}
+
 export default router;

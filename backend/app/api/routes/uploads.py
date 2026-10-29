@@ -37,7 +37,11 @@ def import_car_image_from_wiki(body: ImageImportRequest) -> UploadResponse:
 
 @thumbnail_router.get("/uploads/car-images/thumbs/{name}", include_in_schema=False)
 def car_image_thumbnail(name: str) -> FileResponse:
-    path = upload_service.car_image_thumbnail(name)
-    if path is None:
+    found = upload_service.car_image_thumbnail(name)
+    if found is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
-    return FileResponse(path, media_type="image/jpeg")
+    path, is_thumbnail = found
+    # The full photo stands in until the thumbnail is made, so it mustn't be kept as if it
+    # were the thumbnail (main.py marks everything else under /uploads/ as cacheable forever).
+    headers = None if is_thumbnail else {"Cache-Control": "no-cache"}
+    return FileResponse(path, media_type="image/jpeg", headers=headers)

@@ -42,7 +42,12 @@ export default defineConfig({
             options: {
               cacheName: "car-photos",
               expiration: { maxEntries: 1000, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              cacheableResponse: { statuses: [0, 200] },
+              // Only files the server marks as never changing: while a thumbnail is
+              // still being made, its URL serves the full photo with no-cache instead.
+              cacheableResponse: {
+                statuses: [200],
+                headers: { "cache-control": "public, max-age=31536000, immutable" },
+              },
             },
           },
         ],

@@ -109,8 +109,9 @@ def _upload_to(auth_client, tmp_path, monkeypatch, size=(1280, 960)) -> str:
     return response.json()["url"].removeprefix("/uploads/car-images/")
 
 
-def test_thumbnail_is_made_on_first_request_and_kept(client, auth_client, tmp_path, monkeypatch):
+def test_saving_a_photo_makes_its_thumbnail(client, auth_client, tmp_path, monkeypatch):
     name = _upload_to(auth_client, tmp_path, monkeypatch)
+    assert (tmp_path / "car-images" / "thumbs" / name).is_file()
 
     response = client.get(f"/uploads/car-images/thumbs/{name}")
 
@@ -119,7 +120,26 @@ def test_thumbnail_is_made_on_first_request_and_kept(client, auth_client, tmp_pa
     assert response.headers["cache-control"] == "public, max-age=31536000, immutable"
     with Image.open(io.BytesIO(response.content)) as thumbnail:
         assert thumbnail.size == (480, 360)
-    assert (tmp_path / "car-images" / "thumbs" / name).is_file()
+
+
+def test_a_missing_thumbnail_serves_the_photo_and_is_made_in_the_background(client, auth_client, tmp_path, monkeypatch):
+    name = _upload_to(auth_client, tmp_path, monkeypatch)
+    (tmp_path / "car-images" / "thumbs" / name).unlink()
+    started = []
+    monkeypatch.setattr(upload_service, "start_thumbnail_backfill", lambda: started.append(True))
+
+    response = client.get(f"/uploads/car-images/thumbs/{name}")
+
+    # The full photo stands in, marked so nothing keeps it as the thumbnail.
+    assert response.status_code == 200
+    assert response.headers["cache-control"] == "no-cache"
+    with Image.open(io.BytesIO(response.content)) as photo:
+        assert photo.size == (1280, 960)
+    assert started == [True]
+
+    assert upload_service.make_missing_thumbnails() == 1
+    assert upload_service.make_missing_thumbnails() == 0
+    assert client.get(f"/uploads/car-images/thumbs/{name}").headers["cache-control"].endswith("immutable")
 
 
 def test_thumbnail_of_unknown_or_odd_names_is_404(client, tmp_path, monkeypatch):
@@ -132,7 +152,6 @@ def test_thumbnail_of_unknown_or_odd_names_is_404(client, tmp_path, monkeypatch)
 
 def test_deleting_a_photo_deletes_its_thumbnail(client, auth_client, tmp_path, monkeypatch):
     name = _upload_to(auth_client, tmp_path, monkeypatch)
-    client.get(f"/uploads/car-images/thumbs/{name}")
 
     upload_service.delete_if_local_car_image(f"/uploads/car-images/{name}")
 

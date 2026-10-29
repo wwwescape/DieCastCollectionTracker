@@ -1,4 +1,5 @@
 import logging
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -26,6 +27,7 @@ from app.api.routes import (
 from app.core.config import REPO_ROOT, UPLOADS_DIR, get_settings
 from app.core.logging import configure_logging
 from app.core.security import weak_secret_warning
+from app.services import upload_service
 from app.services.exceptions import ConflictError, NotFoundError
 from app.services.wiki_catalog import CatalogUnavailableError
 
@@ -56,8 +58,19 @@ if _secret_warning := weak_secret_warning():
 # The interactive API docs (/docs, /redoc, /openapi.json) map out every endpoint; handy when
 # developing, needless to publish. The Docker image sets ENVIRONMENT=production.
 _docs = settings.environment == "development"
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # Photos saved before thumbnails existed, or restored from a backup, get theirs in the
+    # background rather than when a page first asks for them.
+    upload_service.start_thumbnail_backfill()
+    yield
+
+
 app = FastAPI(
     title=settings.app_name,
+    lifespan=lifespan,
     docs_url="/docs" if _docs else None,
     redoc_url="/redoc" if _docs else None,
     openapi_url="/openapi.json" if _docs else None,
@@ -130,7 +143,8 @@ async def add_security_headers(request: Request, call_next):
 
 # Compresses JSON, JS, CSS and HTML (JPEGs and zips are left as they are). Cloudflare
 # compresses for visitors through a tunnel; this covers everyone else, such as the LAN.
-app.add_middleware(GZipMiddleware, minimum_size=1024)
+# Level 5, not Starlette's 9: nearly as small, at a fraction of the CPU on a Raspberry Pi.
+app.add_middleware(GZipMiddleware, minimum_size=1024, compresslevel=5)
 
 
 @app.exception_handler(NotFoundError)

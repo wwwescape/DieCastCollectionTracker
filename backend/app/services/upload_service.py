@@ -1,13 +1,18 @@
+import logging
 import os
 import re
+import threading
 import uuid
 from io import BytesIO
+from pathlib import Path
 from typing import BinaryIO
 
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 from app.core.config import UPLOADS_DIR
 from app.services import wiki_catalog
+
+logger = logging.getLogger(__name__)
 
 CAR_IMAGES_DIR = UPLOADS_DIR / "car-images"
 CAR_IMAGES_URL_PREFIX = "/uploads/car-images/"
@@ -17,7 +22,9 @@ MAX_UPLOAD_BYTES = 20 * 1024 * 1024
 # The name save_car_image gives a photo.
 PHOTO_NAME = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jpg$")
 # Cards, strips and list rows show a photo a few hundred pixels wide, so they load a small
-# copy (made the first time it's asked for) instead of the full 1280px photo.
+# copy instead of the full 1280px photo. It's made when the photo is saved; photos from
+# before that (or restored from a backup) get theirs from one background thread, so making
+# them never holds up a request. Until then the thumbnail URL serves the full photo.
 THUMBNAIL_DIMENSIONS = (480, 480)
 THUMBNAIL_JPEG_QUALITY = 80
 THUMBNAILS_DIRNAME = "thumbs"
@@ -51,6 +58,7 @@ def save_car_image(source: BinaryIO) -> str:
     CAR_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
     filename = f"{uuid.uuid4()}.jpg"
     image.save(CAR_IMAGES_DIR / filename, format="JPEG", quality=JPEG_QUALITY)
+    _save_thumbnail(image, filename)
     return f"{CAR_IMAGES_URL_PREFIX}{filename}"
 
 
@@ -67,29 +75,62 @@ def thumbnails_dir():
     return CAR_IMAGES_DIR / THUMBNAILS_DIRNAME
 
 
-def car_image_thumbnail(name: str):
-    """The path of a small copy of the photo `name`, made and saved the first time it's
-    asked for. None if the name isn't one save_car_image gives, or the photo is gone."""
+def _save_thumbnail(image: Image.Image, name: str) -> None:
+    thumbnail = image.copy()
+    thumbnail.thumbnail(THUMBNAIL_DIMENSIONS)
+    target = thumbnails_dir() / name
+    target.parent.mkdir(parents=True, exist_ok=True)
+    # Written aside then moved into place, so a request never gets half a file.
+    partial = target.with_name(f"{name}.{uuid.uuid4().hex}.part")
+    thumbnail.save(partial, format="JPEG", quality=THUMBNAIL_JPEG_QUALITY)
+    os.replace(partial, target)
+
+
+def car_image_thumbnail(name: str) -> tuple[Path, bool] | None:
+    """What to serve for the thumbnail of photo `name`: (path, True) once the thumbnail
+    exists, or (the full photo, False) while it doesn't yet, which also starts making the
+    missing ones. None if the name isn't one save_car_image gives, or the photo is gone."""
     if not PHOTO_NAME.match(name):
         return None
     thumbnail = thumbnails_dir() / name
     if thumbnail.is_file():
-        return thumbnail
+        return thumbnail, True
     original = CAR_IMAGES_DIR / name
     if not original.is_file():
         return None
-    try:
-        with Image.open(original) as image:
-            image = image.convert("RGB")
-            image.thumbnail(THUMBNAIL_DIMENSIONS)
-            thumbnail.parent.mkdir(parents=True, exist_ok=True)
-            # Written aside then moved into place, so two requests at once never serve half a file.
-            partial = thumbnail.with_name(f"{name}.{uuid.uuid4().hex}.part")
-            image.save(partial, format="JPEG", quality=THUMBNAIL_JPEG_QUALITY)
-            os.replace(partial, thumbnail)
-    except (OSError, UnidentifiedImageError, Image.DecompressionBombError):
-        return None
-    return thumbnail
+    start_thumbnail_backfill()
+    return original, False
+
+
+def make_missing_thumbnails() -> int:
+    """Makes the thumbnail of every photo that lacks one, one at a time. Returns how many."""
+    made = 0
+    if not CAR_IMAGES_DIR.is_dir():
+        return made
+    for original in sorted(CAR_IMAGES_DIR.iterdir()):
+        if not PHOTO_NAME.match(original.name) or (thumbnails_dir() / original.name).is_file():
+            continue
+        try:
+            with Image.open(original) as image:
+                _save_thumbnail(image.convert("RGB"), original.name)
+            made += 1
+        except (OSError, UnidentifiedImageError, Image.DecompressionBombError):
+            logger.warning("Couldn't make a thumbnail for %s", original.name)
+    return made
+
+
+_backfill_lock = threading.Lock()
+_backfill_thread: threading.Thread | None = None
+
+
+def start_thumbnail_backfill() -> None:
+    """Runs make_missing_thumbnails on a background thread, unless it's already running."""
+    global _backfill_thread
+    with _backfill_lock:
+        if _backfill_thread is not None and _backfill_thread.is_alive():
+            return
+        _backfill_thread = threading.Thread(target=make_missing_thumbnails, name="thumbnails", daemon=True)
+        _backfill_thread.start()
 
 
 def delete_if_local_car_image(url: str | None) -> None:

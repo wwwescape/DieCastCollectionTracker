@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, useNavigation } from "react-router-dom";
 import DarkModeIcon from "@mui/icons-material/DarkModeOutlined";
 import LightModeIcon from "@mui/icons-material/LightModeOutlined";
 import LogoutIcon from "@mui/icons-material/Logout";
@@ -7,6 +7,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import Box from "@mui/material/Box";
 import Drawer from "@mui/material/Drawer";
 import IconButton from "@mui/material/IconButton";
+import LinearProgress from "@mui/material/LinearProgress";
 import Link from "@mui/material/Link";
 import { useTheme } from "@mui/material/styles";
 import Tooltip from "@mui/material/Tooltip";
@@ -30,6 +31,8 @@ const AppShell = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  // "loading" while a page opened for the first time fetches its code (see router.tsx).
+  const navigation = useNavigation();
   const logoutMutation = useLogout();
 
   // A new page starts at the top, and a drawer left open on a phone closes.
@@ -48,6 +51,12 @@ const AppShell = () => {
 
   return (
     <Box sx={{ display: "flex", minHeight: "100vh" }}>
+      {navigation.state === "loading" ? (
+        <LinearProgress
+          aria-label={t("common.loading")}
+          sx={{ position: "fixed", top: 0, left: 0, right: 0, height: 3, zIndex: "tooltip" }}
+        />
+      ) : null}
       <Link
         href="#main-content"
         sx={{
