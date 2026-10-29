@@ -48,8 +48,8 @@ export function useBulkDeleteSets() {
   });
 }
 
-export function useSetList(params: SetListParams = {}) {
-  return useQuery({ queryKey: ["sets", params], queryFn: () => listSets(params) });
+export function useSetList(params: SetListParams = {}, { enabled = true } = {}) {
+  return useQuery({ queryKey: ["sets", params], queryFn: () => listSets(params), enabled });
 }
 
 export function useSet(id: number | undefined) {

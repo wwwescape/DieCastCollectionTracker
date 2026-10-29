@@ -21,6 +21,15 @@ export function resolveAssetUrl(url: string | null): string | null {
   return `${API_BASE_URL}${url}`;
 }
 
+const LOCAL_PHOTO = /^\/uploads\/car-images\/([^/]+\.jpg)$/;
+
+// For cards, strips and list rows: a small copy of an uploaded photo (made by the server on
+// first request) instead of the full 1280px one. Other URLs pass through as they are.
+export function resolveThumbnailUrl(url: string | null): string | null {
+  const match = url ? LOCAL_PHOTO.exec(url) : null;
+  return resolveAssetUrl(match ? `/uploads/car-images/thumbs/${match[1]}` : url);
+}
+
 apiClient.interceptors.request.use((config) => {
   const token = tokenStorage.getAccessToken();
   if (token) {

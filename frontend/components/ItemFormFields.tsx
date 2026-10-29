@@ -16,7 +16,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import MenuBookIcon from "@mui/icons-material/MenuBook";
 import { useTranslation } from "react-i18next";
-import { resolveAssetUrl } from "../api/client";
+import { resolveThumbnailUrl } from "../api/client";
 import type { CatalogSourceId } from "../api/catalog";
 import { CAR_CONDITIONS, type CarCondition, type CarStatus, type LinkedItem } from "../api/types";
 import { useTags } from "../hooks/useTags";
@@ -211,7 +211,7 @@ export function LinkedItemsField({
           >
             <Avatar
               variant="rounded"
-              src={resolveAssetUrl(option.photo) ?? undefined}
+              src={resolveThumbnailUrl(option.photo) ?? undefined}
               alt=""
               sx={{ width: 40, height: 30 }}
             />
@@ -270,7 +270,7 @@ export function PhotoUploadField({
         <>
           <Box
             component="img"
-            src={resolveAssetUrl(value) ?? undefined}
+            src={resolveThumbnailUrl(value) ?? undefined}
             alt={previewAlt}
             sx={{
               height: 56,

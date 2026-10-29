@@ -9,7 +9,7 @@ import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import DeleteIcon from "@mui/icons-material/Delete";
 import StarIcon from "@mui/icons-material/Star";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
-import { resolveAssetUrl } from "../api/client";
+import { resolveThumbnailUrl } from "../api/client";
 import type { UseMutationResult } from "@tanstack/react-query";
 import type { CarPhoto } from "../api/types";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
@@ -114,7 +114,7 @@ const PhotoGallery = ({
               }}
             >
               <PhotoImg
-                src={resolveAssetUrl(photo.url)}
+                src={resolveThumbnailUrl(photo.url)}
                 alt={photo.isPrimary ? t("gallery.primaryPhoto") : photoAlt}
               />
               <Box

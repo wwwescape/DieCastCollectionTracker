@@ -91,6 +91,26 @@ def get_car_tags(db: Session, car_id: int) -> list:
     return tag_repository.list_tags_for_car(db, car_id)
 
 
+def get_tags_by_car(db: Session, car_ids: list[int]) -> dict[int, list]:
+    return tag_repository.list_tags_for_cars(db, car_ids)
+
+
+def get_sets_by_car(db: Session, car_ids: list[int]) -> dict[int, list[CarSet]]:
+    """get_car_sets for many vehicles in one query, keyed by vehicle id."""
+    sets: dict[int, list[CarSet]] = {car_id: [] for car_id in car_ids}
+    if car_ids:
+        stmt = (
+            select(SetVehicle.car_id, CarSet)
+            .join(CarSet, CarSet.id == SetVehicle.set_id)
+            .where(SetVehicle.car_id.in_(car_ids))
+            .options(joinedload(CarSet.manufacturer), joinedload(CarSet.photos))
+            .order_by(CarSet.name)
+        )
+        for car_id, car_set in db.execute(stmt).unique():
+            sets[car_id].append(car_set)
+    return sets
+
+
 def get_car_sets(db: Session, car_id: int) -> list[CarSet]:
     stmt = (
         select(CarSet)
@@ -174,6 +194,7 @@ def delete_car(db: Session, car_id: int) -> None:
 
 # --- Photo management ---
 
+
 def add_car_photo(db: Session, car_id: int, url: str) -> CarPhoto:
     """Adds a new (non-primary) photo to the car's gallery."""
     get_car(db, car_id)  # 404 guard
@@ -194,10 +215,7 @@ def delete_car_photo(db: Session, car_id: int, photo_id: int) -> None:
     # Promote the oldest remaining photo to primary if we just deleted the primary
     if was_primary:
         next_photo = db.scalars(
-            select(CarPhoto)
-            .where(CarPhoto.car_id == car_id)
-            .order_by(CarPhoto.sort_order.asc())
-            .limit(1)
+            select(CarPhoto).where(CarPhoto.car_id == car_id).order_by(CarPhoto.sort_order.asc()).limit(1)
         ).first()
         if next_photo:
             next_photo.is_primary = True
@@ -264,4 +282,3 @@ def bulk_delete_cars(db: Session, car_ids: list[int]) -> int:
     for car_id in found:
         delete_car(db, car_id)
     return len(found)
-

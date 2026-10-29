@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { resolveAssetUrl } from "../api/client";
+import { resolveThumbnailUrl } from "../api/client";
 import type { SeriesOverview } from "../api/lookups";
 import CollectionListToolbar, {
   CARD_SIZE_DEFAULT,
@@ -65,7 +65,7 @@ const SeriesListPage = () => {
     return map;
   }, [cars]);
   const coverOf = (item: SeriesOverview) =>
-    resolveAssetUrl(covers.get(`${item.id}:${yearKey(item)}`) ?? null);
+    resolveThumbnailUrl(covers.get(`${item.id}:${yearKey(item)}`) ?? null);
 
   const manufacturerOptions = useMemo(
     () =>

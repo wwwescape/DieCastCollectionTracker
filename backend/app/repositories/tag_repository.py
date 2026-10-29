@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
@@ -39,6 +41,21 @@ def delete_tag(db: Session, tag: Tag) -> None:
 def list_tags_for_car(db: Session, car_id: int) -> list[Tag]:
     stmt = select(Tag).join(CarTag, CarTag.tag_id == Tag.id).where(CarTag.car_id == car_id).order_by(Tag.name)
     return list(db.scalars(stmt))
+
+
+def list_tags_for_cars(db: Session, car_ids: Sequence[int]) -> dict[int, list[Tag]]:
+    """list_tags_for_car for many vehicles in one query, keyed by vehicle id."""
+    tags: dict[int, list[Tag]] = {car_id: [] for car_id in car_ids}
+    if car_ids:
+        stmt = (
+            select(CarTag.car_id, Tag)
+            .join(Tag, Tag.id == CarTag.tag_id)
+            .where(CarTag.car_id.in_(car_ids))
+            .order_by(Tag.name)
+        )
+        for car_id, tag in db.execute(stmt):
+            tags[car_id].append(tag)
+    return tags
 
 
 def set_tags_for_car(db: Session, car_id: int, tag_ids: list[int]) -> None:
@@ -100,4 +117,3 @@ def tag_coverage(db: Session, car_ids: list[int], set_ids: list[int]) -> list[tu
         ).all():
             counts[tag_id] = counts.get(tag_id, 0) + count
     return [(tag, counts.get(tag.id, 0)) for tag in list_tags(db)]
-

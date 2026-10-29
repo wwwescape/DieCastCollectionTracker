@@ -26,12 +26,16 @@ export function useManufacturers() {
 
 // Keyed under "dashboard" so every car and set change (which refreshes the dashboard) keeps
 // the counts current too.
-export function useManufacturerOverview() {
-  return useQuery({ queryKey: ["dashboard", "manufacturers"], queryFn: listManufacturerOverview });
+export function useManufacturerOverview({ enabled = true } = {}) {
+  return useQuery({
+    queryKey: ["dashboard", "manufacturers"],
+    queryFn: listManufacturerOverview,
+    enabled,
+  });
 }
 
-export function useSeriesOverview() {
-  return useQuery({ queryKey: ["dashboard", "series"], queryFn: listSeriesOverview });
+export function useSeriesOverview({ enabled = true } = {}) {
+  return useQuery({ queryKey: ["dashboard", "series"], queryFn: listSeriesOverview, enabled });
 }
 
 export function useCreateManufacturer() {

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { resolveAssetUrl } from "../api/client";
+import { resolveThumbnailUrl } from "../api/client";
 import type { CarSet } from "../api/types";
 import ItemCard from "./ItemCard";
 
@@ -41,7 +41,7 @@ const SetCard = ({ set, onClick, selectable, selected, onToggleSelect }: SetCard
       ]
         .filter(Boolean)
         .join(" · ")}
-      imageUrl={resolveAssetUrl(set.photo)}
+      imageUrl={resolveThumbnailUrl(set.photo)}
       holding={set}
       custom={!set.catalogTitle}
       onClick={onClick}

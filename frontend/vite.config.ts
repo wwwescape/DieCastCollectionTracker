@@ -35,11 +35,13 @@ export default defineConfig({
         // app shell assets (JS/CSS/HTML) which it already caches via precaching.
         runtimeCaching: [
           {
-            urlPattern: /^\/uploads\/.*/,
+            // A function, not a RegExp: Workbox tests a RegExp against the full URL
+            // (https://host/uploads/...), so a path-only pattern never matched.
+            urlPattern: ({ url }) => url.pathname.startsWith("/uploads/"),
             handler: "CacheFirst",
             options: {
               cacheName: "car-photos",
-              expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              expiration: { maxEntries: 1000, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] },
             },
           },
@@ -57,6 +59,17 @@ export default defineConfig({
     // stage copies from this exact path.
     outDir: "../build",
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        // Libraries in their own files, so a release that only changes the app's code
+        // leaves them cached.
+        manualChunks: {
+          react: ["react", "react-dom", "react-router-dom"],
+          mui: ["@mui/material", "@mui/icons-material", "@emotion/react", "@emotion/styled"],
+          data: ["@tanstack/react-query", "axios", "i18next", "react-i18next"],
+        },
+      },
+    },
   },
   server: {
     port: 3000,

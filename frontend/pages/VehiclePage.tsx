@@ -16,7 +16,7 @@ import TagIcon from "@mui/icons-material/Tag";
 import VerifiedIcon from "@mui/icons-material/VerifiedOutlined";
 import Typography from "@mui/material/Typography";
 import { useTranslation } from "react-i18next";
-import { resolveAssetUrl } from "../api/client";
+import { resolveAssetUrl, resolveThumbnailUrl } from "../api/client";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { DetailHero, Facts, Pill, Section, Strip } from "../components/Detail";
 import { EmptyState } from "../components/ListViews";
@@ -212,7 +212,7 @@ const VehiclePage = () => {
             items={moreFromSeries.map((other) => ({
               key: other.id,
               to: `/collection/vehicles/${other.id}`,
-              photo: resolveAssetUrl(other.photo),
+              photo: resolveThumbnailUrl(other.photo),
               title: other.name,
               subtitle: [other.year, other.colorName].filter(Boolean).join(" · "),
               status: other.status,
@@ -226,7 +226,7 @@ const VehiclePage = () => {
             items={car.sets.map((set) => ({
               key: set.id,
               to: `/collection/sets/${set.id}`,
-              photo: resolveAssetUrl(set.photo),
+              photo: resolveThumbnailUrl(set.photo),
               title: set.name,
               subtitle: [set.manufacturerName, set.year].filter(Boolean).join(" · "),
               status: set.status,

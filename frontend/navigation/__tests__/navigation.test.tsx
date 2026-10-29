@@ -5,8 +5,9 @@ import { describe, expect, it, vi } from "vitest";
 import { activeDestination, isPathWithin } from "../destinations";
 import Sidebar from "../Sidebar";
 
-vi.mock("../../hooks/useCars", () => ({ useCarList: () => ({ data: [{ id: 1 }, { id: 2 }] }) }));
-vi.mock("../../hooks/useSets", () => ({ useSetList: () => ({ data: [{ id: 1 }] }) }));
+vi.mock("../../hooks/useDashboard", () => ({
+  useDashboard: () => ({ data: { totalCars: 2, totalSets: 1 } }),
+}));
 vi.mock("../../hooks/useVersion", () => ({
   useVersion: () => ({ data: { currentVersion: "1.8.0" } }),
 }));

@@ -99,3 +99,41 @@ def test_upload_car_image_rejects_oversized_file(auth_client, monkeypatch):
     )
 
     assert response.status_code == 413
+
+
+def _upload_to(auth_client, tmp_path, monkeypatch, size=(1280, 960)) -> str:
+    monkeypatch.setattr(upload_service, "CAR_IMAGES_DIR", tmp_path / "car-images")
+    response = auth_client.post(
+        "/api/uploads/car-images", files={"file": ("car.png", io.BytesIO(_image_bytes(size=size)), "image/png")}
+    )
+    return response.json()["url"].removeprefix("/uploads/car-images/")
+
+
+def test_thumbnail_is_made_on_first_request_and_kept(client, auth_client, tmp_path, monkeypatch):
+    name = _upload_to(auth_client, tmp_path, monkeypatch)
+
+    response = client.get(f"/uploads/car-images/thumbs/{name}")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/jpeg"
+    assert response.headers["cache-control"] == "public, max-age=31536000, immutable"
+    with Image.open(io.BytesIO(response.content)) as thumbnail:
+        assert thumbnail.size == (480, 360)
+    assert (tmp_path / "car-images" / "thumbs" / name).is_file()
+
+
+def test_thumbnail_of_unknown_or_odd_names_is_404(client, tmp_path, monkeypatch):
+    monkeypatch.setattr(upload_service, "CAR_IMAGES_DIR", tmp_path / "car-images")
+
+    assert client.get("/uploads/car-images/thumbs/00000000-0000-0000-0000-000000000000.jpg").status_code == 404
+    assert client.get("/uploads/car-images/thumbs/..%2F..%2F.env").status_code == 404
+    assert client.get("/uploads/car-images/thumbs/notes.txt").status_code == 404
+
+
+def test_deleting_a_photo_deletes_its_thumbnail(client, auth_client, tmp_path, monkeypatch):
+    name = _upload_to(auth_client, tmp_path, monkeypatch)
+    client.get(f"/uploads/car-images/thumbs/{name}")
+
+    upload_service.delete_if_local_car_image(f"/uploads/car-images/{name}")
+
+    assert not (tmp_path / "car-images" / "thumbs" / name).exists()

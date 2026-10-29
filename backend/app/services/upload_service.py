@@ -1,3 +1,5 @@
+import os
+import re
 import uuid
 from io import BytesIO
 from typing import BinaryIO
@@ -12,6 +14,13 @@ CAR_IMAGES_URL_PREFIX = "/uploads/car-images/"
 MAX_IMAGE_DIMENSIONS = (1280, 1280)
 JPEG_QUALITY = 85
 MAX_UPLOAD_BYTES = 20 * 1024 * 1024
+# The name save_car_image gives a photo.
+PHOTO_NAME = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jpg$")
+# Cards, strips and list rows show a photo a few hundred pixels wide, so they load a small
+# copy (made the first time it's asked for) instead of the full 1280px photo.
+THUMBNAIL_DIMENSIONS = (480, 480)
+THUMBNAIL_JPEG_QUALITY = 80
+THUMBNAILS_DIRNAME = "thumbs"
 
 
 class ImageTooLargeError(ValueError):
@@ -53,6 +62,36 @@ def import_car_image_from_wiki(url: str) -> str:
     return save_car_image(BytesIO(raw))
 
 
+def thumbnails_dir():
+    # Looked up on each call, so tests that point CAR_IMAGES_DIR elsewhere move this too.
+    return CAR_IMAGES_DIR / THUMBNAILS_DIRNAME
+
+
+def car_image_thumbnail(name: str):
+    """The path of a small copy of the photo `name`, made and saved the first time it's
+    asked for. None if the name isn't one save_car_image gives, or the photo is gone."""
+    if not PHOTO_NAME.match(name):
+        return None
+    thumbnail = thumbnails_dir() / name
+    if thumbnail.is_file():
+        return thumbnail
+    original = CAR_IMAGES_DIR / name
+    if not original.is_file():
+        return None
+    try:
+        with Image.open(original) as image:
+            image = image.convert("RGB")
+            image.thumbnail(THUMBNAIL_DIMENSIONS)
+            thumbnail.parent.mkdir(parents=True, exist_ok=True)
+            # Written aside then moved into place, so two requests at once never serve half a file.
+            partial = thumbnail.with_name(f"{name}.{uuid.uuid4().hex}.part")
+            image.save(partial, format="JPEG", quality=THUMBNAIL_JPEG_QUALITY)
+            os.replace(partial, thumbnail)
+    except (OSError, UnidentifiedImageError, Image.DecompressionBombError):
+        return None
+    return thumbnail
+
+
 def delete_if_local_car_image(url: str | None) -> None:
     """Best-effort cleanup for a photo that's about to be replaced or whose car was
     deleted. url ultimately comes from a request body (CarCreateRequest.photo is free
@@ -65,3 +104,5 @@ def delete_if_local_car_image(url: str | None) -> None:
     candidate = (CAR_IMAGES_DIR / filename).resolve()
     if candidate.is_relative_to(CAR_IMAGES_DIR.resolve()):
         candidate.unlink(missing_ok=True)
+        if PHOTO_NAME.match(filename):
+            (thumbnails_dir() / filename).unlink(missing_ok=True)

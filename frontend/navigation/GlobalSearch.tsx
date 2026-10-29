@@ -47,10 +47,12 @@ const GlobalSearch = () => {
   const location = useLocation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [input, setInput] = useState("");
-  const { data: cars } = useCarList();
-  const { data: sets } = useSetList();
-  const { data: series } = useSeriesOverview();
-  const { data: manufacturers } = useManufacturerOverview();
+  // The lists it searches load the first time the box is focused, not on every page.
+  const [active, setActive] = useState(false);
+  const { data: cars } = useCarList({}, { enabled: active });
+  const { data: sets } = useSetList({}, { enabled: active });
+  const { data: series } = useSeriesOverview({ enabled: active });
+  const { data: manufacturers } = useManufacturerOverview({ enabled: active });
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -137,6 +139,7 @@ const GlobalSearch = () => {
   return (
     <Autocomplete<SearchOption, false, false, true>
       freeSolo
+      onFocus={() => setActive(true)}
       options={options}
       value={null}
       inputValue={input}

@@ -1,29 +1,20 @@
+import type { ComponentType } from "react";
 import { createBrowserRouter, Navigate, useLocation, useParams } from "react-router-dom";
 import AppShell from "./AppShell";
 import PublicShell from "./PublicShell";
-import AddCarPage from "./components/AddCarPage";
-import AddSetPage from "./components/AddSetPage";
-import CarList from "./components/CarList";
-import EditCarPage from "./components/EditCarPage";
-import EditSetPage from "./components/EditSetPage";
-import SetList from "./components/SetList";
-import AboutPage from "./pages/AboutPage";
-import CatalogCastingPage from "./pages/CatalogCastingPage";
-import CatalogPackPage from "./pages/CatalogPackPage";
-import CatalogSetPage from "./pages/CatalogSetPage";
-import InsightsPage from "./pages/InsightsPage";
 import Login from "./pages/Login";
-import LookupsPage from "./pages/LookupsPage";
 import OverviewPage from "./pages/OverviewPage";
-import ManufacturerPage from "./pages/ManufacturerPage";
-import ManufacturersPage from "./pages/ManufacturersPage";
-import PublicCollectionPage from "./pages/PublicCollectionPage";
-import SeriesListPage from "./pages/SeriesListPage";
-import SeriesPage from "./pages/SeriesPage";
-import SetPage from "./pages/SetPage";
-import SettingsPage from "./pages/SettingsPage";
-import VehiclePage from "./pages/VehiclePage";
 import ProtectedLayout from "./routes/ProtectedLayout";
+
+// Every page but the sign-in and the Overview loads as its own file the first time it's
+// opened, so the first visit downloads only what it shows. The service worker then
+// precaches the rest for later visits and offline use.
+const page =
+  <P extends object>(load: () => Promise<{ default: ComponentType<P> }>, props?: P) =>
+  async () => {
+    const { default: Page } = await load();
+    return { element: <Page {...(props as P)} /> };
+  };
 
 // Pre-1.3 car edit links (/cars/:id/edit) now live under /collection/vehicles.
 const LegacyCarEditRedirect = () => {
@@ -51,10 +42,16 @@ const router = createBrowserRouter([
     // token in the path instead (see backend app/api/routes/public.py).
     element: <PublicShell />,
     children: [
-      { path: "/public/:token/vehicles", element: <PublicCollectionPage kind="vehicles" /> },
+      {
+        path: "/public/:token/vehicles",
+        lazy: page(() => import("./pages/PublicCollectionPage"), { kind: "vehicles" }),
+      },
       // v1.3.0 share links pointed at /cars.
       { path: "/public/:token/cars", element: <LegacyPublicCarsRedirect /> },
-      { path: "/public/:token/sets", element: <PublicCollectionPage kind="sets" /> },
+      {
+        path: "/public/:token/sets",
+        lazy: page(() => import("./pages/PublicCollectionPage"), { kind: "sets" }),
+      },
     ],
   },
   {
@@ -65,25 +62,46 @@ const router = createBrowserRouter([
         children: [
           { path: "/", element: <OverviewPage /> },
           { path: "/collection", element: <Navigate to="/" replace /> },
-          { path: "/collection/vehicles", element: <CarList /> },
-          { path: "/collection/vehicles/add", element: <AddCarPage /> },
-          { path: "/collection/vehicles/add/catalog", element: <CatalogCastingPage /> },
-          { path: "/collection/vehicles/add/pack", element: <CatalogPackPage /> },
-          { path: "/collection/vehicles/:id", element: <VehiclePage /> },
-          { path: "/collection/vehicles/:id/edit", element: <EditCarPage /> },
-          { path: "/collection/sets", element: <SetList /> },
-          { path: "/collection/sets/add", element: <AddSetPage /> },
-          { path: "/collection/sets/add/catalog", element: <CatalogSetPage /> },
-          { path: "/collection/sets/:id", element: <SetPage /> },
-          { path: "/collection/sets/:id/edit", element: <EditSetPage /> },
-          { path: "/collection/manufacturers", element: <ManufacturersPage /> },
-          { path: "/collection/manufacturers/:id", element: <ManufacturerPage /> },
-          { path: "/collection/series", element: <SeriesListPage /> },
-          { path: "/collection/series/:id", element: <SeriesPage /> },
-          { path: "/insights", element: <InsightsPage /> },
-          { path: "/settings", element: <SettingsPage /> },
-          { path: "/settings/lookups", element: <LookupsPage /> },
-          { path: "/about", element: <AboutPage /> },
+          { path: "/collection/vehicles", lazy: page(() => import("./components/CarList")) },
+          { path: "/collection/vehicles/add", lazy: page(() => import("./components/AddCarPage")) },
+          {
+            path: "/collection/vehicles/add/catalog",
+            lazy: page(() => import("./pages/CatalogCastingPage")),
+          },
+          {
+            path: "/collection/vehicles/add/pack",
+            lazy: page(() => import("./pages/CatalogPackPage")),
+          },
+          { path: "/collection/vehicles/:id", lazy: page(() => import("./pages/VehiclePage")) },
+          {
+            path: "/collection/vehicles/:id/edit",
+            lazy: page(() => import("./components/EditCarPage")),
+          },
+          { path: "/collection/sets", lazy: page(() => import("./components/SetList")) },
+          { path: "/collection/sets/add", lazy: page(() => import("./components/AddSetPage")) },
+          {
+            path: "/collection/sets/add/catalog",
+            lazy: page(() => import("./pages/CatalogSetPage")),
+          },
+          { path: "/collection/sets/:id", lazy: page(() => import("./pages/SetPage")) },
+          {
+            path: "/collection/sets/:id/edit",
+            lazy: page(() => import("./components/EditSetPage")),
+          },
+          {
+            path: "/collection/manufacturers",
+            lazy: page(() => import("./pages/ManufacturersPage")),
+          },
+          {
+            path: "/collection/manufacturers/:id",
+            lazy: page(() => import("./pages/ManufacturerPage")),
+          },
+          { path: "/collection/series", lazy: page(() => import("./pages/SeriesListPage")) },
+          { path: "/collection/series/:id", lazy: page(() => import("./pages/SeriesPage")) },
+          { path: "/insights", lazy: page(() => import("./pages/InsightsPage")) },
+          { path: "/settings", lazy: page(() => import("./pages/SettingsPage")) },
+          { path: "/settings/lookups", lazy: page(() => import("./pages/LookupsPage")) },
+          { path: "/about", lazy: page(() => import("./pages/AboutPage")) },
           { path: "/dashboard", element: <Navigate to="/" replace /> },
           { path: "/manage", element: <Navigate to="/settings/lookups" replace /> },
           { path: "/cars/:id/edit", element: <LegacyCarEditRedirect /> },

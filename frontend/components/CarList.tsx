@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import { useTranslation } from "react-i18next";
-import { resolveAssetUrl } from "../api/client";
+import { resolveThumbnailUrl } from "../api/client";
 import type { CarListParams } from "../api/cars";
 import type { ItemSource } from "../api/listFilters";
 import {
@@ -388,7 +388,7 @@ const CarList = () => {
           items={visible}
           getKey={(car) => car.id}
           columns={columns}
-          getPhoto={(car) => resolveAssetUrl(car.photo)}
+          getPhoto={(car) => resolveThumbnailUrl(car.photo)}
           onOpen={open}
           {...selectionProps}
         />
@@ -396,7 +396,7 @@ const CarList = () => {
         <OverviewRows
           items={visible}
           getKey={(car) => car.id}
-          getPhoto={(car) => resolveAssetUrl(car.photo)}
+          getPhoto={(car) => resolveThumbnailUrl(car.photo)}
           getRow={(car) => ({
             title: car.name,
             subtitle: [car.manufacturerName, car.seriesName, car.year].filter(Boolean).join(" · "),

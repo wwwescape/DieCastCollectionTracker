@@ -3,8 +3,7 @@ import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import Typography from "@mui/material/Typography";
 import { useTranslation } from "react-i18next";
-import { useCarList } from "../hooks/useCars";
-import { useSetList } from "../hooks/useSets";
+import { useDashboard } from "../hooks/useDashboard";
 import { useVersion } from "../hooks/useVersion";
 import { isPathWithin, navGroups, type NavDestination } from "./destinations";
 
@@ -93,10 +92,11 @@ interface SidebarProps {
 const Sidebar = ({ onNavigate }: SidebarProps) => {
   const { t } = useTranslation();
   const { pathname } = useLocation();
-  const { data: cars } = useCarList();
-  const { data: sets } = useSetList();
+  // The counts come from the small dashboard summary, not the full lists, so pages that
+  // don't show a list don't have to fetch one.
+  const { data: stats } = useDashboard();
   const { data: version } = useVersion();
-  const counts = { vehicles: cars?.length, sets: sets?.length };
+  const counts = { vehicles: stats?.totalCars, sets: stats?.totalSets };
 
   const isActive = (item: NavDestination) => {
     // A sub-page you're on is highlighted instead of its parent.

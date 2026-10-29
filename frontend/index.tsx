@@ -19,7 +19,9 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      staleTime: 30_000,
+      // Every change made here invalidates what it affects, so cached data can be reused for
+      // a while before checking the server again.
+      staleTime: 5 * 60_000,
     },
   },
 });

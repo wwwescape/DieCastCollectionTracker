@@ -153,4 +153,10 @@ def _remove_unused_photos(db: Session) -> int:
         if path.is_file() and path.name not in used and path.stat().st_mtime < cutoff:
             path.unlink(missing_ok=True)
             removed += 1
+    # Thumbnails are remade on demand, so any whose photo is gone just go.
+    thumbnails = upload_service.thumbnails_dir()
+    if thumbnails.is_dir():
+        for path in thumbnails.iterdir():
+            if not (folder / path.name).is_file():
+                path.unlink(missing_ok=True)
     return removed

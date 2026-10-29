@@ -32,8 +32,8 @@ function invalidateCarQueries(queryClient: QueryClient, { lookups = false } = {}
   }
 }
 
-export function useCarList(params: CarListParams = {}) {
-  return useQuery({ queryKey: ["vehicles", params], queryFn: () => listCars(params) });
+export function useCarList(params: CarListParams = {}, { enabled = true } = {}) {
+  return useQuery({ queryKey: ["vehicles", params], queryFn: () => listCars(params), enabled });
 }
 
 export function useCar(id: number | undefined) {

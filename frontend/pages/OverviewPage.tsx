@@ -6,7 +6,7 @@ import TuneIcon from "@mui/icons-material/Tune";
 import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import { useTranslation } from "react-i18next";
-import { resolveAssetUrl } from "../api/client";
+import { resolveThumbnailUrl } from "../api/client";
 import CustomizeOverviewDialog from "../components/CustomizeOverviewDialog";
 import { Section } from "../components/Detail";
 import PagedStrip from "../components/PagedStrip";
@@ -117,7 +117,7 @@ const OverviewPage = () => {
         items={stats.recentlyAdded.slice(0, PREVIEW).map((car) => ({
           key: car.id,
           to: `/collection/vehicles/${car.id}`,
-          photo: resolveAssetUrl(car.photo),
+          photo: resolveThumbnailUrl(car.photo),
           title: car.name,
           subtitle: [car.manufacturerName, car.year].filter(Boolean).join(" · "),
           status: car.status,
@@ -138,7 +138,7 @@ const OverviewPage = () => {
         items={wishlist.slice(0, PREVIEW).map((item) => ({
           key: `${"setType" in item ? "s" : "v"}${item.id}`,
           to: `/collection/${"setType" in item ? "sets" : "vehicles"}/${item.id}`,
-          photo: resolveAssetUrl(item.photo),
+          photo: resolveThumbnailUrl(item.photo),
           title: item.name,
           subtitle: [item.manufacturerName, item.year].filter(Boolean).join(" · "),
           status: item.status,

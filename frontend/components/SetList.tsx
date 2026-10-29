@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { resolveAssetUrl } from "../api/client";
+import { resolveThumbnailUrl } from "../api/client";
 import type { ItemSource } from "../api/listFilters";
 import type { SealedState, SetListParams } from "../api/sets";
 import {
@@ -335,7 +335,7 @@ const SetList = () => {
           items={visible}
           getKey={(set) => set.id}
           columns={columns}
-          getPhoto={(set) => resolveAssetUrl(set.photo)}
+          getPhoto={(set) => resolveThumbnailUrl(set.photo)}
           onOpen={open}
           {...selectionProps}
         />
@@ -343,7 +343,7 @@ const SetList = () => {
         <OverviewRows
           items={visible}
           getKey={(set) => set.id}
-          getPhoto={(set) => resolveAssetUrl(set.photo)}
+          getPhoto={(set) => resolveThumbnailUrl(set.photo)}
           getRow={(set) => ({
             title: set.name,
             subtitle: [set.manufacturerName, set.seriesName, set.year].filter(Boolean).join(" · "),

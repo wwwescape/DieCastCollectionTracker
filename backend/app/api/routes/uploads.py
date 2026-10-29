@@ -1,10 +1,14 @@
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
 
 from app.api.deps import get_current_user
 from app.schemas.upload import ImageImportRequest, UploadResponse
 from app.services import upload_service
 
 router = APIRouter(prefix="/api/uploads", tags=["uploads"], dependencies=[Depends(get_current_user)])
+# Public like the /uploads files themselves (an <img> sends no token); registered before that
+# mount in main.py so this path is answered here.
+thumbnail_router = APIRouter(tags=["uploads"])
 
 
 def image_upload_error_to_http(exc: ValueError) -> HTTPException:
@@ -29,3 +33,11 @@ def import_car_image_from_wiki(body: ImageImportRequest) -> UploadResponse:
     except ValueError as exc:
         raise image_upload_error_to_http(exc) from exc
     return UploadResponse(url=url)
+
+
+@thumbnail_router.get("/uploads/car-images/thumbs/{name}", include_in_schema=False)
+def car_image_thumbnail(name: str) -> FileResponse:
+    path = upload_service.car_image_thumbnail(name)
+    if path is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+    return FileResponse(path, media_type="image/jpeg")

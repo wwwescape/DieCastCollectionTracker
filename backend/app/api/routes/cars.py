@@ -33,7 +33,11 @@ def _car_response(db: Session, car) -> CarResponse:
 
 @router.get("", response_model=list[CarResponse])
 def list_cars(filters: VehicleFilterParams = Depends(), db: Session = Depends(get_db)) -> list[CarResponse]:
-    return [_car_response(db, car) for car in car_service.list_cars(db, **vars(filters))]
+    # Tags and linked sets for every vehicle in two queries, not two per vehicle.
+    cars = car_service.list_cars(db, **vars(filters))
+    ids = [car.id for car in cars]
+    tags, sets = car_service.get_tags_by_car(db, ids), car_service.get_sets_by_car(db, ids)
+    return [car_from_orm(car, tags[car.id], [linked_set_from_orm(s) for s in sets[car.id]]) for car in cars]
 
 
 @router.post("/bulk-edit", response_model=BulkResultResponse)
@@ -108,6 +112,7 @@ def delete_car(car_id: int, db: Session = Depends(get_db)) -> None:
 
 
 # --- Photo gallery ---
+
 
 @router.post("/{car_id}/photos", response_model=CarPhotoResponse, status_code=status.HTTP_201_CREATED)
 def add_car_photo(

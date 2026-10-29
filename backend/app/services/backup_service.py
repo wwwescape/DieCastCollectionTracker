@@ -13,7 +13,6 @@ before each restore so the operation is always recoverable.
 """
 
 import json
-import re
 import tempfile
 import zipfile
 from datetime import UTC, datetime
@@ -48,7 +47,7 @@ BACKUPS_DIR = BACKEND_DIR / "db" / "backups"
 FULL_BACKUP_JSON_NAME = "backup.json"
 FULL_BACKUP_PHOTOS_DIR = "photos/"
 # Only names DCT itself gives uploads (a UUID .jpg) are ever extracted from a backup.
-_PHOTO_NAME = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jpg$")
+_PHOTO_NAME = upload_service.PHOTO_NAME
 MAX_BACKUP_JSON_BYTES = 50 * 1024 * 1024
 MAX_PHOTO_BYTES = 20 * 1024 * 1024
 MAX_PHOTOS_TOTAL_BYTES = 8 * 1024 * 1024 * 1024

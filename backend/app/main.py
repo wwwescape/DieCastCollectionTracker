@@ -3,6 +3,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -100,12 +101,36 @@ SECURITY_HEADERS = {
 }
 
 
+# How long browsers (and Cloudflare, in front of a tunnel) may keep a response. Built assets
+# and photos have content-unique names, so they never change and can be kept for a year;
+# index.html, the service worker and the other unhashed files are checked on every load so
+# a new release shows up straight away.
+IMMUTABLE_CACHE = "public, max-age=31536000, immutable"
+CACHED_FOREVER_PREFIXES = ("/assets/", "/uploads/")
+
+
+def cache_control_for(path: str) -> str | None:
+    if path.startswith(CACHED_FOREVER_PREFIXES):
+        return IMMUTABLE_CACHE
+    if path.startswith("/api/") or path == "/healthz":
+        return None
+    return "no-cache"
+
+
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
     response = await call_next(request)
     for name, value in SECURITY_HEADERS.items():
         response.headers.setdefault(name, value)
+    cache_control = cache_control_for(request.url.path)
+    if cache_control and response.status_code == 200:
+        response.headers.setdefault("Cache-Control", cache_control)
     return response
+
+
+# Compresses JSON, JS, CSS and HTML (JPEGs and zips are left as they are). Cloudflare
+# compresses for visitors through a tunnel; this covers everyone else, such as the LAN.
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 
 @app.exception_handler(NotFoundError)
@@ -131,6 +156,7 @@ app.include_router(catalog.router)
 app.include_router(lookups.router)
 app.include_router(tags.router)
 app.include_router(uploads.router)
+app.include_router(uploads.thumbnail_router)
 app.include_router(dashboard.router)
 app.include_router(danger_zone.router)
 app.include_router(export.router)

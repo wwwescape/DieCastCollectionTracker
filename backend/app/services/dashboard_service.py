@@ -54,12 +54,14 @@ def get_dashboard_stats(db: Session) -> DashboardStats:
                 joinedload(Car.series),
                 joinedload(Car.vehicle_type),
                 joinedload(Car.color),
+                joinedload(Car.photos),
             )
             .order_by(Car.created_at.desc())
             .limit(5)
         ).unique()
     )
-    recently_added = [car_from_orm(car, tag_repository.list_tags_for_car(db, car.id)) for car in recent_cars]
+    tags = tag_repository.list_tags_for_cars(db, [car.id for car in recent_cars])
+    recently_added = [car_from_orm(car, tags[car.id]) for car in recent_cars]
 
     return DashboardStats(
         total_cars=total_cars,

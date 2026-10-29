@@ -17,7 +17,7 @@ import VerifiedIcon from "@mui/icons-material/VerifiedOutlined";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { useTranslation } from "react-i18next";
-import { resolveAssetUrl } from "../api/client";
+import { resolveAssetUrl, resolveThumbnailUrl } from "../api/client";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { DetailHero, Facts, Pill, Section, Strip } from "../components/Detail";
 import { EmptyState } from "../components/ListViews";
@@ -214,7 +214,7 @@ const SetPage = () => {
             items={set.vehicles.map((car) => ({
               key: car.id,
               to: `/collection/vehicles/${car.id}`,
-              photo: resolveAssetUrl(car.photo),
+              photo: resolveThumbnailUrl(car.photo),
               title: car.name,
               subtitle: [car.manufacturerName, car.year].filter(Boolean).join(" · "),
               status: car.status,
