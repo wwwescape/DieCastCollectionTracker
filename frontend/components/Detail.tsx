@@ -72,8 +72,9 @@ export const DetailHero = ({ photo, crumbs, title, subline, pills, status }: Det
           overflow: "hidden",
           bgcolor: "dct.photoBg",
           boxShadow: "0 18px 40px rgba(0,0,0,.35)",
-          display: "grid",
-          placeItems: "center",
+          // Not a grid: in one, the photo's height: 100% has nothing to resolve against, so a
+          // tall photo (a carded blister) rendered at its natural height and was cut off.
+          // PhotoImg's object-fit: contain then fits the whole photo, centred.
           maxWidth: { xs: 420, md: "none" },
         }}
       >
@@ -270,7 +271,9 @@ interface StripProps {
   paged?: boolean;
 }
 
-// A sideways-scrolling row of small photo tiles (more from the series, linked sets...).
+// Small photo tiles. Paged (PagedStrip, the Overview's rows): one sideways row turned with
+// < and >. Otherwise (a detail page's more from the series, linked sets...) the tiles wrap into
+// a grid, as VideoGameTrackarr's add-ons do: two columns on phones, then as many as fit.
 export const Strip = ({ items, scrollRef, onScroll, paged }: StripProps) => {
   const location = useLocation();
   return (
@@ -279,19 +282,24 @@ export const Strip = ({ items, scrollRef, onScroll, paged }: StripProps) => {
       onScroll={onScroll}
       sx={{
         display: "grid",
-        gridAutoFlow: "column",
-        gridAutoColumns: 180,
         gap: 1.5,
-        overflowX: "auto",
-        pb: 0.75,
         ...(paged
           ? {
+              gridAutoFlow: "column",
+              gridAutoColumns: 180,
+              overflowX: "auto",
+              pb: 0.75,
               scrollSnapType: "x mandatory",
               "& > *": { scrollSnapAlign: "start" },
               scrollbarWidth: "none",
               "&::-webkit-scrollbar": { display: "none" },
             }
-          : {}),
+          : {
+              gridTemplateColumns: {
+                xs: "repeat(2, minmax(0, 1fr))",
+                sm: "repeat(auto-fill, minmax(170px, 1fr))",
+              },
+            }),
       }}
     >
       {items.map((item) => (

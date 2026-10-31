@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CheckIcon from "@mui/icons-material/Check";
@@ -14,6 +14,7 @@ import PaletteIcon from "@mui/icons-material/PaletteOutlined";
 import SellIcon from "@mui/icons-material/SellOutlined";
 import TagIcon from "@mui/icons-material/Tag";
 import VerifiedIcon from "@mui/icons-material/VerifiedOutlined";
+import ButtonBase from "@mui/material/ButtonBase";
 import Typography from "@mui/material/Typography";
 import { useTranslation } from "react-i18next";
 import { resolveAssetUrl, resolveThumbnailUrl } from "../api/client";
@@ -33,7 +34,7 @@ import {
 import { useCurrency } from "../theme/CurrencyProvider";
 import { CATALOG_SOURCE_LABELS } from "../utils/catalog";
 import { formatCurrency } from "../utils/currency";
-import { useDetailBack } from "../utils/navState";
+import { openedFrom, useDetailBack } from "../utils/navState";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
 
 const MORE_FROM_SERIES = 12;
@@ -47,6 +48,7 @@ const VehiclePage = () => {
   const { id } = useParams<{ id: string }>();
   const carId = Number(id);
   const { data: car, isLoading } = useCar(Number.isFinite(carId) ? carId : undefined);
+  const location = useLocation();
   const { data: allCars } = useCarList();
   const { currency } = useCurrency();
   const deleteCar = useDeleteCar();
@@ -82,11 +84,10 @@ const VehiclePage = () => {
   };
 
   const photo = resolveAssetUrl(car.photo);
-  const moreFromSeries = car.seriesId
-    ? (allCars ?? [])
-        .filter((other) => other.seriesId === car.seriesId && other.id !== car.id)
-        .slice(0, MORE_FROM_SERIES)
+  const seriesOthers = car.seriesId
+    ? (allCars ?? []).filter((other) => other.seriesId === car.seriesId && other.id !== car.id)
     : [];
+  const moreFromSeries = seriesOthers.slice(0, MORE_FROM_SERIES);
 
   return (
     <Page
@@ -207,7 +208,21 @@ const VehiclePage = () => {
         setPrimary={setPrimaryPhoto}
       />
       {moreFromSeries.length ? (
-        <Section title={t("detail.moreFrom", { name: car.seriesName })}>
+        <Section
+          title={t("detail.moreFrom", { name: car.seriesName })}
+          action={
+            seriesOthers.length > MORE_FROM_SERIES ? (
+              <ButtonBase
+                component={Link}
+                to={`/collection/series/${car.seriesId}`}
+                state={openedFrom(location)}
+                sx={{ fontSize: 13, color: "primary.main", px: 1, borderRadius: 1 }}
+              >
+                {t("overview.viewAll")}
+              </ButtonBase>
+            ) : undefined
+          }
+        >
           <Strip
             items={moreFromSeries.map((other) => ({
               key: other.id,
