@@ -11,6 +11,7 @@ import AutocompleteSelect from "../components/AutocompleteSelect";
 import ChangePasswordDialog from "../components/ChangePasswordDialog";
 import DangerZoneSection from "../components/DangerZoneSection";
 import DataManagementSection from "../components/DataManagementSection";
+import InstallAppRow from "../components/InstallAppRow";
 import Page from "../components/Page";
 import { SettingRow, SettingsGroup, SettingsToolbar } from "../components/SettingsLayout";
 import ShareSection from "../components/ShareSection";
@@ -66,6 +67,10 @@ const SettingsPage = () => {
           >
             <AccentColorSetting />
           </SettingRow>
+        </SettingsGroup>
+
+        <SettingsGroup title={t("settings.installApp.heading")}>
+          <InstallAppRow />
         </SettingsGroup>
 
         <SettingsGroup title={t("settings.regional.heading")} lead={t("settings.regional.lead")}>

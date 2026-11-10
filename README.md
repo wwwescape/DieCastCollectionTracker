@@ -75,7 +75,8 @@
   data-only .json; restore either in one step, after a safety snapshot of the current collection.
 - **Danger Zone** — clear notes, tags or purchase prices, remove unused lookups or photo files,
   or reset vehicles, sets or everything (resets need RESET typed and take a safety snapshot first).
-- **PWA** — installable, and works offline for anything you've already viewed (photos included).
+- **PWA** — installable (see [Installing the app](#installing-the-app)), and works offline for
+  anything you've already viewed (photos included).
 - **Material 3 design** — light and dark mode, high contrast, a choice of accent colors (the
   logo's blue by default), and responsive navigation for phone, tablet, and desktop.
 - **About and update check** — version, links and credits, plus a notice in the top bar when a
@@ -131,6 +132,14 @@ docker compose pull && docker compose up -d
 
 Running from source instead? `git pull`, reinstall dependencies if they changed, then run
 `alembic upgrade head` from `backend/` before starting the app.
+
+### Installing the app
+
+DieCastCollectionTracker can be installed like an app, with its own window and home-screen or desktop icon.
+**Settings → App** has an **Install** button where the browser offers one (Chrome, Edge, Android),
+and says how otherwise (on an iPhone or iPad: Share → Add to Home Screen). Browsers only install
+apps opened over **HTTPS** (or on `localhost`): at a plain `http://` address such as
+`http://192.168.1.10:8000`, use a reverse proxy with a certificate or a Cloudflare tunnel.
 
 ## Configuration
 

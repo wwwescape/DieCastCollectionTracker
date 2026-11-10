@@ -11,7 +11,7 @@ import TableRow from "@mui/material/TableRow";
 import Typography from "@mui/material/Typography";
 import { useTranslation } from "react-i18next";
 import type { CarStatus } from "../api/types";
-import VirtualCarGrid, { type VirtualGridHandle } from "./VirtualCarGrid";
+import VirtualCarGrid, { phoneGridColumns, type VirtualGridHandle } from "./VirtualCarGrid";
 import PhotoImg from "./PhotoImg";
 
 const LETTERS = "#ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
@@ -429,13 +429,14 @@ export function OverviewRows<T>({
   );
 }
 
-// A plain responsive grid for the small browse lists (no virtualizing needed).
+// A plain responsive grid for the small browse lists (no virtualizing needed): 1–3 columns on
+// phones (by card size), then as many cards of the chosen size as fit.
 export const CardGrid = ({ size, children }: { size: number; children: ReactNode }) => (
   <Box
     sx={{
       display: "grid",
       gridTemplateColumns: {
-        xs: "repeat(2, minmax(0, 1fr))",
+        xs: phoneGridColumns(size),
         sm: `repeat(auto-fill, minmax(${size}px, 1fr))`,
       },
       gap: { xs: "14px 10px", sm: "18px 16px" },

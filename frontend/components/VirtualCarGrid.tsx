@@ -11,11 +11,23 @@ import Box from "@mui/material/Box";
 
 const COLUMN_GAP_PX = 16;
 const ROW_GAP_PX = 18;
-// Phones always get two columns, whatever the card-size setting says.
+// Below this width there's no room to fit cards by size, so the card size picks a column count
+// instead (phoneColumns).
 const PHONE_WIDTH_PX = 600;
-const PHONE_MIN_ITEM_PX = 150;
 // Header + page toolbar + a little air, so a jumped-to row isn't hidden under them.
 const STICKY_OFFSET_PX = 120;
+
+// On phones, Options → Card size chooses 1, 2 or 3 columns: the smallest sizes 3, the default
+// (190) 2, the largest sizes 1. Shared by every card grid with the slider, so they all agree.
+export function phoneColumns(cardSize: number): number {
+  if (cardSize < 160) return 3;
+  if (cardSize <= 230) return 2;
+  return 1;
+}
+
+// The CSS-grid equivalent, for grids that aren't windowed (CardGrid).
+export const phoneGridColumns = (cardSize: number) =>
+  `repeat(${phoneColumns(cardSize)}, minmax(0, 1fr))`;
 
 export interface VirtualGridHandle {
   scrollToIndex: (index: number) => void;
@@ -61,9 +73,11 @@ function VirtualCarGrid<T>({
     return () => observer.disconnect();
   }, []);
 
-  const min = width && width < PHONE_WIDTH_PX ? PHONE_MIN_ITEM_PX : minItemWidth;
-  const columns = Math.max(1, Math.floor((width + COLUMN_GAP_PX) / (min + COLUMN_GAP_PX)));
-  const itemWidth = width ? (width - COLUMN_GAP_PX * (columns - 1)) / columns : min;
+  const columns =
+    width && width < PHONE_WIDTH_PX
+      ? phoneColumns(minItemWidth)
+      : Math.max(1, Math.floor((width + COLUMN_GAP_PX) / (minItemWidth + COLUMN_GAP_PX)));
+  const itemWidth = width ? (width - COLUMN_GAP_PX * (columns - 1)) / columns : minItemWidth;
 
   const virtualizer = useWindowVirtualizer({
     count: items.length,
