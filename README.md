@@ -150,8 +150,9 @@ Settings live in `.env` (see [.env.example](.env.example)). Only a JWT secret is
 JWT_SECRET_KEY=            # generate with: python -c "import secrets; print(secrets.token_hex(32))"
 ```
 
-Optional: `DATABASE_URL` (a local SQLite file by default), `CORS_ORIGINS`, and `APP_PORT`
-(`8000` by default, used by the repo's own `docker-compose.yml`).
+Optional: `DATABASE_URL` (a local SQLite file by default), `CORS_ORIGINS`, `APP_PORT`
+(`8000` by default, used by the repo's own `docker-compose.yml`), and `REFRESH_TOKEN_EXPIRE_DAYS`
+(`90` by default: how long you stay signed in without opening the app; using it renews that).
 
 ### Reverse proxy
 
