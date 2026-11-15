@@ -8,7 +8,6 @@ from app.repositories import tag_repository
 from app.schemas.car import car_from_orm
 from app.schemas.dashboard import DashboardStats, ManufacturerStat, VehicleTypeStat
 
-
 # The Overview's Recently added row: enough to fill a couple of pages at the smallest card size,
 # the same as its Wishlist row (PREVIEW in frontend/pages/OverviewPage.tsx).
 RECENTLY_ADDED_COUNT = 12
