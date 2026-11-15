@@ -88,7 +88,7 @@ function renderFromList(kind: "vehicles" | "sets", id: number) {
 }
 
 beforeEach(() => {
-  vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([{ id: 1, name: "Hot Wheels" }]);
+  vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([{ id: 1, name: "Hot Wheels", logoUrl: null }]);
   vi.spyOn(lookupsApi, "listVehicleTypes").mockResolvedValue([]);
   vi.spyOn(lookupsApi, "listColors").mockResolvedValue([]);
   vi.spyOn(lookupsApi, "listSeries").mockResolvedValue([]);

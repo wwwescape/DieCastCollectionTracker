@@ -393,7 +393,7 @@
         "removeUnusedPhotos": {
           "name": "Retirer les photos inutilisées",
           "button": "Retirer",
-          "removes": "Supprime les fichiers photo importés qu'aucun véhicule ni coffret n'utilise plus (restes de suppressions, réinitialisations et restaurations) pour libérer de l'espace.",
+          "removes": "Supprime les fichiers photo et logo importés que plus rien n'utilise (restes de suppressions, réinitialisations et restaurations) pour libérer de l'espace.",
           "keeps": "Garde les photos utilisées et tout ce qui a été importé dans l'heure."
         },
         "resetVehicles": {
@@ -473,7 +473,17 @@
     "nothingToMergeInto": "Rien avec quoi fusionner",
     "cantDeleteInUse": "Utilisé ({{usage}}), il ne peut donc pas être supprimé. Fusionnez-le plutôt avec un autre.",
     "deleteTagTitle": "Supprimer l'étiquette « {{name}} » ?",
-    "deleteTagDescription": "« {{name}} » sera retiré de {{usage}}. Rien d'autre ne change pour ces éléments."
+    "deleteTagDescription": "« {{name}} » sera retiré de {{usage}}. Rien d'autre ne change pour ces éléments.",
+    "logo": {
+      "upload": "Importer un logo pour {{name}}",
+      "replace": "Remplacer le logo de {{name}}",
+      "remove": "Retirer le logo de {{name}}",
+      "bundled": "{{name}} utilise le logo fourni avec l'app",
+      "uploaded": "Logo importé",
+      "removed": "Logo retiré",
+      "error": "Impossible d'importer le logo. Utilisez une image PNG, JPEG ou WebP de 5 Mo maximum.",
+      "removeError": "Impossible de retirer le logo. Réessayez."
+    }
   },
   "public": {
     "subNavLabel": "Collection partagée",
@@ -730,6 +740,12 @@
     "sort": {
       "mostVehicles": "Le plus de véhicules",
       "mostSets": "Le plus de coffrets"
+    }
+  },
+  "uploads": {
+    "hint": {
+      "photo": "Recommandé : 1280 × 960 px ou plus (4:3). Les photos plus grandes sont réduites, jamais recadrées. Jusqu'à 20 Mo.",
+      "logo": "Recommandé : PNG sur fond transparent, 800 px de large ou plus. Rogné au logo et réduit à 800 px de large. Jusqu'à 5 Mo."
     }
   }
 }

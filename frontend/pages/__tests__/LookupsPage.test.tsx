@@ -20,7 +20,7 @@ function renderLookupsPage(tab = "manufacturers") {
 }
 
 function mockAllLookups() {
-  vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([{ id: 1, name: "Hot Wheels" }]);
+  vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([{ id: 1, name: "Hot Wheels", logoUrl: null }]);
   vi.spyOn(lookupsApi, "listSeries").mockResolvedValue([
     { id: 1, name: "Treasure Hunt", manufacturerId: 1, manufacturerName: "Hot Wheels" },
   ]);

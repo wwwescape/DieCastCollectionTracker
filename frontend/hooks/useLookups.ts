@@ -15,7 +15,9 @@ import {
   listSeriesOverview,
   getLookupsUsage,
   mergeLookup,
+  removeManufacturerLogo,
   renameLookup,
+  uploadManufacturerLogo,
   type LookupKind,
   listVehicleTypes,
 } from "../api/lookups";
@@ -52,6 +54,23 @@ export function useDeleteManufacturer() {
     mutationFn: deleteManufacturer,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["manufacturers"] }),
   });
+}
+
+// The Manufacturers page and cards read logos from the overview (under "dashboard"), and the
+// Lookups list from "manufacturers", so a logo change refreshes both.
+export function useManufacturerLogo() {
+  const queryClient = useQueryClient();
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["manufacturers"] });
+    queryClient.invalidateQueries({ queryKey: ["dashboard", "manufacturers"] });
+  };
+  const upload = useMutation({
+    mutationFn: ({ id, file }: { id: number; file: File }) => uploadManufacturerLogo(id, file),
+    networkMode: "always",
+    onSuccess: refresh,
+  });
+  const remove = useMutation({ mutationFn: removeManufacturerLogo, onSuccess: refresh });
+  return { upload, remove };
 }
 
 export function useVehicleTypes() {

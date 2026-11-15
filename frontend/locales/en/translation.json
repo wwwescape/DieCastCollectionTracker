@@ -393,7 +393,7 @@
         "removeUnusedPhotos": {
           "name": "Remove unused photo files",
           "button": "Remove",
-          "removes": "Deletes uploaded photo files no vehicle or set uses any more (left behind by deletes, resets and restores), to free disk space.",
+          "removes": "Deletes uploaded photo and logo files nothing uses any more (left behind by deletes, resets and restores), to free disk space.",
           "keeps": "Keeps every photo in use, and anything uploaded in the last hour."
         },
         "resetVehicles": {
@@ -473,7 +473,17 @@
     "nothingToMergeInto": "Nothing to merge into",
     "cantDeleteInUse": "In use ({{usage}}), so it can't be deleted. Merge it into another instead.",
     "deleteTagTitle": "Delete the tag “{{name}}”?",
-    "deleteTagDescription": "“{{name}}” will be taken off {{usage}}. The items themselves aren't changed otherwise."
+    "deleteTagDescription": "“{{name}}” will be taken off {{usage}}. The items themselves aren't changed otherwise.",
+    "logo": {
+      "upload": "Upload a logo for {{name}}",
+      "replace": "Replace the logo of {{name}}",
+      "remove": "Remove the logo of {{name}}",
+      "bundled": "{{name}} uses the logo that comes with the app",
+      "uploaded": "Logo uploaded",
+      "removed": "Logo removed",
+      "error": "Couldn't upload the logo. Use a PNG, JPEG or WebP image up to 5 MB.",
+      "removeError": "Couldn't remove the logo. Please try again."
+    }
   },
   "public": {
     "subNavLabel": "Shared collection",
@@ -730,6 +740,12 @@
     "sort": {
       "mostVehicles": "Most vehicles",
       "mostSets": "Most sets"
+    }
+  },
+  "uploads": {
+    "hint": {
+      "photo": "Recommended: 1280 × 960 px or larger (4:3). Larger photos are scaled down, never cropped. Up to 20 MB.",
+      "logo": "Recommended: PNG with a transparent background, 800 px wide or larger. Trimmed to the logo and scaled down to 800 px wide. Up to 5 MB."
     }
   }
 }

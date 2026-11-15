@@ -32,7 +32,7 @@ const ManufacturerPage = () => {
       crumbs={[...crumbs, { label: manufacturer.name }]}
       actions={
         <Box sx={{ width: 180, bgcolor: "dct.photoBg", borderRadius: 1.5, p: 0.75 }}>
-          <ManufacturerLogo name={manufacturer.name} height={48} />
+          <ManufacturerLogo name={manufacturer.name} logoUrl={manufacturer.logoUrl} height={48} />
         </Box>
       }
     >

@@ -70,6 +70,52 @@ def import_car_image_from_wiki(url: str) -> str:
     return save_car_image(BytesIO(raw))
 
 
+LOGOS_DIRNAME = "logos"
+LOGOS_URL_PREFIX = "/uploads/logos/"
+LOGO_NAME = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.png$")
+# Manufacturer logos match the bundled ones (frontend/public/manufacturers/): a PNG on a
+# transparent background, cropped tight and at most 800 px wide. Smaller ones aren't
+# upscaled.
+LOGO_MAX_DIMENSIONS = (800, 800)
+MAX_LOGO_BYTES = 5 * 1024 * 1024
+
+
+def logos_dir():
+    # Looked up on each call, so tests that point UPLOADS_DIR elsewhere move this too.
+    return UPLOADS_DIR / LOGOS_DIRNAME
+
+
+def save_logo_image(source: BinaryIO) -> str:
+    """Stores an uploaded manufacturer logo as a PNG that keeps its transparency, trimmed to
+    what's visible and scaled down to fit LOGO_MAX_DIMENSIONS. Returns the URL it's served at."""
+    raw = source.read(MAX_LOGO_BYTES + 1)
+    if len(raw) > MAX_LOGO_BYTES:
+        raise ImageTooLargeError(f"Logo is larger than {MAX_LOGO_BYTES // (1024 * 1024)} MB")
+    try:
+        image = Image.open(BytesIO(raw))
+        image.load()
+    except (UnidentifiedImageError, Image.DecompressionBombError) as exc:
+        raise ValueError("Not a valid image file") from exc
+    image = ImageOps.exif_transpose(image).convert("RGBA")
+    visible = image.getchannel("A").getbbox()
+    if visible is None:
+        raise ValueError("The image is completely transparent")
+    image = image.crop(visible)
+    image.thumbnail(LOGO_MAX_DIMENSIONS, Image.Resampling.LANCZOS)
+    logos_dir().mkdir(parents=True, exist_ok=True)
+    filename = f"{uuid.uuid4()}.png"
+    image.save(logos_dir() / filename, format="PNG", optimize=True)
+    return f"{LOGOS_URL_PREFIX}{filename}"
+
+
+def delete_logo_file(url: str | None) -> None:
+    """Removes an uploaded logo's file. Only names save_logo_image gives are touched."""
+    if url and url.startswith(LOGOS_URL_PREFIX):
+        name = url.removeprefix(LOGOS_URL_PREFIX)
+        if LOGO_NAME.match(name):
+            (logos_dir() / name).unlink(missing_ok=True)
+
+
 def thumbnails_dir():
     # Looked up on each call, so tests that point CAR_IMAGES_DIR elsewhere move this too.
     return CAR_IMAGES_DIR / THUMBNAILS_DIRNAME

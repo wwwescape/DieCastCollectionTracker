@@ -75,7 +75,7 @@ describe("Vehicles list toolbar", SLOW_UI, () => {
   beforeEach(() => {
     window.sessionStorage.clear();
     vi.spyOn(carsApi, "listCars").mockResolvedValue(CARS);
-    vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([{ id: 1, name: "Hot Wheels" }]);
+    vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([{ id: 1, name: "Hot Wheels", logoUrl: null }]);
     vi.spyOn(lookupsApi, "listVehicleTypes").mockResolvedValue([]);
     vi.spyOn(lookupsApi, "listColors").mockResolvedValue([]);
     vi.spyOn(lookupsApi, "listSeries").mockResolvedValue([]);

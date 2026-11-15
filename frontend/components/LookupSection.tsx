@@ -30,6 +30,8 @@ interface LookupSectionProps {
   usage?: LookupUsage[];
   isLoading?: boolean;
   onDelete: (id: number) => void;
+  // More controls for an entry, before Rename (a manufacturer's logo).
+  renderActions?: (item: LookupItem) => ReactNode;
   children: ReactNode;
 }
 
@@ -45,6 +47,7 @@ const LookupSection = ({
   usage,
   isLoading,
   onDelete,
+  renderActions,
   children,
 }: LookupSectionProps) => {
   const { t } = useTranslation();
@@ -153,6 +156,7 @@ const LookupSection = ({
                     {[item.secondary, row ? usageText(item) : null].filter(Boolean).join(" · ")}
                   </Typography>
                 </Box>
+                {renderActions?.(item)}
                 <Tooltip title={wikiBacked ? t("lookups.cantRenameWiki") : t("lookups.rename")}>
                   <span>
                     <IconButton

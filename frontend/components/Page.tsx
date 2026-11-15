@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import ButtonBase, { type ButtonBaseProps } from "@mui/material/ButtonBase";
 import Typography from "@mui/material/Typography";
 import { HEADER_HEIGHT } from "../navigation/Sidebar";
+import { CARD_FRAME_ATTRIBUTE } from "./cardColumns";
 
 export interface Crumb {
   label: ReactNode;
@@ -56,7 +57,11 @@ const Page = ({ crumbs, meta, toolbar, toolbarEnd, hero, actions, children }: Pa
       </Box>
     ) : null}
     {hero}
-    <Box sx={{ px: { xs: 1.5, sm: 2.75 }, pt: { xs: 1.75, sm: 2.25 }, pb: 5 }}>
+    {/* The card frame: every card grid counts its columns from this width (cardColumns). */}
+    <Box
+      {...{ [CARD_FRAME_ATTRIBUTE]: "" }}
+      sx={{ px: { xs: 1.5, sm: 2.75 }, pt: { xs: 1.75, sm: 2.25 }, pb: 5 }}
+    >
       {crumbs.length || actions ? (
         <Box
           sx={{

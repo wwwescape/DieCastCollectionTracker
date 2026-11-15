@@ -49,8 +49,9 @@
   in, photo included; Matchbox sets are entered by hand, since that wiki has no page per set.
 - **Linked vehicles and sets** — link a set to the vehicles in your collection that came with it,
   from either form. Adding a set from the wiki links the vehicles you already have.
-- **Manufacturers** — every manufacturer with its logo (Hot Wheels, Matchbox, Majorette) and
-  counts; open one to see all of its vehicles and sets.
+- **Manufacturers** — every manufacturer with its logo and counts; open one to see all of its
+  vehicles and sets. Hot Wheels and Matchbox logos come with the app; upload any other in
+  Settings → Lookups.
 - **Series** — every series by year with its counts (a yearly pack like Batman 5-Pack gets
   a card per year); open one to see that year's vehicles and sets.
 - **Photo gallery** — several photos per vehicle and set, with a primary photo for the card.

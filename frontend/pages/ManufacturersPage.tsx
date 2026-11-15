@@ -148,7 +148,11 @@ const ManufacturersPage = () => {
                   outlineOffset: "-1px",
                 }}
               >
-                <ManufacturerLogo name={manufacturer.name} height={Math.round(cardSize * 0.5)} />
+                <ManufacturerLogo
+                  name={manufacturer.name}
+                  logoUrl={manufacturer.logoUrl}
+                  height={Math.round(cardSize * 0.5)}
+                />
               </Box>
               <Typography variant="subtitle2" noWrap sx={{ mt: 0.875, fontSize: 13.5 }}>
                 {manufacturer.name}

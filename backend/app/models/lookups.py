@@ -10,6 +10,8 @@ class Manufacturer(TimestampMixin, Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    # An uploaded logo (Settings → Lookups); null shows the app's bundled logo or the name.
+    logo_url: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
 
 class VehicleType(TimestampMixin, Base):

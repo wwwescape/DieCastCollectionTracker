@@ -46,6 +46,7 @@ BACKUPS_DIR = BACKEND_DIR / "db" / "backups"
 
 FULL_BACKUP_JSON_NAME = "backup.json"
 FULL_BACKUP_PHOTOS_DIR = "photos/"
+FULL_BACKUP_LOGOS_DIR = "logos/"
 # Only names DCT itself gives uploads (a UUID .jpg) are ever extracted from a backup.
 _PHOTO_NAME = upload_service.PHOTO_NAME
 MAX_BACKUP_JSON_BYTES = 50 * 1024 * 1024
@@ -68,6 +69,18 @@ def _local_photo_names(payload: BackupPayload) -> set[str]:
     return names
 
 
+def _local_logo_names(payload: BackupPayload) -> set[str]:
+    """File names of the uploaded manufacturer logos the backup references."""
+    names: set[str] = set()
+    for manufacturer in payload.manufacturers:
+        url = manufacturer.logo_url
+        if url and url.startswith(upload_service.LOGOS_URL_PREFIX):
+            name = url.removeprefix(upload_service.LOGOS_URL_PREFIX)
+            if upload_service.LOGO_NAME.match(name):
+                names.add(name)
+    return names
+
+
 def export_full_backup_zip(db: Session) -> Path:
     """The backup as a .zip: backup.json plus the uploaded photos it references, written to a
     temp file the caller deletes once sent. Photos are stored as they are (JPEGs don't
@@ -86,6 +99,10 @@ def export_full_backup_zip(db: Session) -> Path:
                 source = upload_service.CAR_IMAGES_DIR / photo_name
                 if source.is_file():
                     archive.write(source, FULL_BACKUP_PHOTOS_DIR + photo_name)
+            for logo_name in sorted(_local_logo_names(payload)):
+                source = upload_service.logos_dir() / logo_name
+                if source.is_file():
+                    archive.write(source, FULL_BACKUP_LOGOS_DIR + logo_name)
     except BaseException:
         path.unlink(missing_ok=True)
         raise
@@ -106,7 +123,9 @@ def read_full_backup_zip(path: Path) -> BackupPayload:
                 raise ValueError(f"no {FULL_BACKUP_JSON_NAME} in the .zip") from exc
             if info.file_size > MAX_BACKUP_JSON_BYTES:
                 raise ValueError(f"{FULL_BACKUP_JSON_NAME} is too large")
-            total = sum(m.file_size for m in members if m.filename.startswith(FULL_BACKUP_PHOTOS_DIR))
+            total = sum(
+                m.file_size for m in members if m.filename.startswith((FULL_BACKUP_PHOTOS_DIR, FULL_BACKUP_LOGOS_DIR))
+            )
             if total > MAX_PHOTOS_TOTAL_BYTES:
                 raise ValueError("the photos in the .zip are too large")
             return parse_backup_payload(archive.read(info).decode("utf-8"))
@@ -141,11 +160,39 @@ def extract_backup_photos(path: Path, payload: BackupPayload) -> int:
                 target.unlink(missing_ok=True)
                 continue
             written += 1
+    _extract_backup_logos(path, payload)
     return written
 
 
+def _extract_backup_logos(path: Path, payload: BackupPayload) -> None:
+    """extract_backup_photos for the manufacturer logos: only referenced, DCT-named PNGs under
+    MAX_LOGO_BYTES, re-encoded as PNG with their transparency. Not counted as photos."""
+    wanted = _local_logo_names(payload)
+    if not wanted:
+        return
+    upload_service.logos_dir().mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(path) as archive:
+        for info in archive.infolist():
+            if not info.filename.startswith(FULL_BACKUP_LOGOS_DIR) or info.is_dir():
+                continue
+            name = info.filename.removeprefix(FULL_BACKUP_LOGOS_DIR)
+            if name not in wanted or info.file_size > upload_service.MAX_LOGO_BYTES:
+                continue
+            target = upload_service.logos_dir() / name
+            if target.exists():
+                continue
+            try:
+                image = Image.open(BytesIO(archive.read(info)))
+                image.load()
+                image.convert("RGBA").save(target, format="PNG", optimize=True)
+            except (UnidentifiedImageError, Image.DecompressionBombError, OSError):
+                target.unlink(missing_ok=True)
+
+
 def build_backup_payload(db: Session) -> BackupPayload:
-    manufacturers = [BackupManufacturer(id=m.id, name=m.name) for m in db.scalars(select(Manufacturer))]
+    manufacturers = [
+        BackupManufacturer(id=m.id, name=m.name, logo_url=m.logo_url) for m in db.scalars(select(Manufacturer))
+    ]
     series = [BackupSeries(id=s.id, name=s.name, manufacturer_id=s.manufacturer_id) for s in db.scalars(select(Series))]
     vehicle_types = [BackupVehicleType(id=v.id, name=v.name) for v in db.scalars(select(VehicleType))]
     colors = [BackupColor(id=c.id, name=c.name) for c in db.scalars(select(Color))]
@@ -268,7 +315,7 @@ def restore_backup(db: Session, payload: BackupPayload) -> BackupRestoreResult:
     db.flush()
 
     for m in payload.manufacturers:
-        db.add(Manufacturer(id=m.id, name=m.name))
+        db.add(Manufacturer(id=m.id, name=m.name, logo_url=m.logo_url))
     for v in payload.vehicle_types:
         db.add(VehicleType(id=v.id, name=v.name))
     for c in payload.colors:

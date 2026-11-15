@@ -393,7 +393,7 @@
         "removeUnusedPhotos": {
           "name": "Remover ficheiros de fotos sem uso",
           "button": "Remover",
-          "removes": "Apaga as fotos carregadas que nenhum veículo ou conjunto usa (restos de eliminações, reposições e restauros) para libertar espaço.",
+          "removes": "Apaga as fotos e logótipos carregados que nada usa (restos de eliminações, reposições e restauros) para libertar espaço.",
           "keeps": "Mantém as fotos em uso e o que foi carregado na última hora."
         },
         "resetVehicles": {
@@ -473,7 +473,17 @@
     "nothingToMergeInto": "Nada em que fundir",
     "cantDeleteInUse": "Em uso ({{usage}}), por isso não pode ser eliminado. Funda-o noutro.",
     "deleteTagTitle": "Eliminar a etiqueta “{{name}}”?",
-    "deleteTagDescription": "“{{name}}” será retirada de {{usage}}. Nada mais muda nesses itens."
+    "deleteTagDescription": "“{{name}}” será retirada de {{usage}}. Nada mais muda nesses itens.",
+    "logo": {
+      "upload": "Carregar um logótipo para {{name}}",
+      "replace": "Substituir o logótipo de {{name}}",
+      "remove": "Remover o logótipo de {{name}}",
+      "bundled": "{{name}} usa o logótipo incluído na app",
+      "uploaded": "Logótipo carregado",
+      "removed": "Logótipo removido",
+      "error": "Não foi possível carregar o logótipo. Use uma imagem PNG, JPEG ou WebP até 5 MB.",
+      "removeError": "Não foi possível remover o logótipo. Tente novamente."
+    }
   },
   "public": {
     "subNavLabel": "Coleção partilhada",
@@ -730,6 +740,12 @@
     "sort": {
       "mostVehicles": "Mais veículos",
       "mostSets": "Mais conjuntos"
+    }
+  },
+  "uploads": {
+    "hint": {
+      "photo": "Recomendado: 1280 × 960 px ou mais (4:3). Fotos maiores são reduzidas, nunca cortadas. Até 20 MB.",
+      "logo": "Recomendado: PNG com fundo transparente, com 800 px de largura ou mais. Recortado ao logótipo e reduzido a 800 px de largura. Até 5 MB."
     }
   }
 }

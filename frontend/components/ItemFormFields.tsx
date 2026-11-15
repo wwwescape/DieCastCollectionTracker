@@ -20,6 +20,7 @@ import { resolveThumbnailUrl } from "../api/client";
 import type { CatalogSourceId } from "../api/catalog";
 import { CAR_CONDITIONS, type CarCondition, type CarStatus, type LinkedItem } from "../api/types";
 import { useTags } from "../hooks/useTags";
+import ImageUploadHint from "./ImageUploadHint";
 import { useUploadCarImage } from "../hooks/useUploads";
 import { useCurrency } from "../theme/CurrencyProvider";
 import { CATALOG_SOURCE_LABELS } from "../utils/catalog";
@@ -256,39 +257,47 @@ export function PhotoUploadField({
   };
 
   return (
-    <Stack direction="row" spacing={2} alignItems="center">
-      <Button
-        component="label"
-        variant="outlined"
-        startIcon={uploadImage.isPending ? <CircularProgress size={16} /> : <CloudUploadIcon />}
-        disabled={uploadImage.isPending}
-      >
-        {value ? t("common.replacePhoto") : t("common.uploadPhoto")}
-        <input type="file" accept="image/*" hidden onChange={(event) => void handleChange(event)} />
-      </Button>
-      {value ? (
-        <>
-          <Box
-            component="img"
-            src={resolveThumbnailUrl(value) ?? undefined}
-            alt={previewAlt}
-            sx={{
-              height: 56,
-              width: "auto",
-              borderRadius: 1,
-              border: "1px solid",
-              borderColor: "divider",
-            }}
+    <Box>
+      <Stack direction="row" spacing={2} alignItems="center">
+        <Button
+          component="label"
+          variant="outlined"
+          startIcon={uploadImage.isPending ? <CircularProgress size={16} /> : <CloudUploadIcon />}
+          disabled={uploadImage.isPending}
+        >
+          {value ? t("common.replacePhoto") : t("common.uploadPhoto")}
+          <input
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(event) => void handleChange(event)}
           />
-          <IconButton
-            size="small"
-            aria-label={t("common.removePhoto")}
-            onClick={() => onChange("")}
-          >
-            <CloseIcon fontSize="small" />
-          </IconButton>
-        </>
-      ) : null}
-    </Stack>
+        </Button>
+        {value ? (
+          <>
+            <Box
+              component="img"
+              src={resolveThumbnailUrl(value) ?? undefined}
+              alt={previewAlt}
+              sx={{
+                height: 56,
+                width: "auto",
+                borderRadius: 1,
+                border: "1px solid",
+                borderColor: "divider",
+              }}
+            />
+            <IconButton
+              size="small"
+              aria-label={t("common.removePhoto")}
+              onClick={() => onChange("")}
+            >
+              <CloseIcon fontSize="small" />
+            </IconButton>
+          </>
+        ) : null}
+      </Stack>
+      <ImageUploadHint sx={{ mt: 1 }} />
+    </Box>
   );
 }

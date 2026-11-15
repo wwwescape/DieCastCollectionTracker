@@ -15,6 +15,7 @@ import type { CarPhoto } from "../api/types";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
 import { useTranslation } from "react-i18next";
 import { Section } from "./Detail";
+import ImageUploadHint from "./ImageUploadHint";
 import PhotoImg from "./PhotoImg";
 
 // Shared by vehicles and sets: the caller passes that item's photo mutations.
@@ -190,6 +191,7 @@ const PhotoGallery = ({
           ))}
         </Box>
       )}
+      <ImageUploadHint sx={{ mt: 1.5 }} />
     </Section>
   );
 };

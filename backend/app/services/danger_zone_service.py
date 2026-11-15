@@ -139,24 +139,34 @@ def _remove_unused_photos(db: Session) -> int:
     """Uploaded photo files no vehicle or set uses (left by deletes, resets and restores),
     except ones uploaded in the last hour, which may belong to an add form not yet saved."""
     folder = upload_service.CAR_IMAGES_DIR
-    if not folder.is_dir():
-        return 0
-    used = {
-        url.removeprefix(upload_service.CAR_IMAGES_URL_PREFIX)
-        for model in (CarPhoto, SetPhoto)
-        for url in db.scalars(select(model.url))
-        if url and url.startswith(upload_service.CAR_IMAGES_URL_PREFIX)
-    }
     cutoff = time.time() - UNUSED_PHOTO_MIN_AGE_SECONDS
     removed = 0
-    for path in folder.iterdir():
-        if path.is_file() and path.name not in used and path.stat().st_mtime < cutoff:
-            path.unlink(missing_ok=True)
-            removed += 1
+    if folder.is_dir():
+        used = {
+            url.removeprefix(upload_service.CAR_IMAGES_URL_PREFIX)
+            for model in (CarPhoto, SetPhoto)
+            for url in db.scalars(select(model.url))
+            if url and url.startswith(upload_service.CAR_IMAGES_URL_PREFIX)
+        }
+        for path in folder.iterdir():
+            if path.is_file() and path.name not in used and path.stat().st_mtime < cutoff:
+                path.unlink(missing_ok=True)
+                removed += 1
     # Thumbnails are remade on demand, so any whose photo is gone just go.
     thumbnails = upload_service.thumbnails_dir()
     if thumbnails.is_dir():
         for path in thumbnails.iterdir():
             if not (folder / path.name).is_file():
                 path.unlink(missing_ok=True)
+    # Manufacturer logos no manufacturer uses (left by resets and restores) count as photos too.
+    logos = upload_service.logos_dir()
+    if logos.is_dir():
+        used_logos = {
+            url.removeprefix(upload_service.LOGOS_URL_PREFIX)
+            for url in db.scalars(select(Manufacturer.logo_url).where(Manufacturer.logo_url.is_not(None)))
+        }
+        for path in logos.iterdir():
+            if path.is_file() and path.name not in used_logos and path.stat().st_mtime < cutoff:
+                path.unlink(missing_ok=True)
+                removed += 1
     return removed

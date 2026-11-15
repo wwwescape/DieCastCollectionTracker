@@ -6,11 +6,13 @@ from app.schemas.base import CamelModel
 class ManufacturerResponse(CamelModel):
     id: int
     name: str
+    logo_url: str | None = None
 
 
 class ManufacturerOverviewResponse(CamelModel):
     id: int
     name: str
+    logo_url: str | None = None
     car_count: int
     set_count: int
 

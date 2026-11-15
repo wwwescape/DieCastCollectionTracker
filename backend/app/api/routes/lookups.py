@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
+from app.api.routes.uploads import image_upload_error_to_http
 from app.models.lookups import Series
 from app.repositories import color_repository, manufacturer_repository, series_repository, vehicle_type_repository
 from app.schemas.lookups import (
@@ -21,7 +22,7 @@ from app.schemas.lookups import (
     VehicleTypeCreateRequest,
     VehicleTypeResponse,
 )
-from app.services import lookup_service
+from app.services import lookup_service, upload_service
 from app.services.exceptions import ConflictError, NotFoundError
 
 router = APIRouter(prefix="/api", tags=["lookups"], dependencies=[Depends(get_current_user)])
@@ -45,7 +46,7 @@ def list_manufacturers(db: Session = Depends(get_db)) -> list[ManufacturerRespon
 def manufacturers_overview(db: Session = Depends(get_db)) -> list[ManufacturerOverviewResponse]:
     """Collection → Manufacturers: each manufacturer with its vehicle and set counts."""
     return [
-        ManufacturerOverviewResponse(id=m.id, name=m.name, car_count=cars, set_count=sets)
+        ManufacturerOverviewResponse(id=m.id, name=m.name, logo_url=m.logo_url, car_count=cars, set_count=sets)
         for m, cars, sets in manufacturer_repository.list_with_counts(db)
     ]
 
@@ -63,8 +64,42 @@ def delete_manufacturer(manufacturer_id: int, db: Session = Depends(get_db)) -> 
     if manufacturer is None:
         raise _not_found("Manufacturer")
     _conflict_if_in_use(manufacturer_repository.is_in_use(db, manufacturer_id), "Manufacturer")
+    logo_url = manufacturer.logo_url
     manufacturer_repository.delete_manufacturer(db, manufacturer)
     db.commit()
+    upload_service.delete_logo_file(logo_url)
+
+
+@router.post("/manufacturers/{manufacturer_id}/logo", response_model=ManufacturerResponse)
+def upload_manufacturer_logo(
+    manufacturer_id: int, file: UploadFile = File(...), db: Session = Depends(get_db)
+) -> ManufacturerResponse:
+    """Settings → Lookups: a logo for a manufacturer the app has no bundled logo for. Replaces
+    any earlier upload."""
+    manufacturer = manufacturer_repository.get_by_id(db, manufacturer_id)
+    if manufacturer is None:
+        raise _not_found("Manufacturer")
+    try:
+        url = upload_service.save_logo_image(file.file)
+    except ValueError as exc:
+        raise image_upload_error_to_http(exc) from exc
+    previous = manufacturer.logo_url
+    manufacturer.logo_url = url
+    db.commit()
+    upload_service.delete_logo_file(previous)
+    return ManufacturerResponse.model_validate(manufacturer)
+
+
+@router.delete("/manufacturers/{manufacturer_id}/logo", response_model=ManufacturerResponse)
+def remove_manufacturer_logo(manufacturer_id: int, db: Session = Depends(get_db)) -> ManufacturerResponse:
+    manufacturer = manufacturer_repository.get_by_id(db, manufacturer_id)
+    if manufacturer is None:
+        raise _not_found("Manufacturer")
+    previous = manufacturer.logo_url
+    manufacturer.logo_url = None
+    db.commit()
+    upload_service.delete_logo_file(previous)
+    return ManufacturerResponse.model_validate(manufacturer)
 
 
 @router.get("/vehicle-types", response_model=list[VehicleTypeResponse])

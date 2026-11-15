@@ -31,7 +31,9 @@ import {
 } from "../hooks/useLookups";
 import { useCreateTag, useDeleteTag, useTags } from "../hooks/useTags";
 import { TOAST_OPTIONS } from "../utils/toastOptions";
+import ImageUploadHint from "../components/ImageUploadHint";
 import LookupSection from "../components/LookupSection";
+import ManufacturerLogoControl from "../components/ManufacturerLogoControl";
 import AutocompleteSelect from "../components/AutocompleteSelect";
 import Page from "../components/Page";
 import { SettingsToolbar } from "../components/SettingsLayout";
@@ -273,6 +275,10 @@ const LookupsPage = () => {
             items={(manufacturers ?? []).map((m) => ({ id: m.id, label: m.name }))}
             isLoading={mfrsLoading}
             onDelete={(id) => void handleDelete(() => deleteManufacturer.mutateAsync(id))}
+            renderActions={(item) => {
+              const manufacturer = manufacturers?.find((m) => m.id === item.id);
+              return manufacturer ? <ManufacturerLogoControl manufacturer={manufacturer} /> : null;
+            }}
           >
             <SimpleAddForm
               label={t("lookups.manufacturerName")}
@@ -280,6 +286,7 @@ const LookupsPage = () => {
               onChange={setMfrName}
               onAdd={() => void handleAddManufacturer()}
             />
+            <ImageUploadHint kind="logo" sx={{ mt: 1 }} />
           </LookupSection>
         </TabPanel>
 

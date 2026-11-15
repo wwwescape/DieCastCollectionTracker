@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from app.models.car import Car, CarTag
 from app.models.car_set import CarSet, SetTag
 from app.models.lookups import Color, Manufacturer, Series, Tag, VehicleType
+from app.services import upload_service
 from app.services.exceptions import ConflictError, NotFoundError
 
 # Column references: (item model, foreign-key column name). Tags use link tables instead.
@@ -187,7 +188,15 @@ def merge(db: Session, kind: str, source_id: int, target_id: int):
                     db.delete(series)
             db.flush()
 
+    # A merged-away manufacturer's uploaded logo passes to the target if it has none.
+    leftover_logo = None
+    if kind == "manufacturers" and source.logo_url:
+        if target.logo_url is None:
+            target.logo_url = source.logo_url
+        else:
+            leftover_logo = source.logo_url
     db.delete(source)
     db.commit()
+    upload_service.delete_logo_file(leftover_logo)
     db.refresh(target)
     return target

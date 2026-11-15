@@ -56,7 +56,8 @@ describe("manufacturerLogo", () => {
   it("matches bundled logos by name, ignoring case and punctuation", () => {
     expect(manufacturerLogo("Hot Wheels")).toBe("/manufacturers/hot-wheels.png");
     expect(manufacturerLogo("HOTWHEELS")).toBe("/manufacturers/hot-wheels.png");
-    expect(manufacturerLogo("Majorette")).toBe("/manufacturers/majorette.png");
+    expect(manufacturerLogo("Matchbox")).toBe("/manufacturers/matchbox.png");
+    expect(manufacturerLogo("Majorette")).toBeNull();
     expect(manufacturerLogo("Greenlight")).toBeNull();
   });
 });
@@ -64,10 +65,10 @@ describe("manufacturerLogo", () => {
 describe("ManufacturersPage", () => {
   it("shows each manufacturer with its logo or name and counts, and opens one", async () => {
     vi.spyOn(lookupsApi, "listManufacturerOverview").mockResolvedValue([
-      { id: 1, name: "Hot Wheels", carCount: 1, setCount: 1 },
-      { id: 2, name: "Greenlight", carCount: 2, setCount: 0 },
+      { id: 1, name: "Hot Wheels", logoUrl: null, carCount: 1, setCount: 1 },
+      { id: 2, name: "Greenlight", logoUrl: null, carCount: 2, setCount: 0 },
     ]);
-    vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([{ id: 1, name: "Hot Wheels" }]);
+    vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([{ id: 1, name: "Hot Wheels", logoUrl: null }]);
     const listCars = vi.spyOn(carsApi, "listCars").mockResolvedValue([CAR]);
     const listSets = vi.spyOn(setsApi, "listSets").mockResolvedValue([SET]);
     const user = userEvent.setup();

@@ -393,7 +393,7 @@
         "removeUnusedPhotos": {
           "name": "Quitar archivos de fotos sin usar",
           "button": "Quitar",
-          "removes": "Borra las fotos subidas que ya no usa ningún vehículo o set (restos de borrados, reinicios y restauraciones) para liberar espacio.",
+          "removes": "Borra las fotos y logotipos subidos que ya nada usa (restos de borrados, reinicios y restauraciones) para liberar espacio.",
           "keeps": "Conserva las fotos en uso y lo subido en la última hora."
         },
         "resetVehicles": {
@@ -473,7 +473,17 @@
     "nothingToMergeInto": "No hay con qué fusionar",
     "cantDeleteInUse": "En uso ({{usage}}), así que no se puede eliminar. Fusiónalo con otro.",
     "deleteTagTitle": "¿Eliminar la etiqueta «{{name}}»?",
-    "deleteTagDescription": "Se quitará «{{name}}» de {{usage}}. Los elementos no cambian en nada más."
+    "deleteTagDescription": "Se quitará «{{name}}» de {{usage}}. Los elementos no cambian en nada más.",
+    "logo": {
+      "upload": "Subir un logotipo para {{name}}",
+      "replace": "Reemplazar el logotipo de {{name}}",
+      "remove": "Quitar el logotipo de {{name}}",
+      "bundled": "{{name}} usa el logotipo incluido en la app",
+      "uploaded": "Logotipo subido",
+      "removed": "Logotipo quitado",
+      "error": "No se pudo subir el logotipo. Usa una imagen PNG, JPEG o WebP de hasta 5 MB.",
+      "removeError": "No se pudo quitar el logotipo. Inténtalo de nuevo."
+    }
   },
   "public": {
     "subNavLabel": "Colección compartida",
@@ -730,6 +740,12 @@
     "sort": {
       "mostVehicles": "Más vehículos",
       "mostSets": "Más sets"
+    }
+  },
+  "uploads": {
+    "hint": {
+      "photo": "Recomendado: 1280 × 960 px o más (4:3). Las fotos más grandes se reducen, nunca se recortan. Hasta 20 MB.",
+      "logo": "Recomendado: PNG con fondo transparente, de 800 px de ancho o más. Se recorta al logotipo y se reduce a 800 px de ancho. Hasta 5 MB."
     }
   }
 }

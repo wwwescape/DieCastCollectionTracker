@@ -82,7 +82,7 @@ describe("CarList", () => {
 
   it("renders cars returned by the API", async () => {
     vi.spyOn(carsApi, "listCars").mockResolvedValue([SAMPLE_CAR]);
-    vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([{ id: 1, name: "Hot Wheels" }]);
+    vi.spyOn(lookupsApi, "listManufacturers").mockResolvedValue([{ id: 1, name: "Hot Wheels", logoUrl: null }]);
     vi.spyOn(lookupsApi, "listVehicleTypes").mockResolvedValue([]);
     vi.spyOn(lookupsApi, "listColors").mockResolvedValue([]);
     renderCarList();

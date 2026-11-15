@@ -1,15 +1,21 @@
 import { apiClient } from "./client";
 import type { NamedLookup, Series } from "./types";
 
+export interface Manufacturer extends NamedLookup {
+  // An uploaded logo; null shows the bundled logo or the name (components/ManufacturerLogo).
+  logoUrl: string | null;
+}
+
 export interface ManufacturerOverview {
   id: number;
   name: string;
+  logoUrl: string | null;
   carCount: number;
   setCount: number;
 }
 
-export async function listManufacturers(): Promise<NamedLookup[]> {
-  return (await apiClient.get<NamedLookup[]>("/api/manufacturers")).data;
+export async function listManufacturers(): Promise<Manufacturer[]> {
+  return (await apiClient.get<Manufacturer[]>("/api/manufacturers")).data;
 }
 
 export async function listManufacturerOverview(): Promise<ManufacturerOverview[]> {
@@ -22,6 +28,16 @@ export async function createManufacturer(name: string): Promise<NamedLookup> {
 
 export async function deleteManufacturer(id: number): Promise<void> {
   await apiClient.delete(`/api/manufacturers/${id}`);
+}
+
+export async function uploadManufacturerLogo(id: number, file: File): Promise<Manufacturer> {
+  const formData = new FormData();
+  formData.append("file", file);
+  return (await apiClient.post<Manufacturer>(`/api/manufacturers/${id}/logo`, formData)).data;
+}
+
+export async function removeManufacturerLogo(id: number): Promise<Manufacturer> {
+  return (await apiClient.delete<Manufacturer>(`/api/manufacturers/${id}/logo`)).data;
 }
 
 export async function listVehicleTypes(): Promise<NamedLookup[]> {

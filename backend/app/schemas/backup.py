@@ -11,6 +11,8 @@ BACKUP_FORMAT_VERSION = 5
 class BackupManufacturer(CamelModel):
     id: int
     name: str
+    # Added after format 5 shipped; older backups simply have none.
+    logo_url: str | None = None
 
 
 class BackupSeries(CamelModel):
