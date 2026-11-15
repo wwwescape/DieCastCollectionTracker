@@ -65,13 +65,13 @@ def test_dashboard_by_vehicle_type(auth_client):
 
 
 def test_dashboard_recently_added(auth_client):
-    for i in range(7):
+    for i in range(14):
         auth_client.post("/api/cars", json={"name": f"Car {i}", "manufacturer": "HW"})
 
     response = auth_client.get("/api/dashboard")
 
     body = response.json()
-    # Only the 5 most-recently-added cars are returned
-    assert len(body["recentlyAdded"]) == 5
+    # Only the 12 most-recently-added cars are returned
+    assert len(body["recentlyAdded"]) == 12
     names = {c["name"] for c in body["recentlyAdded"]}
-    assert len(names) == 5
+    assert len(names) == 12

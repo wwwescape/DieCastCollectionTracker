@@ -9,6 +9,7 @@ describe("PagedStrip", () => {
       <MemoryRouter>
         <PagedStrip
           title="Wishlist"
+          cardSize={190}
           action={<a href="/wishlist">View all</a>}
           items={[
             { key: 1, to: "/collection/vehicles/1", photo: null, title: "Bone Shaker" },

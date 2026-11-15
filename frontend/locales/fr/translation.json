@@ -725,7 +725,10 @@
       "show": "Afficher {{name}}",
       "reset": "Réinitialiser",
       "saveError": "Impossible d'enregistrer la disposition de l'aperçu. Réessayez.",
-      "allHidden": "Toutes les sections sont masquées. Utilisez Personnaliser pour en afficher."
+      "allHidden": "Toutes les sections sont masquées. Utilisez Personnaliser pour en afficher.",
+      "cardSizeHeading": "Cartes",
+      "cardSizeDescription": "La taille des cartes de Ajouts récents et Liste de souhaits. Chaque rangée en affiche autant qu'il en tient, le même nombre que les pages de listes à cette taille. Enregistré dans ce navigateur.",
+      "sectionsHeading": "Sections"
     }
   },
   "browse": {

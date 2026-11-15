@@ -725,7 +725,10 @@
       "show": "Mostrar {{name}}",
       "reset": "Repor o padrão",
       "saveError": "Não foi possível guardar a disposição da vista geral. Tente novamente.",
-      "allHidden": "Todas as secções estão ocultas. Use Personalizar para mostrar algumas."
+      "allHidden": "Todas as secções estão ocultas. Use Personalizar para mostrar algumas.",
+      "cardSizeHeading": "Cartões",
+      "cardSizeDescription": "O tamanho dos cartões de Adicionados recentemente e Lista de desejos. Cada linha mostra quantos couberem, o mesmo número das páginas de listas nesse tamanho. Guardado neste navegador.",
+      "sectionsHeading": "Secções"
     }
   },
   "browse": {

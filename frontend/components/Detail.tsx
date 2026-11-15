@@ -5,6 +5,7 @@ import Typography from "@mui/material/Typography";
 import type { CarStatus } from "../api/types";
 import OwnershipBadges from "./OwnershipBadges";
 import type { Crumb } from "./Page";
+import { COLUMN_GAP_PX } from "./cardColumns";
 import PhotoImg from "./PhotoImg";
 import { openedFrom } from "../utils/navState";
 
@@ -269,12 +270,15 @@ interface StripProps {
   scrollRef?: Ref<HTMLDivElement>;
   onScroll?: () => void;
   paged?: boolean;
+  // Paged: cards per page (useCardColumns), each an equal share of the row; null until
+  // measured, when tiles fall back to 180 px.
+  columns?: number | null;
 }
 
 // Small photo tiles. Paged (PagedStrip, the Overview's rows): one sideways row turned with
 // < and >. Otherwise (a detail page's more from the series, linked sets...) the tiles wrap into
 // a grid, as VideoGameTrackarr's add-ons do: two columns on phones, then as many as fit.
-export const Strip = ({ items, scrollRef, onScroll, paged }: StripProps) => {
+export const Strip = ({ items, scrollRef, onScroll, paged, columns }: StripProps) => {
   const location = useLocation();
   return (
     <Box
@@ -282,11 +286,13 @@ export const Strip = ({ items, scrollRef, onScroll, paged }: StripProps) => {
       onScroll={onScroll}
       sx={{
         display: "grid",
-        gap: 1.5,
+        gap: paged ? `${COLUMN_GAP_PX}px` : 1.5,
         ...(paged
           ? {
               gridAutoFlow: "column",
-              gridAutoColumns: 180,
+              gridAutoColumns: columns
+                ? `calc((100% - ${(columns - 1) * COLUMN_GAP_PX}px) / ${columns})`
+                : 180,
               overflowX: "auto",
               pb: 0.75,
               scrollSnapType: "x mandatory",

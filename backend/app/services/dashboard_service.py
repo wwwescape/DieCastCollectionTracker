@@ -9,6 +9,11 @@ from app.schemas.car import car_from_orm
 from app.schemas.dashboard import DashboardStats, ManufacturerStat, VehicleTypeStat
 
 
+# The Overview's Recently added row: enough to fill a couple of pages at the smallest card size,
+# the same as its Wishlist row (PREVIEW in frontend/pages/OverviewPage.tsx).
+RECENTLY_ADDED_COUNT = 12
+
+
 def get_dashboard_stats(db: Session) -> DashboardStats:
     total_cars = db.scalar(select(func.count()).select_from(Car)) or 0
     # Wishlist rows carry a quantity too (how many you want), so only owned rows count as pieces
@@ -57,7 +62,7 @@ def get_dashboard_stats(db: Session) -> DashboardStats:
                 joinedload(Car.photos),
             )
             .order_by(Car.created_at.desc())
-            .limit(5)
+            .limit(RECENTLY_ADDED_COUNT)
         ).unique()
     )
     tags = tag_repository.list_tags_for_cars(db, [car.id for car in recent_cars])

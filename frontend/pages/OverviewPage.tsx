@@ -7,6 +7,7 @@ import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import { useTranslation } from "react-i18next";
 import { resolveThumbnailUrl } from "../api/client";
+import { CARD_SIZE_DEFAULT } from "../components/CollectionListToolbar";
 import CustomizeOverviewDialog from "../components/CustomizeOverviewDialog";
 import { Section } from "../components/Detail";
 import PagedStrip from "../components/PagedStrip";
@@ -15,6 +16,7 @@ import Page, { ToolbarButton } from "../components/Page";
 import { StatTile, TileGrid } from "../components/Stats";
 import { useCarList } from "../hooks/useCars";
 import { useDashboard } from "../hooks/useDashboard";
+import { useLocalPreference } from "../hooks/useLocalPreference";
 import { useOverviewLayout, type OverviewSectionKey } from "../hooks/useOverviewLayout";
 import { useSetList } from "../hooks/useSets";
 import { useCurrency } from "../theme/CurrencyProvider";
@@ -26,7 +28,8 @@ const PREVIEW = 12;
 
 // The home page: headline numbers, quick add, recently added, a wishlist preview and the gaps
 // worth filling in, each linking to the filtered list. Deeper analysis lives on Insights.
-// Customize hides and reorders the sections (saved on the account; see useOverviewLayout).
+// Customize sets the card size of the rows of cards (this browser) and hides and reorders the
+// sections (saved on the account; see useOverviewLayout).
 const OverviewPage = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -35,6 +38,9 @@ const OverviewPage = () => {
   const { data: sets = [] } = useSetList();
   const { data: stats } = useDashboard();
   const { layout, save } = useOverviewLayout();
+  // The card size of the rows of cards (Recently added, Wishlist): per browser, like the list
+  // pages' card sizes, while the layout is saved on the account.
+  const [cardSize, setCardSize] = useLocalPreference("overview.cardSize", CARD_SIZE_DEFAULT);
   const [customizing, setCustomizing] = useState(false);
 
   const owned = cars.filter((car) => car.status === "owned");
@@ -114,6 +120,7 @@ const OverviewPage = () => {
     recentlyAdded: stats?.recentlyAdded.length ? (
       <PagedStrip
         title={t("insights.stats.recentlyAdded")}
+        cardSize={cardSize}
         items={stats.recentlyAdded.slice(0, PREVIEW).map((car) => ({
           key: car.id,
           to: `/collection/vehicles/${car.id}`,
@@ -127,6 +134,7 @@ const OverviewPage = () => {
     wishlist: wishlist.length ? (
       <PagedStrip
         title={t("overview.wishlist")}
+        cardSize={cardSize}
         action={
           <ButtonBase
             onClick={showWishlist}
@@ -166,7 +174,8 @@ const OverviewPage = () => {
     ),
   };
 
-  const saveLayout = async (next: typeof layout) => {
+  const saveLayout = async (next: typeof layout, nextCardSize: number) => {
+    setCardSize(nextCardSize);
     try {
       await save.mutateAsync(next);
       setCustomizing(false);
@@ -193,10 +202,11 @@ const OverviewPage = () => {
       {customizing ? (
         <CustomizeOverviewDialog
           layout={layout}
+          cardSize={cardSize}
           labels={labels}
           saving={save.isPending}
           onClose={() => setCustomizing(false)}
-          onSave={(next) => void saveLayout(next)}
+          onSave={(next, nextCardSize) => void saveLayout(next, nextCardSize)}
         />
       ) : null}
     </Page>

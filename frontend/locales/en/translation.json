@@ -725,7 +725,10 @@
       "show": "Show {{name}}",
       "reset": "Reset to default",
       "saveError": "Couldn't save the Overview layout. Please try again.",
-      "allHidden": "Every section is hidden. Use Customize to show some again."
+      "allHidden": "Every section is hidden. Use Customize to show some again.",
+      "cardSizeHeading": "Cards",
+      "cardSizeDescription": "How big the cards in Recently added and Wishlist are. Each row shows as many as fit, the same number as the list pages at that size. Saved in this browser.",
+      "sectionsHeading": "Sections"
     }
   },
   "browse": {
