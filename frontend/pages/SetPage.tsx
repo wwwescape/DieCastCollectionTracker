@@ -14,7 +14,6 @@ import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import SellIcon from "@mui/icons-material/SellOutlined";
 import TagIcon from "@mui/icons-material/Tag";
 import VerifiedIcon from "@mui/icons-material/VerifiedOutlined";
-import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { useTranslation } from "react-i18next";
 import { resolveAssetUrl, resolveThumbnailUrl } from "../api/client";
@@ -185,20 +184,6 @@ const SetPage = () => {
           <Typography sx={{ color: "text.secondary", whiteSpace: "pre-wrap", maxWidth: 900 }}>
             {set.notes}
           </Typography>
-        </Section>
-      ) : null}
-      {set.contents.length ? (
-        <Section title={t("sets.vehiclesIncluded")}>
-          <Box
-            component="ol"
-            sx={{ m: 0, pl: 2.5, columns: { sm: 2, lg: 3 }, color: "text.secondary" }}
-          >
-            {set.contents.map((item, index) => (
-              <Box component="li" key={index} sx={{ py: 0.25, breakInside: "avoid" }}>
-                {item}
-              </Box>
-            ))}
-          </Box>
         </Section>
       ) : null}
       <PhotoGallery

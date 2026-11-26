@@ -46,7 +46,8 @@ export interface SetFormValues {
   purchasePrice: string;
   sealed: boolean;
   vehicleIds: number[];
-  // One vehicle per line, as listed by the wiki or on the box.
+  // The wiki's list of vehicles in the pack, one per line. Not editable on the form: it's
+  // filled by Match to wiki and only feeds the pack's vehicle count.
   contents: string;
   tags: string[];
   notes: string;
@@ -284,17 +285,6 @@ const SetForm = ({
               options={vehicles ?? []}
               value={values.vehicleIds}
               onChange={(ids) => setField("vehicleIds", ids)}
-            />
-          </Grid>
-          <Grid size={12}>
-            <TextField
-              label={t("sets.vehiclesIncluded")}
-              helperText={t("sets.onePerLine")}
-              fullWidth
-              multiline
-              minRows={3}
-              value={values.contents}
-              onChange={(event) => setField("contents", event.target.value)}
             />
           </Grid>
         </FormSection>

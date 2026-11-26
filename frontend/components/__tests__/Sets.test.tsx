@@ -84,28 +84,30 @@ describe("catalogSetToFormValues", () => {
 });
 
 describe("SetForm", () => {
-  it("submits contents as a trimmed list without blank lines", async () => {
+  it("keeps the wiki's vehicle list without showing it as a field", async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
     const user = userEvent.setup();
-    withProviders(<SetForm submitLabel="Add Set" onSubmit={onSubmit} />, ["/"]);
+    withProviders(
+      <SetForm
+        initialValues={withSetFormDefaults(catalogSetToFormValues(FIRE_STATION))}
+        submitLabel="Add Set"
+        onSubmit={onSubmit}
+      />,
+      ["/"]
+    );
 
-    await user.type(screen.getByLabelText(/^name/i), "Action Garage");
-    await user.type(screen.getByLabelText(/manufacturer/i), "Matchbox");
-    await user.type(screen.getByLabelText(/vehicles included/i), " Jeep {enter}{enter}Land Rover ");
+    expect(screen.queryByLabelText(/vehicles included/i)).not.toBeInTheDocument();
     await user.click(screen.getByRole("checkbox", { name: "Still sealed" }));
     await user.click(screen.getByRole("button", { name: "Add Set" }));
 
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: "Action Garage",
-        manufacturer: "Matchbox",
-        setType: "playset",
+        name: "Fire Station",
         sealed: false,
-        contents: ["Jeep", "Land Rover"],
+        contents: ["Fire Truck (Red)", "Rescue Duty"],
       })
     );
-    // Types a fair bit of text; can pass 5s on a busy machine.
-  }, 15_000);
+  });
 
   it("links vehicles from the collection", async () => {
     vi.mocked(carsApi.listCars).mockResolvedValue([
